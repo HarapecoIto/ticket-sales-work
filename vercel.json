@@ -1,0 +1,21 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "npm run build",
+  "devCommand": "npm run dev",
+  "installCommand": "npm install",
+  "framework": "nextjs",
+  "crons": [
+    {
+      "path": "/api/batch/fetch-sales",
+      "schedule": "0 18 * * *"
+    },
+    {
+      "path": "/api/batch/deliver-line",
+      "schedule": "5 18 * * *"
+    },
+    {
+      "path": "/api/batch/copy-to-sheet",
+      "schedule": "10 18 * * *"
+    }
+  ]
+}
