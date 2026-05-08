@@ -20,10 +20,15 @@ export type Performance = {
 export type Campaign = {
   campaign_name: string;
   campaign_type: 'ByLottery' | 'FirstCome';
-  reservation_start_at: Date | null;
-  reservation_end_at: Date | null;
-  lottery_at: Date | null;
-  sales_start_at: Date | null;
+  // 抽選の場合
+  reservation_start_at: Date | null; // 抽選申込み開始日
+  reservation_end_at: Date | null; // 抽選申込み終了日
+  lottery_at: Date | null; // 抽選実施日
+  settlement_at: Date | null; // 入金期間が満了して販売数が確定する日
+  // 先着の場合
+  sales_start_at: Date | null; // 発売日
+  // 共通
+  collection_start_at: Date; // 紙チケットの発行開始日
   distribution: Distribution[];
 };
 
@@ -35,7 +40,7 @@ export type Ticket = {
 
 // 配券
 export type Distribution = {
-  play_guide: 'イープラス' | 'チケットぴあ' | 'ローソンチケット' | 'teket';
+  play_guide: 'イープラス' | 'ぴあ' | 'ローソン' | 'teket';
   ticket_names: string[];
 };
 

@@ -24,11 +24,13 @@ const PERFORMANCES: Performance[] = [
 const CAMPAIGNS: Campaign[] = [
   {
     campaign_name: '一般先行',
-    campaign_type: 'ByLottery',
-    reservation_start_at: new Date('2026-05-01T10:00:00'), // dummy
-    reservation_end_at: new Date('2026-05-10T23:59:00'), // dummy
-    lottery_at: new Date('2026-05-15T12:00:00'), // dummy
-    sales_start_at: new Date('2026-05-20T10:00:00'), // dummy
+    campaign_type: 'ByLottery', // 抽選販売
+    reservation_start_at: new Date('2026-03-14T00:00:00'), // 予約受付開始日
+    reservation_end_at: new Date('2026-03-26T23:59:00'), // 予約受付終了日
+    lottery_at: new Date('2026-03-27T12:00:00'), // 抽選実施日
+    settlement_at: new Date('2026-04-03T23:59:00'), // 入金期間が満了して販売数が確定する日
+    sales_start_at: null,
+    collection_start_at: new Date('2026-04-04T00:00:00'), // 紙チケットの発行開始日
     distribution: [
       { play_guide: 'イープラス', ticket_names: ['VIP席'] },
       { play_guide: 'イープラス', ticket_names: ['一般席'] },
@@ -37,13 +39,15 @@ const CAMPAIGNS: Campaign[] = [
   {
     campaign_name: '一般発売',
     campaign_type: 'FirstCome',
-    reservation_start_at: new Date('2026-05-01T10:00:00'), // dummy
-    reservation_end_at: new Date('2026-05-10T23:59:00'), // dummy
-    lottery_at: new Date('2026-05-15T12:00:00'), // dummy
-    sales_start_at: new Date('2026-05-20T10:00:00'), // dummy
+    reservation_start_at: null,
+    reservation_end_at: null,
+    lottery_at: null,
+    settlement_at: null,
+    sales_start_at: new Date('2026-04-01T10:00:00'), // 発売日
+    collection_start_at: new Date('2026-04-04T00:00:00'), // 紙チケットの発行開始日
     distribution: [
       { play_guide: 'イープラス', ticket_names: ['一般席'] },
-      { play_guide: 'チケットぴあ', ticket_names: ['一般席'] },
+      { play_guide: 'ぴあ', ticket_names: ['一般席'] },
       { play_guide: 'teket', ticket_names: ['一般席'] },
     ],
   },
