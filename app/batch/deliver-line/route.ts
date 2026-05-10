@@ -1,17 +1,20 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { NextRequest, NextResponse } from 'next/server';
 import { messagingApi } from '@line/bot-sdk';
 
 const client = new messagingApi.MessagingApiClient({
   channelAccessToken: process.env.CHANNEL_ACCESS_TOKEN || '',
 });
 
-const isAuthorized = (request: VercelRequest): boolean => {
-  const cronSecret = process.env.CRON_SECRET;
-  if (!cronSecret) {
+const isAuthorized = (request: NextRequest): boolean => {
+  const isGuarded = process.env.VERCEL_ENV === 'production' || process.env.VERCEL_ENV === undefined;
+  if (!isGuarded) {
     return true;
   }
-
-  const authHeader = request.headers.authorization;
+  const cronSecret = process.env.CRON_SECRET;
+  if (!cronSecret) {
+    return false;
+  }
+  const authHeader = request.headers.get('authorization');
   return authHeader === `Bearer ${cronSecret}`;
 };
 
@@ -35,23 +38,14 @@ const execute = async (): Promise<DeliverLineResult> => {
 
   if (recipients.length === 0) {
     console.warn('[cron] deliver-line skipped: LINE_PUSH_TO is empty');
-    return {
-      sent: 0,
-      failed: 0,
-      recipients: [],
-    };
+    return { sent: 0, failed: 0, recipients: [] };
   }
 
   const messageText = process.env.LINE_PUSH_MESSAGE || '日次販売レポートを配信しました。';
   const messages: messagingApi.Message[] = [{ type: 'text', text: messageText }];
 
   const results = await Promise.allSettled(
-    recipients.map((to) =>
-      client.pushMessage({
-        to,
-        messages,
-      })
-    )
+    recipients.map((to) => client.pushMessage({ to, messages }))
   );
 
   const failed = results.filter((result) => result.status === 'rejected').length;
@@ -64,20 +58,12 @@ const execute = async (): Promise<DeliverLineResult> => {
     });
   }
 
-  return {
-    sent: recipients.length - failed,
-    failed,
-    recipients,
-  };
+  return { sent: recipients.length - failed, failed, recipients };
 };
 
-export default async function handler(request: VercelRequest, response: VercelResponse) {
-  if (request.method !== 'GET') {
-    return response.status(405).json({ ok: false, message: 'Method Not Allowed' });
-  }
-
+export async function GET(request: NextRequest) {
   if (!isAuthorized(request)) {
-    return response.status(401).json({ ok: false, message: 'Unauthorized' });
+    return NextResponse.json({ ok: false, message: 'Unauthorized' }, { status: 401 });
   }
 
   console.log('[cron] deliver-line started');
@@ -86,15 +72,12 @@ export default async function handler(request: VercelRequest, response: VercelRe
     const result = await execute();
     console.log('[cron] deliver-line finished', result);
 
-    return response.status(200).json({
-      ok: true,
-      job: 'deliver-line',
-      ...result,
-    });
+    return NextResponse.json({ ok: true, job: 'deliver-line', ...result });
   } catch (error) {
     console.error('Error in deliver-line:', error);
-    return response
-      .status(500)
-      .json({ ok: false, message: 'Failed to deliver LINE push messages' });
+    return NextResponse.json(
+      { ok: false, message: 'Failed to deliver LINE push messages' },
+      { status: 500 }
+    );
   }
 }

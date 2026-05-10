@@ -6,7 +6,7 @@ declare namespace NodeJS {
     readonly LINE_PUSH_TO: string | undefined;
     readonly LINE_PUSH_MESSAGE: string | undefined;
     readonly PORT: string | undefined;
-    readonly ENVIRONMENT: string;
+    readonly VERCEL_ENV: 'production' | 'preview' | 'development' | undefined;
     readonly DOMAIN_NAME: string;
   }
 }
