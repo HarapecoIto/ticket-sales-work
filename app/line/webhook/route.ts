@@ -50,6 +50,15 @@ const handleEvent = async (
   const replyToken = getReplyToken(event);
   if (!replyToken) return;
 
+  const sourceId = getSourceId(event);
+  if (!sourceId) {
+    await client.replyMessage({
+      replyToken,
+      messages: [{ type: 'text', text: 'ソースIDが取得できませんでした。もう一度試してぴょ。' }],
+    });
+    return;
+  }
+
   // 1時間以上前の状態は削除してクリーンアップする
   await prisma.conversation_state.deleteMany({
     where: {
@@ -59,14 +68,6 @@ const handleEvent = async (
 
   if (event.type === 'message' && event.message.type === 'text') {
     const text = event.message.text.trim();
-    const sourceId = getSourceId(event);
-    if (!sourceId) {
-      await client.replyMessage({
-        replyToken,
-        messages: [{ type: 'text', text: 'ソースIDが取得できませんでした。もう一度試してぴょ。' }],
-      });
-      return;
-    }
 
     if (text === '知らせてシエル') {
       // ここはupsertでupdated_atを明示的に更新したい
@@ -117,6 +118,10 @@ const handleEvent = async (
       });
       await prisma.conversation_state.deleteMany({
         where: { source_id: sourceId },
+      });
+      await client.replyMessage({
+        replyToken,
+        messages: [{ type: 'text', text: 'ぴよぴよ' }],
       });
       return;
     }
