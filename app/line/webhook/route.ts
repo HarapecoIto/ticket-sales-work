@@ -19,7 +19,6 @@ const getMessagingClient = (): messagingApi.MessagingApiClient | null => {
   if (!channelAccessToken) {
     return null;
   }
-
   return new messagingApi.MessagingApiClient({ channelAccessToken });
 };
 
@@ -31,7 +30,6 @@ const getReplyToken = (event: webhook.Event): string | null => {
   ) {
     return event.replyToken;
   }
-
   return null;
 };
 
