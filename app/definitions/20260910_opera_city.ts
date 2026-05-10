@@ -1,4 +1,4 @@
-import type { Concert, Performance, Campaign } from '../types/types';
+import type { Concert, Performance, Campaign } from '../types';
 
 const PERFORMANCES: Performance[] = [
   {
