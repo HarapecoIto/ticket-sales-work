@@ -58,3 +58,10 @@ model daily_sales_details {
   reservation_5            BigInt?
   sales_5                  BigInt?
 }
+
+// LINEグループと興行の対応
+model line_group_event_relations {
+  relation_id              Int      @id @default(autoincrement())
+  line_group_id            String   @db.VarChar(100)
+  event_code               String   @db.VarChar(20)
+}
