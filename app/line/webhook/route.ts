@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { messagingApi, validateSignature, webhook } from '@line/bot-sdk';
 import crypto from 'crypto';
+import prisma from '../../../lib/prisma';
+import DEFINITIONS from '../../definitions/definitions';
 
 export const runtime = 'nodejs';
 
@@ -33,34 +35,86 @@ const getReplyToken = (event: webhook.Event): string | null => {
   return null;
 };
 
+const getSourceId = (event: webhook.Event): string | null => {
+  const source = event.source;
+  if (!source) return null;
+  if (source.type === 'group') return (source as webhook.GroupSource).groupId;
+  if (source.type === 'user') return (source as webhook.UserSource).userId ?? null;
+  return null;
+};
+
 const handleEvent = async (
   event: webhook.Event,
   client: messagingApi.MessagingApiClient
 ): Promise<void> => {
   const replyToken = getReplyToken(event);
-  if (!replyToken) {
-    return;
-  }
+  if (!replyToken) return;
+
+  // 1時間以上前の状態は削除してクリーンアップする
+  await prisma.conversation_state.deleteMany({
+    where: {
+      updated_at: { lt: new Date(Date.now() - 60 * 60 * 1000) },
+    },
+  });
 
   if (event.type === 'message' && event.message.type === 'text') {
-    if (event.message.text === 'やっほ～') {
-      await client.replyMessage({
-        replyToken,
-        messages: [{ type: 'text', text: '受け付けました。' }],
-      });
-      return;
-    }
-  }
+    const text = event.message.text.trim();
+    const sourceId = getSourceId(event);
+    if (!sourceId) return;
 
-  if (event.type === 'postback') {
-    const data = event.postback.data ?? '';
-    if (data.startsWith('type=membersCard') || data.startsWith('type=specialContents')) {
+    if (text === '知らせてシエル') {
+      // ここはupsertでupdated_atを明示的に更新したい
+      await prisma.conversation_state.upsert({
+        where: { source_id: sourceId },
+        update: { state: 'waiting_for_event_code', updated_at: new Date() },
+        create: { source_id: sourceId, state: 'waiting_for_event_code', updated_at: new Date() },
+      });
       await client.replyMessage({
         replyToken,
-        messages: [{ type: 'text', text: '処理を開始しました。' }],
+        messages: [
+          { type: 'text', text: 'チケッティングデスクから発行されたイベントコードを教えてぴょ' },
+        ],
       });
       return;
     }
+
+    const state = await prisma.conversation_state.findUnique({
+      where: { source_id: sourceId },
+    });
+    if (state?.state === 'waiting_for_event_code') {
+      await prisma.conversation_state.delete({ where: { source_id: sourceId } });
+      const definition = DEFINITIONS.find((d) => d.event_code === text);
+      if (!definition) {
+        await client.replyMessage({
+          replyToken,
+          messages: [
+            {
+              type: 'text',
+              text: `イベントコード「${text}」は見つからないぴょ。もう一度確認してぴょ。`,
+            },
+          ],
+        });
+        return;
+      }
+      await prisma.line_group_event_relations.createMany({
+        data: [{ line_group_id: sourceId, event_code: definition.event_code }],
+        skipDuplicates: true,
+      });
+      await client.replyMessage({
+        replyToken,
+        messages: [
+          {
+            type: 'text',
+            text: `毎日18時過ぎに${definition.name}のチケット販売状況を知らせるよ。`,
+          },
+        ],
+      });
+      await prisma.conversation_state.deleteMany({
+        where: { source_id: sourceId },
+      });
+      return;
+    }
+    return;
   }
 };
 
