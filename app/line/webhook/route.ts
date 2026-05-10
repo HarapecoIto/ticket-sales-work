@@ -60,7 +60,13 @@ const handleEvent = async (
   if (event.type === 'message' && event.message.type === 'text') {
     const text = event.message.text.trim();
     const sourceId = getSourceId(event);
-    if (!sourceId) return;
+    if (!sourceId) {
+      await client.replyMessage({
+        replyToken,
+        messages: [{ type: 'text', text: 'ソースIDが取得できませんでした。もう一度試してぴょ。' }],
+      });
+      return;
+    }
 
     if (text === '知らせてシエル') {
       // ここはupsertでupdated_atを明示的に更新したい
