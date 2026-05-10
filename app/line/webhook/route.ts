@@ -47,8 +47,12 @@ const handleEvent = async (
   event: webhook.Event,
   client: messagingApi.MessagingApiClient
 ): Promise<void> => {
+  console.log(`[line] handling event: type=${event.type}`);
+
   const replyToken = getReplyToken(event);
   if (!replyToken) return;
+
+  console.log(`[line] got replyToken: ${replyToken}`);
 
   const sourceId = getSourceId(event);
   if (!sourceId) {
@@ -58,6 +62,8 @@ const handleEvent = async (
     });
     return;
   }
+
+  console.log(`[line] got sourceId: ${sourceId}`);
 
   // 1時間以上前の状態は削除してクリーンアップする
   await prisma.conversation_state.deleteMany({
@@ -70,11 +76,9 @@ const handleEvent = async (
     const text = event.message.text.trim();
 
     if (text === '知らせてシエル') {
-      // ここはupsertでupdated_atを明示的に更新したい
-      await prisma.conversation_state.upsert({
-        where: { source_id: sourceId },
-        update: { state: 'waiting_for_event_code', updated_at: new Date() },
-        create: { source_id: sourceId, state: 'waiting_for_event_code', updated_at: new Date() },
+      await prisma.conversation_state.createMany({
+        data: [{ source_id: sourceId, state: 'waiting_for_event_code' }],
+        skipDuplicates: true,
       });
       await client.replyMessage({
         replyToken,
@@ -134,47 +138,57 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
-  console.log('[line] webhook POST received');
+  const traceId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  console.log(`[line][${traceId}] webhook POST received (route=v2026-05-11-1)`);
 
   const rawBody = await request.text();
   const signature = request.headers.get('x-line-signature') || '';
 
-  console.log('[line] checking signature...');
+  console.log(`[line][${traceId}] checking signature...`);
   const isSignatureOk: boolean = await checkLineSignature(rawBody, signature);
   if (!isSignatureOk) {
-    console.warn('[line] webhook rejected: Invalid signature');
+    console.warn(`[line][${traceId}] webhook rejected: Invalid signature`);
     return NextResponse.json({ ok: false, message: 'Invalid signature' }, { status: 401 });
   }
-  console.log('[line] signature verified');
+  console.log(`[line][${traceId}] signature verified`);
 
   const client = getMessagingClient();
   if (!client) {
-    console.error('[line] webhook rejected: CHANNEL_ACCESS_TOKEN is not set');
+    console.error(`[line][${traceId}] webhook rejected: CHANNEL_ACCESS_TOKEN is not set`);
     return NextResponse.json({ ok: false, message: 'Server is not configured' }, { status: 500 });
   }
 
   let payload: webhook.CallbackRequest;
   try {
-    console.log('[line] parsing payload...');
+    console.log(`[line][${traceId}] parsing payload...`);
     payload = JSON.parse(rawBody) as webhook.CallbackRequest;
-    console.log('[line] payload parsed successfully');
+    console.log(`[line][${traceId}] payload parsed successfully`);
   } catch (err) {
-    console.error('[line] webhook rejected: Failed to parse JSON', err);
+    console.error(`[line][${traceId}] webhook rejected: Failed to parse JSON`, err);
     return NextResponse.json({ ok: false, message: 'Invalid JSON body' }, { status: 400 });
   }
 
   if (!Array.isArray(payload.events)) {
-    console.error('[line] webhook rejected: events is not an array');
+    console.error(`[line][${traceId}] webhook rejected: events is not an array`);
     return NextResponse.json({ ok: false, message: 'Invalid events payload' }, { status: 400 });
   }
 
-  console.log(`[line] webhook received: events=${payload.events.length}`);
+  console.log(`[line][${traceId}] webhook received: events=${payload.events.length}`);
+  if (payload.events.length === 0) {
+    console.warn(`[line][${traceId}] no events to handle`);
+  }
 
   try {
-    await Promise.all(payload.events.map((event) => handleEvent(event, client)));
+    console.log(`[line][${traceId}] entering event loop`);
+    for (const [index, event] of payload.events.entries()) {
+      console.log(`[line][${traceId}] dispatching event[${index}]: type=${event.type}`);
+      await handleEvent(event, client);
+      console.log(`[line][${traceId}] completed event[${index}]: type=${event.type}`);
+    }
+    console.log(`[line][${traceId}] event loop completed`);
     return NextResponse.json({ ok: true, received: payload.events.length });
   } catch (error) {
-    console.error('[line] webhook handling failed', error);
+    console.error(`[line][${traceId}] webhook handling failed`, error);
     return NextResponse.json(
       { ok: false, message: 'Failed to handle webhook events' },
       { status: 500 }
