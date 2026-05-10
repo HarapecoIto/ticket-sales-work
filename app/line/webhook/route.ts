@@ -70,13 +70,18 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
-  const isSignatureOk: boolean = await checkLineSignature(
-    await request.text(),
-    request.headers.get('x-line-signature') || ''
-  );
+  console.log('[line] webhook POST received');
+
+  const rawBody = await request.text();
+  const signature = request.headers.get('x-line-signature') || '';
+
+  console.log('[line] checking signature...');
+  const isSignatureOk: boolean = await checkLineSignature(rawBody, signature);
   if (!isSignatureOk) {
+    console.warn('[line] webhook rejected: Invalid signature');
     return NextResponse.json({ ok: false, message: 'Invalid signature' }, { status: 401 });
   }
+  console.log('[line] signature verified');
 
   const client = getMessagingClient();
   if (!client) {
@@ -86,12 +91,16 @@ export async function POST(request: NextRequest) {
 
   let payload: webhook.CallbackRequest;
   try {
-    payload = JSON.parse(await request.text()) as webhook.CallbackRequest;
-  } catch {
+    console.log('[line] parsing payload...');
+    payload = JSON.parse(rawBody) as webhook.CallbackRequest;
+    console.log('[line] payload parsed successfully');
+  } catch (err) {
+    console.error('[line] webhook rejected: Failed to parse JSON', err);
     return NextResponse.json({ ok: false, message: 'Invalid JSON body' }, { status: 400 });
   }
 
   if (!Array.isArray(payload.events)) {
+    console.error('[line] webhook rejected: events is not an array');
     return NextResponse.json({ ok: false, message: 'Invalid events payload' }, { status: 400 });
   }
 
