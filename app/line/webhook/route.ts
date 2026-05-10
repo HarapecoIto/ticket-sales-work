@@ -1,7 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { messagingApi, validateSignature, webhook } from '@line/bot-sdk';
+import crypto from 'crypto';
 
 export const runtime = 'nodejs';
+
+const checkLineSignature = async (body: string, signature: string) => {
+  try {
+    const hmac = crypto.createHmac('sha256', process.env.CHANNEL_SECRET);
+    hmac.update(body);
+    return hmac.digest('base64') === signature;
+  } catch (err) {
+    return false;
+  }
+};
 
 const getMessagingClient = (): messagingApi.MessagingApiClient | null => {
   const channelAccessToken = process.env.CHANNEL_ACCESS_TOKEN;
@@ -59,22 +70,11 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
-  const channelSecret = process.env.CHANNEL_SECRET;
-  if (!channelSecret) {
-    console.error('[line] webhook rejected: CHANNEL_SECRET is not set');
-    return NextResponse.json({ ok: false, message: 'Server is not configured' }, { status: 500 });
-  }
-
-  const signature = request.headers.get('x-line-signature');
-  if (!signature) {
-    return NextResponse.json(
-      { ok: false, message: 'Missing x-line-signature header' },
-      { status: 401 }
-    );
-  }
-
-  const rawBody = await request.text();
-  if (!validateSignature(rawBody, channelSecret, signature)) {
+  const isSignatureOk: boolean = await checkLineSignature(
+    await request.text(),
+    request.headers.get('x-line-signature') || ''
+  );
+  if (!isSignatureOk) {
     return NextResponse.json({ ok: false, message: 'Invalid signature' }, { status: 401 });
   }
 
@@ -86,7 +86,7 @@ export async function POST(request: NextRequest) {
 
   let payload: webhook.CallbackRequest;
   try {
-    payload = JSON.parse(rawBody) as webhook.CallbackRequest;
+    payload = JSON.parse(await request.text()) as webhook.CallbackRequest;
   } catch {
     return NextResponse.json({ ok: false, message: 'Invalid JSON body' }, { status: 400 });
   }
