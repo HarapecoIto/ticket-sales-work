@@ -43,13 +43,13 @@ const handleEvent = async (
   }
 
   if (event.type === 'message' && event.message.type === 'text') {
-    if (event.message.text === 'Graport') {
+    if (event.message.text === 'やっほ～') {
       await client.replyMessage({
         replyToken,
         messages: [{ type: 'text', text: '受け付けました。' }],
       });
+      return;
     }
-    return;
   }
 
   if (event.type === 'postback') {
@@ -59,6 +59,7 @@ const handleEvent = async (
         replyToken,
         messages: [{ type: 'text', text: '処理を開始しました。' }],
       });
+      return;
     }
   }
 };
