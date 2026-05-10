@@ -6,11 +6,14 @@ const client = new messagingApi.MessagingApiClient({
 });
 
 const isAuthorized = (request: VercelRequest): boolean => {
-  const cronSecret = process.env.CRON_SECRET;
-  if (!cronSecret) {
+  const isGuarded = process.env.VERCEL_ENV === 'production' || process.env.VERCEL_ENV === undefined;
+  if (!isGuarded) {
     return true;
   }
-
+  const cronSecret = process.env.CRON_SECRET;
+  if (!cronSecret) {
+    return false;
+  }
   const authHeader = request.headers.authorization;
   return authHeader === `Bearer ${cronSecret}`;
 };
