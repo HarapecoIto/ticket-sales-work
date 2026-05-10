@@ -75,7 +75,7 @@ const handleEvent = async (
   if (event.type === 'message' && event.message.type === 'text') {
     const text = event.message.text.trim();
 
-    if (text === '知らせてシエル') {
+    if (text === '知らせてシエル' || text === '教えてシエル') {
       await prisma.conversation_state.createMany({
         data: [{ source_id: sourceId, state: 'waiting_for_event_code' }],
         skipDuplicates: true,
