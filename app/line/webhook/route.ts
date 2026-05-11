@@ -123,6 +123,8 @@ const handleEvent = async (
             },
           ],
         });
+        // 会話を終了する
+        await prisma.conversation_state.delete({ where: { source_id: sourceId } });
         return;
       }
       // リンクする
@@ -140,10 +142,8 @@ const handleEvent = async (
           },
         ],
       });
-      // 会話ステートを削除する
-      await prisma.conversation_state.delete({
-        where: { source_id: sourceId },
-      });
+      // 会話を終了する
+      await prisma.conversation_state.delete({ where: { source_id: sourceId } });
       return;
     }
   }
@@ -208,6 +208,8 @@ const handleEvent = async (
             { type: 'text', text: 'どのイベントを終了するかがわからないぴょ。もう一度試してぴょ' },
           ],
         });
+        // 会話を終了する
+        await prisma.conversation_state.delete({ where: { source_id: sourceId } });
         return;
       }
       const eventCode = decodeURIComponent(eventCodeMatch[1]);
@@ -220,6 +222,8 @@ const handleEvent = async (
         replyToken,
         messages: [{ type: 'text', text: `「${eventName}」のお知らせを終了するぴょ` }],
       });
+      // 会話を終了する
+      await prisma.conversation_state.delete({ where: { source_id: sourceId } });
     }
     return;
   }
