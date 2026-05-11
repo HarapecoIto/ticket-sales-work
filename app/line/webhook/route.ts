@@ -107,7 +107,7 @@ const handleEvent = async (
       await client.replyMessage({
         replyToken,
         messages: [
-          { type: 'text', text: 'お知らせを終了するイベントはどれかな？' },
+          { type: 'text', text: 'お知らせを終了するイベントは...' },
           unlinkButtonMessage([
             '柏木由紀',
             'オペラシティ',

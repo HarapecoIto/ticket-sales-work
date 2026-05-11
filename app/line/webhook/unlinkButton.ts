@@ -12,14 +12,14 @@ export const unlinkButtonMessage = (labels: string[]): messagingApi.TemplateMess
   const columns: messagingApi.CarouselColumn[] = [];
   for (let i = 0; i < actions.length; i += 3) {
     columns.push({
-      text: '',
+      text: 'どれかな？',
       defaultAction: actions[i],
       actions: actions.slice(i, i + 3),
     });
   }
   return {
     type: 'template',
-    altText: '',
+    altText: 'どれかな？',
     template: {
       type: 'carousel',
       columns: columns,
