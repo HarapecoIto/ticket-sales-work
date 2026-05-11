@@ -1,69 +1,33 @@
 import { messagingApi } from '@line/bot-sdk';
 
-export const unlinkButtonMessage = (labels: string[]): messagingApi.TemplateMessage => ({
-  type: 'template',
-  altText: 'this is a carousel template',
-  template: {
-    type: 'carousel',
-    columns: [
-      {
-        thumbnailImageUrl: 'https://example.com/bot/images/item1.jpg',
-        imageBackgroundColor: '#FFFFFF',
-        title: 'this is menu',
-        text: 'description',
-        defaultAction: {
-          type: 'uri',
-          label: 'View detail',
-          uri: 'http://example.com/page/123',
-        },
-        actions: [
-          {
-            type: 'postback',
-            label: 'Buy',
-            data: 'action=buy&itemid=111',
-          },
-          {
-            type: 'postback',
-            label: 'Add to cart',
-            data: 'action=add&itemid=111',
-          },
-          {
-            type: 'uri',
-            label: 'View detail',
-            uri: 'http://example.com/page/111',
-          },
-        ],
-      },
-      {
-        thumbnailImageUrl: 'https://example.com/bot/images/item2.jpg',
-        imageBackgroundColor: '#000000',
-        title: 'this is menu',
-        text: 'description',
-        defaultAction: {
-          type: 'uri',
-          label: 'View detail',
-          uri: 'http://example.com/page/222',
-        },
-        actions: [
-          {
-            type: 'postback',
-            label: 'Buy',
-            data: 'action=buy&itemid=222',
-          },
-          {
-            type: 'postback',
-            label: 'Add to cart',
-            data: 'action=add&itemid=222',
-          },
-          {
-            type: 'uri',
-            label: 'View detail',
-            uri: 'http://example.com/page/222',
-          },
-        ],
-      },
-    ],
-    imageAspectRatio: 'rectangle',
-    imageSize: 'cover',
-  },
-});
+export const unlinkButtonMessage = (labels: string[]): messagingApi.TemplateMessage => {
+  const actions: messagingApi.PostbackAction[] = labels.map((label) => ({
+    type: 'postback',
+    label,
+    data: `action=unlink&event=${encodeURIComponent(label)}`,
+  }));
+  while (actions.length % 3 !== 0) {
+    actions.push({ type: 'postback', label: ' ', data: 'action=none' });
+  }
+  const columns: messagingApi.CarouselColumn[] = [];
+  for (let i = 0; i < actions.length; i += 3) {
+    columns.push({
+      thumbnailImageUrl: 'https://example.com/bot/images/item1.jpg',
+      imageBackgroundColor: '#FFFFFF',
+      title: 'this is menu',
+      text: 'description',
+      defaultAction: actions[i],
+      actions: actions.slice(i, i + 3),
+    });
+  }
+  return {
+    type: 'template',
+    altText: 'this is a carousel template',
+    template: {
+      type: 'carousel',
+      columns: columns,
+      imageAspectRatio: 'rectangle',
+      imageSize: 'cover',
+    },
+  };
+};
