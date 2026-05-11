@@ -1,10 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { messagingApi, validateSignature, webhook } from '@line/bot-sdk';
+import { messagingApi, webhook } from '@line/bot-sdk';
 import crypto from 'crypto';
 import prisma from '../../../lib/prisma';
 import DEFINITIONS from '../../definitions/definitions';
+import { unlinkButtonMessage } from './unlinkButton';
 
 export const runtime = 'nodejs';
+
+enum ConversationState {
+  WaitingForEventCode = 'waiting_for_event_code',
+  WaitingForUnlink = 'waiting_for_unlink',
+}
 
 const checkLineSignature = async (body: string, signature: string) => {
   try {
@@ -58,7 +64,7 @@ const handleEvent = async (
   if (!sourceId) {
     await client.replyMessage({
       replyToken,
-      messages: [{ type: 'text', text: 'ソースIDが取得できませんでした。もう一度試してぴょ。' }],
+      messages: [{ type: 'text', text: 'ソースIDが取得できないぴょ。もう一度試してぴょ' }],
     });
     return;
   }
@@ -71,13 +77,18 @@ const handleEvent = async (
       updated_at: { lt: new Date(Date.now() - 60 * 60 * 1000) },
     },
   });
+  // 会話ステートを取得する（ない場合はnull）
+  const state = await prisma.conversation_state.findUnique({
+    where: { source_id: sourceId },
+  });
 
   if (event.type === 'message' && event.message.type === 'text') {
     const text = event.message.text.trim();
 
+    // キーワードから新しい会話へ入る
     if (text === '知らせてシエル' || text === '教えてシエル') {
       await prisma.conversation_state.createMany({
-        data: [{ source_id: sourceId, state: 'waiting_for_event_code' }],
+        data: [{ source_id: sourceId, state: ConversationState.WaitingForEventCode }],
         skipDuplicates: true,
       });
       await client.replyMessage({
@@ -88,11 +99,28 @@ const handleEvent = async (
       });
       return;
     }
+    if (text === 'シエルもういい') {
+      await prisma.conversation_state.createMany({
+        data: [{ source_id: sourceId, state: ConversationState.WaitingForUnlink }],
+        skipDuplicates: true,
+      });
+      await client.replyMessage({
+        replyToken,
+        messages: [
+          { type: 'text', text: 'お知らせを終了するイベントはどれかな？' },
+          unlinkButtonMessage([
+            '柏木由紀',
+            'オペラシティ',
+            '高輪ゲートウェイ',
+            '君の噓',
+            'シン・サマー',
+          ]),
+        ],
+      });
+      return;
+    }
 
-    const state = await prisma.conversation_state.findUnique({
-      where: { source_id: sourceId },
-    });
-    if (state?.state === 'waiting_for_event_code') {
+    if (state?.state === ConversationState.WaitingForEventCode) {
       await prisma.conversation_state.delete({ where: { source_id: sourceId } });
       const definition = DEFINITIONS.find((d) => d.event_code === text);
       if (!definition) {
@@ -101,7 +129,7 @@ const handleEvent = async (
           messages: [
             {
               type: 'text',
-              text: `イベントコード「${text}」は見つからないぴょ。もう一度確認してぴょ。`,
+              text: `イベントコード「${text}」は見つからないぴょ。もう一度確認してぴょ`,
             },
           ],
         });
@@ -116,7 +144,7 @@ const handleEvent = async (
         messages: [
           {
             type: 'text',
-            text: `毎日18時過ぎに${definition.name}のチケット販売状況を知らせるよ。`,
+            text: `毎日18時過ぎに「${definition.name}」のチケット販売状況を知らせるぴょ`,
           },
         ],
       });
