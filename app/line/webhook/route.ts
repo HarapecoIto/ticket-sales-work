@@ -100,23 +100,31 @@ const handleEvent = async (
       return;
     }
     if (text === 'シエルもういい') {
-      await prisma.conversation_state.createMany({
-        data: [{ source_id: sourceId, state: ConversationState.WaitingForUnlink }],
-        skipDuplicates: true,
-      });
-      await client.replyMessage({
-        replyToken,
-        messages: [
-          { type: 'text', text: 'お知らせを終了するイベントは...' },
-          unlinkButtonMessage([
-            '柏木由紀',
-            'オペラシティ',
-            '高輪ゲートウェイ',
-            '君の噓',
-            'シン・サマー',
-          ]),
-        ],
-      });
+      await prisma.line_group_event_relations
+        .findMany({
+          where: { line_group_id: sourceId },
+        })
+        .then(async (relations) => {
+          if (relations.length === 0) {
+            await client.replyMessage({
+              replyToken,
+              messages: [{ type: 'text', text: '今はお知らせしているイベントがないぴょ' }],
+            });
+            return;
+          }
+          await prisma.conversation_state.createMany({
+            data: [{ source_id: sourceId, state: ConversationState.WaitingForUnlink }],
+            skipDuplicates: true,
+          });
+          const eventCodes = relations.map((r) => r.event_code);
+          await client.replyMessage({
+            replyToken,
+            messages: [
+              { type: 'text', text: 'お知らせを終了するイベントは...' },
+              unlinkButtonMessage(eventCodes),
+            ],
+          });
+        });
       return;
     }
 

@@ -1,11 +1,16 @@
 import { messagingApi } from '@line/bot-sdk';
+import DEFINITIONS from '../../definitions/definitions';
 
-export const unlinkButtonMessage = (labels: string[]): messagingApi.TemplateMessage => {
-  const actions: messagingApi.PostbackAction[] = labels.map((label) => ({
-    type: 'postback',
-    label,
-    data: `action=unlink&event=${encodeURIComponent(label)}`,
-  }));
+export const unlinkButtonMessage = (eventCodes: string[]): messagingApi.TemplateMessage => {
+  const actions: messagingApi.PostbackAction[] = eventCodes.map((code) => {
+    const definition = DEFINITIONS.find((d) => d.event_code === code);
+    const label = definition ? definition.short_name : code;
+    return {
+      type: 'postback',
+      label,
+      data: `action=unlink&event=${encodeURIComponent(code)}`,
+    };
+  });
   while (actions.length % 3 !== 0) {
     actions.push({ type: 'postback', label: ' ', data: 'action=none' });
   }
