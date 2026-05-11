@@ -83,7 +83,7 @@ const handleEvent = async (
     where: { source_id: sourceId },
   });
 
-  // アンリンクの会話へ入る
+  // リンクの会話へ入る
   if (event.type === 'message' && event.message.type === 'text') {
     const text = event.message.text.trim();
     if (text === '知らせてシエル' || text === '教えてシエル') {
