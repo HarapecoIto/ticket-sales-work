@@ -56,11 +56,12 @@ const handleEvent = async (
 ): Promise<void> => {
   console.log(`[line] handling event: type=${event.type}`);
 
+  // 返信に必要なreplyTokenを取得する
   const replyToken = getReplyToken(event);
   if (!replyToken) return;
-
   console.log(`[line] got replyToken: ${replyToken}`);
 
+  // ソースIDを取得する（グループIDまたはユーザーID）
   const sourceId = getSourceId(event);
   if (!sourceId) {
     await client.replyMessage({
@@ -69,7 +70,6 @@ const handleEvent = async (
     });
     return;
   }
-
   console.log(`[line] got sourceId: ${sourceId}`);
 
   // 1時間以上前の状態は削除してクリーンアップする
@@ -83,14 +83,19 @@ const handleEvent = async (
     where: { source_id: sourceId },
   });
 
+  // アンリンクの会話へ入る
   if (event.type === 'message' && event.message.type === 'text') {
     const text = event.message.text.trim();
-
-    // キーワードから新しい会話へ入る
     if (text === '知らせてシエル' || text === '教えてシエル') {
-      await prisma.conversation_state.createMany({
-        data: [{ source_id: sourceId, state: ConversationState.WaitingForEventCode }],
-        skipDuplicates: true,
+      // 会話ステートを更新する
+      await prisma.conversation_state.upsert({
+        where: { source_id: sourceId },
+        update: { state: ConversationState.WaitingForEventCode, updated_at: new Date() },
+        create: {
+          source_id: sourceId,
+          state: ConversationState.WaitingForEventCode,
+          updated_at: new Date(),
+        },
       });
       await client.replyMessage({
         replyToken,
@@ -100,6 +105,52 @@ const handleEvent = async (
       });
       return;
     }
+  }
+
+  // リンク対象のイベントコードを受け取る
+  if (event.type === 'message' && event.message.type === 'text') {
+    if (state?.state === ConversationState.WaitingForEventCode) {
+      const text = event.message.text.trim();
+      // リンク対象のイベント
+      const definition: Concert | undefined = DEFINITIONS.find((d) => d.event_code === text);
+      if (!definition) {
+        await client.replyMessage({
+          replyToken,
+          messages: [
+            {
+              type: 'text',
+              text: `イベントコード「${text}」は見つからないぴょ。もう一度確認してぴょ`,
+            },
+          ],
+        });
+        return;
+      }
+      // リンクする
+      await prisma.line_group_event_relations.createMany({
+        data: [{ line_group_id: sourceId, event_code: definition.event_code }],
+        skipDuplicates: true,
+      });
+      // 返信する
+      await client.replyMessage({
+        replyToken,
+        messages: [
+          {
+            type: 'text',
+            text: `毎日18時過ぎに「${definition.name}」のチケット販売状況を知らせるぴょ`,
+          },
+        ],
+      });
+      // 会話ステートを削除する
+      await prisma.conversation_state.delete({
+        where: { source_id: sourceId },
+      });
+      return;
+    }
+  }
+
+  // アンリンクの会話へ入る
+  if (event.type === 'message' && event.message.type === 'text') {
+    const text = event.message.text.trim();
     if (text === 'シエルもういい') {
       await prisma.line_group_event_relations
         .findMany({
@@ -113,12 +164,20 @@ const handleEvent = async (
             });
             return;
           }
-          await prisma.conversation_state.createMany({
-            data: [{ source_id: sourceId, state: ConversationState.WaitingForUnlink }],
-            skipDuplicates: true,
+          // 会話ステートを更新する
+          await prisma.conversation_state.upsert({
+            where: { source_id: sourceId },
+            update: { state: ConversationState.WaitingForUnlink, updated_at: new Date() },
+            create: {
+              source_id: sourceId,
+              state: ConversationState.WaitingForUnlink,
+              updated_at: new Date(),
+            },
           });
-          const eventCodes = relations.map((r) => r.event_code);
-          const message = unlinkButtonMessage(eventCodes);
+          const concerts: Concert[] = relations
+            .map((r) => DEFINITIONS.find((d) => d.event_code === r.event_code)!)
+            .filter((c): c is Concert => !!c);
+          const message = unlinkButtonMessage(concerts);
           if (!message) {
             await client.replyMessage({
               replyToken,
@@ -134,46 +193,8 @@ const handleEvent = async (
       return;
     }
 
-    if (state?.state === ConversationState.WaitingForEventCode) {
-      await prisma.conversation_state.delete({ where: { source_id: sourceId } });
-      const definition = DEFINITIONS.find((d) => d.event_code === text);
-      if (!definition) {
-        await client.replyMessage({
-          replyToken,
-          messages: [
-            {
-              type: 'text',
-              text: `イベントコード「${text}」は見つからないぴょ。もう一度確認してぴょ`,
-            },
-          ],
-        });
-        return;
-      }
-      await prisma.line_group_event_relations.createMany({
-        data: [{ line_group_id: sourceId, event_code: definition.event_code }],
-        skipDuplicates: true,
-      });
-      await client.replyMessage({
-        replyToken,
-        messages: [
-          {
-            type: 'text',
-            text: `毎日18時過ぎに「${definition.name}」のチケット販売状況を知らせるぴょ`,
-          },
-        ],
-      });
-      await prisma.conversation_state.deleteMany({
-        where: { source_id: sourceId },
-      });
-      await client.replyMessage({
-        replyToken,
-        messages: [{ type: 'text', text: 'ぴよぴよ' }],
-      });
-      return;
-    }
-
+    // アンリンク対象興行が指定された際の処理
     if (state?.state === ConversationState.WaitingForUnlink) {
-      // 対象興行
       const concert: Concert | null = DEFINITIONS.find((d) => text.includes(d.short_name)) || null;
       if (!concert) {
         return;
@@ -195,31 +216,6 @@ const handleEvent = async (
       });
       const definition = DEFINITIONS.find((d) => d.event_code === eventCode);
       const eventName = definition ? definition.short_name : eventCode;
-      await client.replyMessage({
-        replyToken,
-        messages: [{ type: 'text', text: `「${eventName}」のお知らせを終了するぴょ` }],
-      });
-    }
-    return;
-  }
-
-  if (event.type === 'postback') {
-    const data = event.postback.data;
-    console.log(`[line] postback data: ${data}`);
-
-    const params = new URLSearchParams(data);
-    const action = params.get('action');
-
-    if (action === 'unlink') {
-      const eventCode = params.get('event');
-      if (!eventCode) return;
-
-      await prisma.conversation_state.deleteMany({ where: { source_id: sourceId } });
-      await prisma.line_group_event_relations.deleteMany({
-        where: { line_group_id: sourceId, event_code: eventCode },
-      });
-      const definition = DEFINITIONS.find((d) => d.event_code === eventCode);
-      const eventName = definition ? definition.name : eventCode;
       await client.replyMessage({
         replyToken,
         messages: [{ type: 'text', text: `「${eventName}」のお知らせを終了するぴょ` }],

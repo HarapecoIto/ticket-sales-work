@@ -1,20 +1,17 @@
+import { Concert } from '@/app/types';
 import { messagingApi } from '@line/bot-sdk';
-import DEFINITIONS from '../../definitions/definitions';
 
-export const unlinkButtonMessage = (eventCodes: string[]): messagingApi.TemplateMessage | null => {
-  const actions: messagingApi.PostbackAction[] = eventCodes.map((code) => {
-    const definition = DEFINITIONS.find((d) => d.event_code === code);
-    const label = definition ? definition.short_name : code;
+export const unlinkButtonMessage = (concerts: Concert[]): messagingApi.TemplateMessage => {
+  const actions: messagingApi.PostbackAction[] = concerts.map((concert) => {
+    const label = concert ? concert.short_name : '';
     return {
       type: 'postback',
       label,
-      data: `action=unlink&event=${encodeURIComponent(code)}`,
+      data: `action=unlink&event=${encodeURIComponent(concert?.event_code || '')}`,
     };
   });
   const columns: messagingApi.CarouselColumn[] = [];
-  if (actions.length === 0) {
-    return null;
-  } else if (actions.length <= 3) {
+  if (actions.length <= 3) {
     columns.push({
       text: 'どれかな？',
       defaultAction: actions[0],
