@@ -202,6 +202,31 @@ const handleEvent = async (
     }
     return;
   }
+
+  if (event.type === 'postback') {
+    const data = event.postback.data;
+    console.log(`[line] postback data: ${data}`);
+
+    const params = new URLSearchParams(data);
+    const action = params.get('action');
+
+    if (action === 'unlink') {
+      const eventCode = params.get('event');
+      if (!eventCode) return;
+
+      await prisma.conversation_state.deleteMany({ where: { source_id: sourceId } });
+      await prisma.line_group_event_relations.deleteMany({
+        where: { line_group_id: sourceId, event_code: eventCode },
+      });
+      const definition = DEFINITIONS.find((d) => d.event_code === eventCode);
+      const eventName = definition ? definition.name : eventCode;
+      await client.replyMessage({
+        replyToken,
+        messages: [{ type: 'text', text: `「${eventName}」のお知らせを終了するぴょ` }],
+      });
+    }
+    return;
+  }
 };
 
 export async function GET() {
