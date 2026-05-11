@@ -74,7 +74,7 @@ const CAMPAIGNS: Campaign[] = [
 ];
 
 const DEFINITIONS: Concert = {
-  event_code: '20260712_fujita_niigata',
+  event_code: '20260712_fujita',
   name: '藤田麻衣子 20th Anniversary Live Tour 2026',
   short_name: '藤田麻衣子',
   campaigns: CAMPAIGNS,

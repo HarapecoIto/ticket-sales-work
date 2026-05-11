@@ -58,3 +58,17 @@ model daily_sales_details {
   reservation_5            BigInt?
   sales_5                  BigInt?
 }
+
+// LINEグループと興行の対応
+model line_group_event_relations {
+  line_group_id            String   @db.VarChar(100)
+  event_code               String   @db.VarChar(20)
+  @@id([line_group_id, event_code])
+}
+
+// 会話の途中状態管理
+model conversation_state {
+  source_id   String   @id @db.VarChar(100)
+  state       String   @db.VarChar(50)
+  updated_at  DateTime @updatedAt @db.Timestamptz(6)
+}
