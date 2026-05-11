@@ -4,6 +4,7 @@ import crypto from 'crypto';
 import prisma from '../../../lib/prisma';
 import DEFINITIONS from '../../definitions/definitions';
 import { unlinkButtonMessage } from './unlinkButton';
+import { Concert } from '@/app/types';
 
 export const runtime = 'nodejs';
 
@@ -164,6 +165,35 @@ const handleEvent = async (
         messages: [{ type: 'text', text: 'ぴよぴよ' }],
       });
       return;
+    }
+
+    if (state?.state === ConversationState.WaitingForUnlink) {
+      // 対象興行
+      const concert: Concert | null = DEFINITIONS.find((d) => text.includes(d.short_name)) || null;
+      if (!concert) {
+        return;
+      }
+      await prisma.conversation_state.delete({ where: { source_id: sourceId } });
+      const eventCodeMatch = text.match(/event=([^&]+)/);
+      if (!eventCodeMatch) {
+        await client.replyMessage({
+          replyToken,
+          messages: [
+            { type: 'text', text: 'どのイベントを終了するかがわからないぴょ。もう一度試してぴょ' },
+          ],
+        });
+        return;
+      }
+      const eventCode = decodeURIComponent(eventCodeMatch[1]);
+      await prisma.line_group_event_relations.deleteMany({
+        where: { line_group_id: sourceId, event_code: eventCode },
+      });
+      const definition = DEFINITIONS.find((d) => d.event_code === eventCode);
+      const eventName = definition ? definition.short_name : eventCode;
+      await client.replyMessage({
+        replyToken,
+        messages: [{ type: 'text', text: `「${eventName}」のお知らせを終了するぴょ` }],
+      });
     }
     return;
   }
