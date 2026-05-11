@@ -12,17 +12,14 @@ export const unlinkButtonMessage = (labels: string[]): messagingApi.TemplateMess
   const columns: messagingApi.CarouselColumn[] = [];
   for (let i = 0; i < actions.length; i += 3) {
     columns.push({
-      thumbnailImageUrl: 'https://example.com/bot/images/item1.jpg',
-      imageBackgroundColor: '#FFFFFF',
-      title: 'this is menu',
-      text: 'description',
+      text: '',
       defaultAction: actions[i],
       actions: actions.slice(i, i + 3),
     });
   }
   return {
     type: 'template',
-    altText: 'this is a carousel template',
+    altText: '',
     template: {
       type: 'carousel',
       columns: columns,
