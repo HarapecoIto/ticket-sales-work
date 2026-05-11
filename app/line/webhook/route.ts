@@ -118,12 +118,17 @@ const handleEvent = async (
             skipDuplicates: true,
           });
           const eventCodes = relations.map((r) => r.event_code);
+          const message = unlinkButtonMessage(eventCodes);
+          if (!message) {
+            await client.replyMessage({
+              replyToken,
+              messages: [{ type: 'text', text: 'お知らせを終了するイベントがないぴょ' }],
+            });
+            return;
+          }
           await client.replyMessage({
             replyToken,
-            messages: [
-              { type: 'text', text: 'お知らせを終了するイベントは...' },
-              unlinkButtonMessage(eventCodes),
-            ],
+            messages: [{ type: 'text', text: 'お知らせを終了するイベントは...' }, message],
           });
         });
       return;
