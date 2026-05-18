@@ -19,6 +19,7 @@ const checkLineSignature = async (body: string, signature: string) => {
     hmac.update(body);
     return hmac.digest('base64') === signature;
   } catch (err) {
+    console.error('[line] error checking signature', err);
     return false;
   }
 };

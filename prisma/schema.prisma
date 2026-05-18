@@ -9,6 +9,7 @@ datasource db {
 
 // 日次販売データ
 // 非正規化
+// 全てのプレイガイドのサマリー
 model daily_sales {
   event_code               String   @db.VarChar(20)
   performance_short_name   String   @db.VarChar(20)
@@ -35,6 +36,7 @@ model daily_sales {
 
 // 日次販売明細
 // 非正規化
+// プレイガイドごと、
 model daily_sales_details {
   daily_sales_detail_id    Int      @id @default(autoincrement())
   event_code               String   @db.VarChar(20)               // あえて外部キーは用いない
@@ -67,6 +69,7 @@ model line_group_event_relations {
 }
 
 // 会話の途中状態管理
+// LINEでどこまで話したか
 model conversation_state {
   source_id   String   @id @db.VarChar(100)
   state       String   @db.VarChar(50)
