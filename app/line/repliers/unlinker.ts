@@ -43,11 +43,15 @@ export const unlinker = async (
           updated_at: new Date(),
         },
       });
-      return [unlinkSelectorMessage(eventCodes)];
+      return [
+        { type: 'text', text: 'お知らせを終了するのは、' },
+        unlinkSelectorMessage(eventCodes),
+      ];
     }
   }
 
   if (event.type === 'postback') {
+    // 会話ステータスを取得する
     const state = await prisma.conversation_state.findUnique({
       where: { source_id: sourceId },
     });

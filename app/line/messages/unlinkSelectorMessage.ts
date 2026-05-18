@@ -15,7 +15,7 @@ export const unlinkSelectorMessage = (eventCodes: string[]): messagingApi.Messag
   const columns: messagingApi.CarouselColumn[] = [];
   if (actions.length <= 3) {
     columns.push({
-      text: 'どれかな？',
+      text: 'どれぴょ？',
       defaultAction: actions[0],
       actions: actions,
     });
@@ -25,7 +25,7 @@ export const unlinkSelectorMessage = (eventCodes: string[]): messagingApi.Messag
     }
     for (let i = 0; i < actions.length; i += 3) {
       columns.push({
-        text: 'どれかな？',
+        text: 'どれぴょ？',
         defaultAction: actions[i],
         actions: actions.slice(i, i + 3),
       });
@@ -33,7 +33,7 @@ export const unlinkSelectorMessage = (eventCodes: string[]): messagingApi.Messag
   }
   return {
     type: 'template',
-    altText: 'どれかな？',
+    altText: 'どれぴょ？',
     template: {
       type: 'carousel',
       columns: columns,
