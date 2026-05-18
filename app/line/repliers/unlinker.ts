@@ -3,7 +3,6 @@ import { messagingApi, webhook } from '@line/bot-sdk';
 import { type Tour, ConversationState } from '@/app/types';
 import DEFINITIONS from '@/app/definitions/definitions';
 import { unlinkSelectorMessage } from '@/app/line/messages/unlinkSelectorMessage';
-import { text } from 'stream/consumers';
 
 export const unlinker = async (
   sourceId: string,
