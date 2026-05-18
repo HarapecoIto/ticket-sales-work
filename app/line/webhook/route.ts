@@ -5,7 +5,7 @@ import prisma from '../../../lib/prisma';
 import DEFINITIONS from '../../definitions/definitions';
 import { unlinkButtonMessage } from './unlinkButton';
 import { Tour } from '@/app/types';
-import { notificationMessage } from '../notificationMessage';
+import { notificationMessage, notificationMessages } from '../messages/notificationMessage';
 
 export const runtime = 'nodejs';
 
@@ -85,24 +85,22 @@ const handleEvent = async (
     where: { source_id: sourceId },
   });
 
-  // デバッグプリント
-  if (process.env.VERCEL_ENV !== 'production') {
-    if (event.type === 'message' && event.message.type === 'text') {
-      const text = event.message.text.trim();
-      if (text === 'さんぷるシエル') {
-        await client.replyMessage({
-          replyToken,
-          messages: await Promise.all(DEFINITIONS.map((d) => notificationMessage(d.event_code))),
-        });
-        return;
-      }
+  // 販売状況の通知
+  if (event.type === 'message' && event.message.type === 'text') {
+    const text = event.message.text.trim();
+    if (text === '知らせてシエル' || text === '教えてシエル') {
+      await client.replyMessage({
+        replyToken,
+        messages: await notificationMessages(sourceId),
+      });
+      return;
     }
   }
 
   // リンクの会話へ入る
   if (event.type === 'message' && event.message.type === 'text') {
     const text = event.message.text.trim();
-    if (text === '知らせてシエル' || text === '教えてシエル') {
+    if (text === 'お願いシエル') {
       // 会話ステートを更新する
       await prisma.conversation_state.upsert({
         where: { source_id: sourceId },
