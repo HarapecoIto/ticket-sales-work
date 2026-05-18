@@ -93,11 +93,6 @@ export const notificationMessage = async (eventCode: string): Promise<messagingA
     tour.concerts.map((c) => getSalesData(tour.event_code, c))
   );
 
-  const aggregatedDate: Date[] = data
-    .map((d) => d.aggregated_at)
-    .filter((d): d is Date => d !== null);
-  if (aggregatedDate.length === 0) return { type: 'text', text: 'まだ集計されてないぴょ' };
-
   const formatDate = (date: Date): string => {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
