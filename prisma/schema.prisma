@@ -63,9 +63,9 @@ model daily_sales_details {
 
 // LINEグループと興行の対応
 model line_group_event_relations {
-  line_group_id            String   @db.VarChar(100)
+  source_id                String   @db.VarChar(100)
   event_code               String   @db.VarChar(20)
-  @@id([line_group_id, event_code])
+  @@id([source_id, event_code])
 }
 
 // 会話の途中状態管理

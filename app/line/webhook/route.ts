@@ -145,7 +145,7 @@ const handleEvent = async (
       }
       // リンクする
       await prisma.line_group_event_relations.createMany({
-        data: [{ line_group_id: sourceId, event_code: definition.event_code }],
+        data: [{ source_id: sourceId, event_code: definition.event_code }],
         skipDuplicates: true,
       });
       // 返信する
@@ -170,7 +170,7 @@ const handleEvent = async (
     if (text === 'シエルもういい') {
       await prisma.line_group_event_relations
         .findMany({
-          where: { line_group_id: sourceId },
+          where: { source_id: sourceId },
         })
         .then(async (relations) => {
           if (relations.length === 0) {
@@ -230,7 +230,7 @@ const handleEvent = async (
       }
       const eventCode = decodeURIComponent(eventCodeMatch[1]);
       await prisma.line_group_event_relations.deleteMany({
-        where: { line_group_id: sourceId, event_code: eventCode },
+        where: { source_id: sourceId, event_code: eventCode },
       });
       const definition = DEFINITIONS.find((d) => d.event_code === eventCode);
       const eventName = definition ? definition.short_name : eventCode;
