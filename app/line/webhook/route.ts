@@ -92,7 +92,7 @@ const handleEvent = async (
       if (text === 'さんぷるシエル') {
         await client.replyMessage({
           replyToken,
-          messages: [await notificationMessage(DEFINITIONS[0].event_code)],
+          messages: await Promise.all(DEFINITIONS.map((d) => notificationMessage(d.event_code))),
         });
         return;
       }

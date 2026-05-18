@@ -92,30 +92,66 @@ export const notificationMessage = async (eventCode: string): Promise<messagingA
   const data: SalesData[] = await Promise.all(
     tour.concerts.map((c) => getSalesData(tour.event_code, c))
   );
+
   const aggregatedDate: Date[] = data
     .map((d) => d.aggregated_at)
     .filter((d): d is Date => d !== null);
   if (aggregatedDate.length === 0) return { type: 'text', text: 'まだ集計されてないぴょ' };
-  const date = aggregatedDate[0];
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  const hours = String(date.getHours()).padStart(2, '0');
-  const minutes = String(date.getMinutes()).padStart(2, '0');
-  const informDate = `${year}-${month}-${day} ${hours}:${minutes}`;
+
+  const formatDate = (date: Date): string => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day} ${hours}:${minutes}`;
+  };
+
   const information = (d: SalesData): string[] => {
     const info: string[] = [];
-    if (tour.concerts.length > 1) {
-      info.push(`${d.concert_short_name}`);
+    const title = tour.name + (tour.concerts.length > 1 ? : '');
+    info.push(title);
+    if (d.aggregated_at === null) {
+      info.push('  まだ集計されてないぴょ');
+      return info;
     }
+    info.push(`${formatDate(d.aggregated_at)}現在`);
     d.tickets.forEach((t) => {
       info.push(`  ${t}: 予約 ${d.reserved[t]}枚, 販売 ${d.sold[t]}枚`);
     });
     return info;
   };
+
   const lines = [];
   lines.push('本日の販売状況をお知らせするぴょ');
-  lines.push(`【${tour.short_name}】(${informDate} 現在)`);
+  lines.push('');
+  lines.push(tour.name);
+  if (tour.concerts.length === 1) {
+    // 単発公演の場合
+    if (data[0].aggregated_at === null) {
+      lines.push('  まだ集計されてないぴょ');
+    } else {
+      lines.push(`  ${formatDate(data[0].aggregated_at)}現在`);
+      data[0].tickets.forEach((t) => {
+        lines.push(`  ${t}: 予約 ${data[0].reserved[t]}枚, 販売 ${data[0].sold[t]}枚`);
+      });
+    }
+  } else {
+    // ツアー公演の場合
+    data.forEach((d) => {
+      lines.push('');
+      if (d.aggregated_at === null) {
+        lines.push(`【${d.concert_short_name}】`);
+        lines.push('  まだ集計されてないぴょ');
+      } else {
+        lines.push(`【${d.concert_short_name}】${formatDate(d.aggregated_at)}現在`);
+        d.tickets.forEach((t) => {
+          lines.push(`  ${t}: 予約 ${d.reserved[t]}枚, 販売 ${d.sold[t]}枚`);
+        });
+      }
+    });
+  }
+
   data.forEach((d) => {
     lines.push('');
     lines.push(...information(d));
