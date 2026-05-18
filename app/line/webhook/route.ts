@@ -5,6 +5,7 @@ import prisma from '../../../lib/prisma';
 import DEFINITIONS from '../../definitions/definitions';
 import { unlinkButtonMessage } from './unlinkButton';
 import { Tour } from '@/app/types';
+import { notificationMessage } from '../notificationMessage';
 
 export const runtime = 'nodejs';
 
@@ -227,6 +228,19 @@ const handleEvent = async (
       await prisma.conversation_state.delete({ where: { source_id: sourceId } });
     }
     return;
+  }
+
+  if (process.env.VERCEL_ENV !== 'production') {
+    if (event.type === 'message' && event.message.type === 'text') {
+      const text = event.message.text.trim();
+      if (text === 'さんぷるシエル') {
+        await client.replyMessage({
+          replyToken,
+          messages: [await notificationMessage(DEFINITIONS[0].event_code)],
+        });
+        return;
+      }
+    }
   }
 };
 
