@@ -55,7 +55,7 @@ export const unlinker = async (
     const state = await prisma.conversation_state.findUnique({
       where: { source_id: sourceId },
     });
-    // アンリンク町でない場合はスルーする
+    // アンリンク待ちでない場合はスルーする
     if (state?.state !== ConversationState.WaitingForEventCodeForUnlinking) {
       return null;
     }
@@ -63,7 +63,7 @@ export const unlinker = async (
     await prisma.conversation_state.delete({ where: { source_id: sourceId } });
     // 対象のイベントコードを取得する
     const data = (event as webhook.PostbackEvent).postback.data;
-    const eventCodeMatch = data.match(/event=([^&]+)/);
+    const eventCodeMatch = data.match(/event_code=([^&]+)/);
     if (!eventCodeMatch) {
       return null;
     }
