@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { messagingApi, webhook } from '@line/bot-sdk';
 import crypto from 'crypto';
-import prisma from '../../../lib/prisma';
-import DEFINITIONS from '../../definitions/definitions';
-import { unlinkButtonMessage } from './unlinkButton';
+import prisma from '@/lib/prisma';
+import DEFINITIONS from '@/app/definitions/definitions';
+import { salesNotification } from '@/app/line/repliers/salesNotification';
+import { unlinkButtonMessage } from '@/app/line/webhook/unlinkButton';
 import { Tour } from '@/app/types';
-import { notificationMessage, notificationMessages } from '../messages/notificationMessage';
 
 export const runtime = 'nodejs';
 
@@ -88,10 +88,11 @@ const handleEvent = async (
   // 販売状況の通知
   if (event.type === 'message' && event.message.type === 'text') {
     const text = event.message.text.trim();
-    if (text === '知らせてシエル' || text === '教えてシエル') {
+    const messages: messagingApi.Message[] | null = await salesNotification(sourceId, text);
+    if (messages) {
       await client.replyMessage({
         replyToken,
-        messages: await notificationMessages(sourceId),
+        messages: await messages,
       });
       return;
     }
