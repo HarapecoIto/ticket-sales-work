@@ -1,14 +1,14 @@
 // 興行
-export type Concert = {
+export type Tour = {
   event_code: string; // 社内用
   name: string;
   short_name: string;
-  performances: Performance[];
+  concerts: Concert[];
   campaigns: Campaign[];
 };
 
 // 公演
-export type Performance = {
+export type Concert = {
   name: string;
   short_name: string;
   date_at: Date;

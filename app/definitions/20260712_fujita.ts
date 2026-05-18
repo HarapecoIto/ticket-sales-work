@@ -1,6 +1,6 @@
-import type { Concert, Performance, Campaign } from '../types';
+import type { Tour, Concert, Campaign } from '../types';
 
-const PERFORMANCES: Performance[] = [
+const PERFORMANCES: Concert[] = [
   {
     name: '新潟公演',
     short_name: '新潟公演',
@@ -73,12 +73,12 @@ const CAMPAIGNS: Campaign[] = [
   },
 ];
 
-const DEFINITIONS: Concert = {
+const DEFINITIONS: Tour = {
   event_code: '20260712_fujita',
   name: '藤田麻衣子 20th Anniversary Live Tour 2026',
   short_name: '藤田麻衣子',
   campaigns: CAMPAIGNS,
-  performances: PERFORMANCES,
+  concerts: PERFORMANCES,
 };
 
 export default DEFINITIONS;
