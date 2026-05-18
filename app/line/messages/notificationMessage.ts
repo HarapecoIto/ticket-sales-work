@@ -103,21 +103,22 @@ export const notificationMessage = async (eventCode: string): Promise<messagingA
   };
 
   const lines = [];
-  lines.push('本日の販売状況をお知らせするぴょ');
-  lines.push('');
-  lines.push(tour.name);
   if (tour.concerts.length === 1) {
     // 単発公演の場合
+    lines.push('本日の販売状況をお知らせするぴょ');
+    lines.push('');
     if (data[0].aggregated_at === null) {
+      lines.push(`【${tour.name}】`);
       lines.push('  まだ集計されてないぴょ');
     } else {
-      lines.push(`  ${formatDate(data[0].aggregated_at)}現在`);
+      lines.push(`【${tour.name}】${formatDate(data[0].aggregated_at)}現在`);
       data[0].tickets.forEach((t) => {
         lines.push(`  ${t}: 予約 ${data[0].reserved[t]}枚, 販売 ${data[0].sold[t]}枚`);
       });
     }
   } else {
     // ツアー公演の場合
+    lines.push('本日の販売状況をお知らせするぴょ');
     data.forEach((d) => {
       lines.push('');
       if (d.aggregated_at === null) {
