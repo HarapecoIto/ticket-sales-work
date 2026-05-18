@@ -75,3 +75,8 @@ export type SpreadSheetInfo = {
   url: string;
   refference_cell: string;
 };
+
+export enum ConversationState {
+  WaitingForEventCodeForLinking = 'waiting_for_event_code_for_linking',
+  WaitingForEventCodeForUnlinking = 'waiting_for_event_code_for_unlinking',
+}

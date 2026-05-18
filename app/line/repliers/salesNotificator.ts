@@ -2,7 +2,7 @@ import prisma from '@/lib/prisma';
 import { messagingApi } from '@line/bot-sdk';
 import { notificationMessage } from '@/app/line/messages/notificationMessage';
 
-export const salesNotification = async (
+export const salesNotificator = async (
   sourceId: string,
   text?: string
 ): Promise<messagingApi.Message[] | null> => {

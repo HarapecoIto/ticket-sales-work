@@ -1,13 +1,15 @@
-import { Tour } from '@/app/types';
 import { messagingApi } from '@line/bot-sdk';
+import { type Tour } from '@/app/types';
+import DEFINITIONS from '@/app/definitions/definitions';
 
-export const unlinkButtonMessage = (tours: Tour[]): messagingApi.TemplateMessage => {
-  const actions: messagingApi.PostbackAction[] = tours.map((tour) => {
+export const unlinkSelectorMessage = (eventCodes: string[]): messagingApi.Message => {
+  const actions: messagingApi.PostbackAction[] = eventCodes.map((eventCode) => {
+    const tour: Tour | undefined = DEFINITIONS.find((d) => d.event_code === eventCode);
     const label = tour ? tour.short_name : '';
     return {
       type: 'postback',
       label,
-      data: `action=unlink&event=${encodeURIComponent(tour?.event_code || '')}`,
+      data: `action=unlink&event_code=${encodeURIComponent(eventCode || '')}`,
     };
   });
   const columns: messagingApi.CarouselColumn[] = [];
