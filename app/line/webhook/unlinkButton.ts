@@ -1,13 +1,13 @@
-import { Concert } from '@/app/types';
+import { Tour } from '@/app/types';
 import { messagingApi } from '@line/bot-sdk';
 
-export const unlinkButtonMessage = (concerts: Concert[]): messagingApi.TemplateMessage => {
-  const actions: messagingApi.PostbackAction[] = concerts.map((concert) => {
-    const label = concert ? concert.short_name : '';
+export const unlinkButtonMessage = (tours: Tour[]): messagingApi.TemplateMessage => {
+  const actions: messagingApi.PostbackAction[] = tours.map((tour) => {
+    const label = tour ? tour.short_name : '';
     return {
       type: 'postback',
       label,
-      data: `action=unlink&event=${encodeURIComponent(concert?.event_code || '')}`,
+      data: `action=unlink&event=${encodeURIComponent(tour?.event_code || '')}`,
     };
   });
   const columns: messagingApi.CarouselColumn[] = [];

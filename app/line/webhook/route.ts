@@ -4,7 +4,7 @@ import crypto from 'crypto';
 import prisma from '../../../lib/prisma';
 import DEFINITIONS from '../../definitions/definitions';
 import { unlinkButtonMessage } from './unlinkButton';
-import { Concert } from '@/app/types';
+import { Tour } from '@/app/types';
 
 export const runtime = 'nodejs';
 
@@ -113,7 +113,7 @@ const handleEvent = async (
     if (state?.state === ConversationState.WaitingForEventCode) {
       const text = event.message.text.trim();
       // リンク対象のイベント
-      const definition: Concert | undefined = DEFINITIONS.find((d) => d.event_code === text);
+      const definition: Tour | undefined = DEFINITIONS.find((d) => d.event_code === text);
       if (!definition) {
         await client.replyMessage({
           replyToken,
@@ -175,10 +175,10 @@ const handleEvent = async (
               updated_at: new Date(),
             },
           });
-          const concerts: Concert[] = relations
+          const tours: Tour[] = relations
             .map((r) => DEFINITIONS.find((d) => d.event_code === r.event_code)!)
-            .filter((c): c is Concert => !!c);
-          const message = unlinkButtonMessage(concerts);
+            .filter((c): c is Tour => !!c);
+          const message = unlinkButtonMessage(tours);
           if (!message) {
             await client.replyMessage({
               replyToken,
@@ -196,8 +196,8 @@ const handleEvent = async (
 
     // アンリンク対象興行が指定された際の処理
     if (state?.state === ConversationState.WaitingForUnlink) {
-      const concert: Concert | null = DEFINITIONS.find((d) => text.includes(d.short_name)) || null;
-      if (!concert) {
+      const tour: Tour | null = DEFINITIONS.find((d) => text.includes(d.short_name)) || null;
+      if (!tour) {
         return;
       }
       await prisma.conversation_state.delete({ where: { source_id: sourceId } });
