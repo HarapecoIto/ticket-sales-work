@@ -1,7 +1,7 @@
-import prisma from '../../lib/prisma';
+import prisma from '@/lib/prisma';
 import { messagingApi } from '@line/bot-sdk';
 import { Concert } from '@/app/types';
-import DEFINITIONS from '../definitions/definitions';
+import DEFINITIONS from '@/app/definitions/definitions';
 
 type SalesData = {
   concert_short_name: string;
@@ -137,4 +137,15 @@ export const notificationMessage = async (eventCode: string): Promise<messagingA
     });
   }
   return { type: 'text', text: lines.join('\n') };
+};
+
+export const notificationMessages = async (sourceId: string): Promise<messagingApi.Message[]> => {
+  const messages: messagingApi.Message[] = await Promise.all(
+    (
+      await prisma.line_group_event_relations.findMany({
+        where: { source_id: sourceId },
+      })
+    ).map((r) => notificationMessage(r.event_code))
+  );
+  return messages.length > 0 ? messages : [{ type: 'text', text: 'お知らせはないぴょ' }];
 };
