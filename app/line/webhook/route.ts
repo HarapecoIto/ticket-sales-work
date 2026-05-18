@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { messagingApi, webhook } from '@line/bot-sdk';
 import crypto from 'crypto';
 import prisma from '@/lib/prisma';
-import { salesNotificator } from '@/app/line/repliers/salesNotificator';
+import { notificator } from '@/app/line/repliers/notificator';
 import { linker } from '../repliers/linker';
 import { unlinker } from '@/app/line/repliers/unlinker';
 
@@ -80,16 +80,13 @@ const handleEvent = async (
   });
 
   // 販売状況の通知
-  if (event.type === 'message' && event.message.type === 'text') {
-    const text = event.message.text.trim();
-    const messages: messagingApi.Message[] | null = await salesNotificator(sourceId, text);
-    if (messages) {
-      await client.replyMessage({
-        replyToken,
-        messages: await messages,
-      });
-      return;
-    }
+  const notificationMessages: messagingApi.Message[] | null = await notificator(sourceId, event);
+  if (notificationMessages) {
+    await client.replyMessage({
+      replyToken,
+      messages: await notificationMessages,
+    });
+    return;
   }
 
   // リンクの会話
