@@ -9,6 +9,7 @@ export const unlinkSelectorMessage = (eventCodes: string[]): messagingApi.Messag
     return {
       type: 'postback',
       label,
+      displayText: label,
       data: `action=unlink&event_code=${encodeURIComponent(eventCode || '')}`,
     };
   });
