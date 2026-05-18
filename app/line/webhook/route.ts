@@ -230,18 +230,18 @@ const handleEvent = async (
     return;
   }
 
-  if (process.env.VERCEL_ENV !== 'production') {
-    if (event.type === 'message' && event.message.type === 'text') {
-      const text = event.message.text.trim();
-      if (text === 'さんぷるシエル') {
-        await client.replyMessage({
-          replyToken,
-          messages: [await notificationMessage(DEFINITIONS[0].event_code)],
-        });
-        return;
-      }
+  // if (process.env.VERCEL_ENV !== 'production') {
+  if (event.type === 'message' && event.message.type === 'text') {
+    const text = event.message.text.trim();
+    if (text === 'さんぷるシエル') {
+      await client.replyMessage({
+        replyToken,
+        messages: [await notificationMessage(DEFINITIONS[0].event_code)],
+      });
+      return;
     }
   }
+  // }
 };
 
 export async function GET() {
