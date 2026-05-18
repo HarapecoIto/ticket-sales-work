@@ -2,10 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { messagingApi, webhook } from '@line/bot-sdk';
 import crypto from 'crypto';
 import prisma from '@/lib/prisma';
-import DEFINITIONS from '@/app/definitions/definitions';
 import { salesNotificator } from '@/app/line/repliers/salesNotificator';
+import { linker } from '../repliers/linker';
 import { unlinker } from '@/app/line/repliers/unlinker';
-import { type Tour, ConversationState } from '@/app/types';
 
 export const runtime = 'nodejs';
 
@@ -93,69 +92,14 @@ const handleEvent = async (
     }
   }
 
-  // リンクの会話へ入る
-  if (event.type === 'message' && event.message.type === 'text') {
-    const text = event.message.text.trim();
-    if (text === 'お願いシエル') {
-      // 会話ステートを更新する
-      await prisma.conversation_state.upsert({
-        where: { source_id: sourceId },
-        update: { state: ConversationState.WaitingForEventCodeForLinking, updated_at: new Date() },
-        create: {
-          source_id: sourceId,
-          state: ConversationState.WaitingForEventCodeForLinking,
-          updated_at: new Date(),
-        },
-      });
-      await client.replyMessage({
-        replyToken,
-        messages: [
-          { type: 'text', text: 'チケッティングデスクから発行されたイベントコードを教えてぴょ' },
-        ],
-      });
-      return;
-    }
-  }
-
-  // リンク対象のイベントコードを受け取る
-  if (event.type === 'message' && event.message.type === 'text') {
-    if (state?.state === ConversationState.WaitingForEventCodeForLinking) {
-      const text = event.message.text.trim();
-      // リンク対象のイベント
-      const definition: Tour | undefined = DEFINITIONS.find((d) => d.event_code === text);
-      if (!definition) {
-        await client.replyMessage({
-          replyToken,
-          messages: [
-            {
-              type: 'text',
-              text: `イベントコード「${text}」は見つからないぴょ。もう一度確認してぴょ`,
-            },
-          ],
-        });
-        // 会話を終了する
-        await prisma.conversation_state.delete({ where: { source_id: sourceId } });
-        return;
-      }
-      // リンクする
-      await prisma.line_group_event_relations.createMany({
-        data: [{ source_id: sourceId, event_code: definition.event_code }],
-        skipDuplicates: true,
-      });
-      // 返信する
-      await client.replyMessage({
-        replyToken,
-        messages: [
-          {
-            type: 'text',
-            text: `毎日18時過ぎに「${definition.name}」のチケット販売状況を知らせるぴょ`,
-          },
-        ],
-      });
-      // 会話を終了する
-      await prisma.conversation_state.delete({ where: { source_id: sourceId } });
-      return;
-    }
+  // リンクの会話
+  const linkMessages: messagingApi.Message[] | null = await linker(sourceId, event);
+  if (linkMessages) {
+    await client.replyMessage({
+      replyToken,
+      messages: await linkMessages,
+    });
+    return;
   }
 
   // アンリンクの会話
