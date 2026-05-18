@@ -107,21 +107,6 @@ export const notificationMessage = async (eventCode: string): Promise<messagingA
     return `${year}-${month}-${day} ${hours}:${minutes}`;
   };
 
-  const information = (d: SalesData): string[] => {
-    const info: string[] = [];
-    const title = tour.name + (tour.concerts.length > 1 ? : '');
-    info.push(title);
-    if (d.aggregated_at === null) {
-      info.push('  まだ集計されてないぴょ');
-      return info;
-    }
-    info.push(`${formatDate(d.aggregated_at)}現在`);
-    d.tickets.forEach((t) => {
-      info.push(`  ${t}: 予約 ${d.reserved[t]}枚, 販売 ${d.sold[t]}枚`);
-    });
-    return info;
-  };
-
   const lines = [];
   lines.push('本日の販売状況をお知らせするぴょ');
   lines.push('');
@@ -151,10 +136,5 @@ export const notificationMessage = async (eventCode: string): Promise<messagingA
       }
     });
   }
-
-  data.forEach((d) => {
-    lines.push('');
-    lines.push(...information(d));
-  });
   return { type: 'text', text: lines.join('\n') };
 };
