@@ -10,11 +10,11 @@
       "schedule": "0 18 * * *"
     },
     {
-      "path": "/batch/deliver-line",
+      "path": "/batch/copy-to-sheet",
       "schedule": "5 18 * * *"
     },
     {
-      "path": "/batch/copy-to-sheet",
+      "path": "/batch/deliver-line",
       "schedule": "10 18 * * *"
     }
   ]
