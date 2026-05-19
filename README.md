@@ -25,4 +25,4 @@ vercelの実行環境は解凍状態で250MBまでという制限が全てのプ
 
 # マイグレーション
 
-マイグレーションは、package.jsonにあるコマンドの db:push:local で行う。
+マイグレーションは、package.jsonにあるコマンドの `db:push:local` で行う。
