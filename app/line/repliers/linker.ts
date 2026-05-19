@@ -35,11 +35,11 @@ export const linker = async (
         { type: 'text', text: 'チケッティングデスクから発行されたイベントコードを教えてぴょ' },
       ];
     } else if (state?.state === ConversationState.WaitingForEventCodeForLinking) {
+      // ここで会話を終了する
+      await prisma.conversation_state.delete({ where: { source_id: sourceId } });
       // リンク対象のイベント
       const tour: Tour | undefined = DEFINITIONS.find((d) => d.event_code === text);
       if (!tour) {
-        // 会話を終了する
-        await prisma.conversation_state.delete({ where: { source_id: sourceId } });
         return [
           {
             type: 'text',
@@ -52,8 +52,6 @@ export const linker = async (
         data: [{ source_id: sourceId, event_code: tour.event_code }],
         skipDuplicates: true,
       });
-      // 会話を終了する
-      await prisma.conversation_state.delete({ where: { source_id: sourceId } });
       return [
         {
           type: 'text',
