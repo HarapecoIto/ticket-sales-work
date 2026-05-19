@@ -1,18 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { messagingApi, webhook } from '@line/bot-sdk';
 import crypto from 'crypto';
-import prisma from '../../../lib/prisma';
-import DEFINITIONS from '../../definitions/definitions';
-import { unlinkButtonMessage } from './unlinkButton';
-import { Tour } from '@/app/types';
-import { notificationMessage } from '../notificationMessage';
+import prisma from '@/lib/prisma';
+import { notificator } from '@/app/line/repliers/notificator';
+import { linker } from '../repliers/linker';
+import { unlinker } from '@/app/line/repliers/unlinker';
 
 export const runtime = 'nodejs';
-
-enum ConversationState {
-  WaitingForEventCode = 'waiting_for_event_code',
-  WaitingForUnlink = 'waiting_for_unlink',
-}
 
 const checkLineSignature = async (body: string, signature: string) => {
   try {
@@ -85,162 +79,33 @@ const handleEvent = async (
     where: { source_id: sourceId },
   });
 
-  // デバッグプリント
-  if (process.env.VERCEL_ENV !== 'production') {
-    if (event.type === 'message' && event.message.type === 'text') {
-      const text = event.message.text.trim();
-      if (text === 'さんぷるシエル') {
-        await client.replyMessage({
-          replyToken,
-          messages: await Promise.all(DEFINITIONS.map((d) => notificationMessage(d.event_code))),
-        });
-        return;
-      }
-    }
+  // 販売状況の通知
+  const notificationMessages: messagingApi.Message[] | null = await notificator(sourceId, event);
+  if (notificationMessages) {
+    await client.replyMessage({
+      replyToken,
+      messages: await notificationMessages,
+    });
+    return;
   }
 
-  // リンクの会話へ入る
-  if (event.type === 'message' && event.message.type === 'text') {
-    const text = event.message.text.trim();
-    if (text === '知らせてシエル' || text === '教えてシエル') {
-      // 会話ステートを更新する
-      await prisma.conversation_state.upsert({
-        where: { source_id: sourceId },
-        update: { state: ConversationState.WaitingForEventCode, updated_at: new Date() },
-        create: {
-          source_id: sourceId,
-          state: ConversationState.WaitingForEventCode,
-          updated_at: new Date(),
-        },
-      });
-      await client.replyMessage({
-        replyToken,
-        messages: [
-          { type: 'text', text: 'チケッティングデスクから発行されたイベントコードを教えてぴょ' },
-        ],
-      });
-      return;
-    }
+  // リンクの会話
+  const linkMessages: messagingApi.Message[] | null = await linker(sourceId, event);
+  if (linkMessages) {
+    await client.replyMessage({
+      replyToken,
+      messages: await linkMessages,
+    });
+    return;
   }
 
-  // リンク対象のイベントコードを受け取る
-  if (event.type === 'message' && event.message.type === 'text') {
-    if (state?.state === ConversationState.WaitingForEventCode) {
-      const text = event.message.text.trim();
-      // リンク対象のイベント
-      const definition: Tour | undefined = DEFINITIONS.find((d) => d.event_code === text);
-      if (!definition) {
-        await client.replyMessage({
-          replyToken,
-          messages: [
-            {
-              type: 'text',
-              text: `イベントコード「${text}」は見つからないぴょ。もう一度確認してぴょ`,
-            },
-          ],
-        });
-        // 会話を終了する
-        await prisma.conversation_state.delete({ where: { source_id: sourceId } });
-        return;
-      }
-      // リンクする
-      await prisma.line_group_event_relations.createMany({
-        data: [{ line_group_id: sourceId, event_code: definition.event_code }],
-        skipDuplicates: true,
-      });
-      // 返信する
-      await client.replyMessage({
-        replyToken,
-        messages: [
-          {
-            type: 'text',
-            text: `毎日18時過ぎに「${definition.name}」のチケット販売状況を知らせるぴょ`,
-          },
-        ],
-      });
-      // 会話を終了する
-      await prisma.conversation_state.delete({ where: { source_id: sourceId } });
-      return;
-    }
-  }
-
-  // アンリンクの会話へ入る
-  if (event.type === 'message' && event.message.type === 'text') {
-    const text = event.message.text.trim();
-    if (text === 'シエルもういい') {
-      await prisma.line_group_event_relations
-        .findMany({
-          where: { line_group_id: sourceId },
-        })
-        .then(async (relations) => {
-          if (relations.length === 0) {
-            await client.replyMessage({
-              replyToken,
-              messages: [{ type: 'text', text: '今はお知らせしているイベントがないぴょ' }],
-            });
-            return;
-          }
-          // 会話ステートを更新する
-          await prisma.conversation_state.upsert({
-            where: { source_id: sourceId },
-            update: { state: ConversationState.WaitingForUnlink, updated_at: new Date() },
-            create: {
-              source_id: sourceId,
-              state: ConversationState.WaitingForUnlink,
-              updated_at: new Date(),
-            },
-          });
-          const tours: Tour[] = relations
-            .map((r) => DEFINITIONS.find((d) => d.event_code === r.event_code)!)
-            .filter((c): c is Tour => !!c);
-          const message = unlinkButtonMessage(tours);
-          if (!message) {
-            await client.replyMessage({
-              replyToken,
-              messages: [{ type: 'text', text: 'お知らせを終了するイベントがないぴょ' }],
-            });
-            return;
-          }
-          await client.replyMessage({
-            replyToken,
-            messages: [{ type: 'text', text: 'お知らせを終了するイベントは...' }, message],
-          });
-        });
-      return;
-    }
-
-    // アンリンク対象興行が指定された際の処理
-    if (state?.state === ConversationState.WaitingForUnlink) {
-      const tour: Tour | null = DEFINITIONS.find((d) => text.includes(d.short_name)) || null;
-      if (!tour) {
-        return;
-      }
-      await prisma.conversation_state.delete({ where: { source_id: sourceId } });
-      const eventCodeMatch = text.match(/event=([^&]+)/);
-      if (!eventCodeMatch) {
-        await client.replyMessage({
-          replyToken,
-          messages: [
-            { type: 'text', text: 'どのイベントを終了するかがわからないぴょ。もう一度試してぴょ' },
-          ],
-        });
-        // 会話を終了する
-        await prisma.conversation_state.delete({ where: { source_id: sourceId } });
-        return;
-      }
-      const eventCode = decodeURIComponent(eventCodeMatch[1]);
-      await prisma.line_group_event_relations.deleteMany({
-        where: { line_group_id: sourceId, event_code: eventCode },
-      });
-      const definition = DEFINITIONS.find((d) => d.event_code === eventCode);
-      const eventName = definition ? definition.short_name : eventCode;
-      await client.replyMessage({
-        replyToken,
-        messages: [{ type: 'text', text: `「${eventName}」のお知らせを終了するぴょ` }],
-      });
-      // 会話を終了する
-      await prisma.conversation_state.delete({ where: { source_id: sourceId } });
-    }
+  // アンリンクの会話
+  const unlinkMessages: messagingApi.Message[] | null = await unlinker(sourceId, event);
+  if (unlinkMessages) {
+    await client.replyMessage({
+      replyToken,
+      messages: await unlinkMessages,
+    });
     return;
   }
 };

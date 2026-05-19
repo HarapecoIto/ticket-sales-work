@@ -1,7 +1,7 @@
-import prisma from '../../lib/prisma';
+import prisma from '@/lib/prisma';
 import { messagingApi } from '@line/bot-sdk';
 import { Concert } from '@/app/types';
-import DEFINITIONS from '../definitions/definitions';
+import DEFINITIONS from '@/app/definitions/definitions';
 
 type SalesData = {
   concert_short_name: string;
@@ -93,11 +93,6 @@ export const notificationMessage = async (eventCode: string): Promise<messagingA
     tour.concerts.map((c) => getSalesData(tour.event_code, c))
   );
 
-  const aggregatedDate: Date[] = data
-    .map((d) => d.aggregated_at)
-    .filter((d): d is Date => d !== null);
-  if (aggregatedDate.length === 0) return { type: 'text', text: 'まだ集計されてないぴょ' };
-
   const formatDate = (date: Date): string => {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -108,21 +103,22 @@ export const notificationMessage = async (eventCode: string): Promise<messagingA
   };
 
   const lines = [];
-  lines.push('本日の販売状況をお知らせするぴょ');
-  lines.push('');
-  lines.push(tour.name);
   if (tour.concerts.length === 1) {
     // 単発公演の場合
+    lines.push('本日の販売状況をお知らせするぴょ');
+    lines.push('');
     if (data[0].aggregated_at === null) {
+      lines.push(`【${tour.name}】`);
       lines.push('  まだ集計されてないぴょ');
     } else {
-      lines.push(`  ${formatDate(data[0].aggregated_at)}現在`);
+      lines.push(`【${tour.name}】${formatDate(data[0].aggregated_at)}現在`);
       data[0].tickets.forEach((t) => {
         lines.push(`  ${t}: 予約 ${data[0].reserved[t]}枚, 販売 ${data[0].sold[t]}枚`);
       });
     }
   } else {
     // ツアー公演の場合
+    lines.push('本日の販売状況をお知らせするぴょ');
     data.forEach((d) => {
       lines.push('');
       if (d.aggregated_at === null) {

@@ -1,0 +1,67 @@
+import prisma from '@/lib/prisma';
+import { messagingApi, webhook } from '@line/bot-sdk';
+import { type Tour, ConversationState } from '@/app/types';
+import DEFINITIONS from '@/app/definitions/definitions';
+
+export const linker = async (
+  sourceId: string,
+  event: webhook.Event
+): Promise<messagingApi.Message[] | null> => {
+  // 1時間以上前の状態は削除してクリーンアップする
+  await prisma.conversation_state.deleteMany({
+    where: {
+      updated_at: { lt: new Date(Date.now() - 60 * 60 * 1000) },
+    },
+  });
+  // 会話ステータスを取得する
+  const state = await prisma.conversation_state.findUnique({
+    where: { source_id: sourceId },
+  });
+
+  if (event.type === 'message' && event.message.type === 'text') {
+    const text = event.message.text.trim();
+    if (text === 'お願いシエル') {
+      // 会話ステートを更新する
+      await prisma.conversation_state.upsert({
+        where: { source_id: sourceId },
+        update: { state: ConversationState.WaitingForEventCodeForLinking, updated_at: new Date() },
+        create: {
+          source_id: sourceId,
+          state: ConversationState.WaitingForEventCodeForLinking,
+          updated_at: new Date(),
+        },
+      });
+      return [
+        { type: 'text', text: 'チケッティングデスクから発行されたイベントコードを教えてぴょ' },
+      ];
+    } else if (state?.state === ConversationState.WaitingForEventCodeForLinking) {
+      // リンク対象のイベント
+      const tour: Tour | undefined = DEFINITIONS.find((d) => d.event_code === text);
+      if (!tour) {
+        // 会話を終了する
+        await prisma.conversation_state.delete({ where: { source_id: sourceId } });
+        return [
+          {
+            type: 'text',
+            text: `イベントコード「${text}」は見つからないぴょ。もう一度確認してぴょ`,
+          },
+        ];
+      }
+      // リンクする
+      await prisma.line_group_event_relations.createMany({
+        data: [{ source_id: sourceId, event_code: tour.event_code }],
+        skipDuplicates: true,
+      });
+      // 会話を終了する
+      await prisma.conversation_state.delete({ where: { source_id: sourceId } });
+      return [
+        {
+          type: 'text',
+          text: `毎日18時過ぎに「${tour.name}」のチケット販売状況を知らせるぴょ`,
+        },
+      ];
+    }
+  }
+
+  return null;
+};
