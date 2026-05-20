@@ -68,17 +68,6 @@ const handleEvent = async (
   }
   console.log(`[line] got sourceId: ${sourceId}`);
 
-  // 1時間以上前の状態は削除してクリーンアップする
-  await prisma.conversation_state.deleteMany({
-    where: {
-      updated_at: { lt: new Date(Date.now() - 60 * 60 * 1000) },
-    },
-  });
-  // 会話ステートを取得する（ない場合はnull）
-  const state = await prisma.conversation_state.findUnique({
-    where: { source_id: sourceId },
-  });
-
   // 販売状況の通知
   const notificationMessages: messagingApi.Message[] | null = await notificator(sourceId, event);
   if (notificationMessages) {
