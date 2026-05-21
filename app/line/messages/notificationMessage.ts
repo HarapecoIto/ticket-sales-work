@@ -13,7 +13,7 @@ type SalesData = {
 };
 
 const getSalesData = async (tour: Tour, c: Concert): Promise<SalesData> => {
-  const datails = await prisma.daily_sales_details.findMany({
+  const details = await prisma.daily_sales_details.findMany({
     where: {
       event_code: tour.event_code,
       concert_short_name: c.short_name,
@@ -21,27 +21,6 @@ const getSalesData = async (tour: Tour, c: Concert): Promise<SalesData> => {
     },
     orderBy: { aggregated_at: 'desc' },
   });
-
-  // キャンペーン名とプレイガイドの組が一致するレコードは最新を残して削除する
-  const latestDetailsMap = new Map<string, (typeof datails)[number]>();
-  datails.forEach((detail) => {
-    const key = `${detail.campaign_name}::${detail.play_guide}`;
-    if (!latestDetailsMap.has(key)) {
-      latestDetailsMap.set(key, detail);
-    }
-  });
-  const latestDetails = [...latestDetailsMap.values()];
-
-  if (latestDetails.length === 0) {
-    return {
-      concert_short_name: c.short_name,
-      date_at: c.date_at,
-      aggregated_at: null,
-      tickets: c.tickets.map((t) => t.name),
-      reserved: {} as { [key: string]: number },
-      sold: {} as { [key: string]: number },
-    };
-  }
 
   const reserved: { [key: string]: number } = {};
   const sold: { [key: string]: number } = {};
@@ -80,47 +59,62 @@ const getSalesData = async (tour: Tour, c: Concert): Promise<SalesData> => {
     }
   };
 
-  latestDetails.forEach((d) => {
-    countUpSales(
-      d.concert_short_name,
-      d.campaign_name,
-      d.play_guide,
-      d.ticket_1,
-      d.reservation_1 !== null ? Number(d.reservation_1) : null,
-      d.sales_1 !== null ? Number(d.sales_1) : null
+  // データベースには「合計」のようなレコードも混ざっているため、定義を参照して足し合わせる
+  c.distribution.forEach((dist) => {
+    const detail = details.find(
+      (d) =>
+        d.concert_short_name === c.short_name &&
+        d.campaign_name === dist.campaign_alias &&
+        d.play_guide === dist.play_guide
     );
-    countUpSales(
-      d.concert_short_name,
-      d.campaign_name,
-      d.play_guide,
-      d.ticket_2,
-      d.reservation_2 !== null ? Number(d.reservation_2) : null,
-      d.sales_2 !== null ? Number(d.sales_2) : null
-    );
-    countUpSales(
-      d.concert_short_name,
-      d.campaign_name,
-      d.play_guide,
-      d.ticket_3,
-      d.reservation_3 !== null ? Number(d.reservation_3) : null,
-      d.sales_3 !== null ? Number(d.sales_3) : null
-    );
-    countUpSales(
-      d.concert_short_name,
-      d.campaign_name,
-      d.play_guide,
-      d.ticket_4,
-      d.reservation_4 !== null ? Number(d.reservation_4) : null,
-      d.sales_4 !== null ? Number(d.sales_4) : null
-    );
-    countUpSales(
-      d.concert_short_name,
-      d.campaign_name,
-      d.play_guide,
-      d.ticket_5,
-      d.reservation_5 !== null ? Number(d.reservation_5) : null,
-      d.sales_5 !== null ? Number(d.sales_5) : null
-    );
+    if (detail) {
+      const ticket = getTicketName(
+        c.short_name,
+        dist.campaign_alias || dist.campaign,
+        dist.play_guide,
+        dist.ticket_alias || dist.ticket
+      );
+      countUpSales(
+        detail.concert_short_name,
+        detail.campaign_name,
+        detail.play_guide,
+        detail.ticket_1,
+        detail.reservation_1 !== null ? Number(detail.reservation_1) : null,
+        detail.sales_1 !== null ? Number(detail.sales_1) : null
+      );
+      countUpSales(
+        detail.concert_short_name,
+        detail.campaign_name,
+        detail.play_guide,
+        detail.ticket_2,
+        detail.reservation_2 !== null ? Number(detail.reservation_2) : null,
+        detail.sales_2 !== null ? Number(detail.sales_2) : null
+      );
+      countUpSales(
+        detail.concert_short_name,
+        detail.campaign_name,
+        detail.play_guide,
+        detail.ticket_3,
+        detail.reservation_3 !== null ? Number(detail.reservation_3) : null,
+        detail.sales_3 !== null ? Number(detail.sales_3) : null
+      );
+      countUpSales(
+        detail.concert_short_name,
+        detail.campaign_name,
+        detail.play_guide,
+        detail.ticket_4,
+        detail.reservation_4 !== null ? Number(detail.reservation_4) : null,
+        detail.sales_4 !== null ? Number(detail.sales_4) : null
+      );
+      countUpSales(
+        detail.concert_short_name,
+        detail.campaign_name,
+        detail.play_guide,
+        detail.ticket_5,
+        detail.reservation_5 !== null ? Number(detail.reservation_5) : null,
+        detail.sales_5 !== null ? Number(detail.sales_5) : null
+      );
+    }
   });
 
   const tickets = new Set<string>();
@@ -135,7 +129,7 @@ const getSalesData = async (tour: Tour, c: Concert): Promise<SalesData> => {
   return {
     concert_short_name: c.short_name,
     date_at: c.date_at,
-    aggregated_at: latestDetails[0].aggregated_at,
+    aggregated_at: details[0].aggregated_at,
     tickets: tickets.size > 0 ? Array.from(tickets) : [],
     reserved,
     sold,
