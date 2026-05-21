@@ -67,49 +67,44 @@ const getSalesData = async (tour: Tour, c: Concert): Promise<SalesData> => {
   };
 
   latestDetails.forEach((d) => {
-    if (d.reservation_1 && d.reservation_1 > 0) {
-      reserved[
-        getTicketName(d.concert_short_name, d.campaign_name, d.play_guide, d.ticket_1 + '')
-      ] += Number(d.reservation_1);
+    if (d.ticket_1 !== null && d.reservation_1 !== null) {
+      reserved[getTicketName(d.concert_short_name, d.campaign_name, d.play_guide, d.ticket_1)] +=
+        Number(d.reservation_1);
     }
-    if (d.reservation_2 && d.reservation_2 > 0) {
-      reserved[
-        getTicketName(d.concert_short_name, d.campaign_name, d.play_guide, d.ticket_2 + '')
-      ] += Number(d.reservation_2);
+    if (d.ticket_2 !== null && d.reservation_2 !== null) {
+      reserved[getTicketName(d.concert_short_name, d.campaign_name, d.play_guide, d.ticket_2)] +=
+        Number(d.reservation_2);
     }
-    if (d.reservation_3 && d.reservation_3 > 0) {
-      reserved[
-        getTicketName(d.concert_short_name, d.campaign_name, d.play_guide, d.ticket_3 + '')
-      ] += Number(d.reservation_3);
+    if (d.ticket_3 !== null && d.reservation_3 !== null) {
+      reserved[getTicketName(d.concert_short_name, d.campaign_name, d.play_guide, d.ticket_3)] +=
+        Number(d.reservation_3);
     }
-    if (d.reservation_4 && d.reservation_4 > 0) {
-      reserved[
-        getTicketName(d.concert_short_name, d.campaign_name, d.play_guide, d.ticket_4 + '')
-      ] += Number(d.reservation_4);
+    if (d.ticket_4 !== null && d.reservation_4 !== null) {
+      reserved[getTicketName(d.concert_short_name, d.campaign_name, d.play_guide, d.ticket_4)] +=
+        Number(d.reservation_4);
     }
-    if (d.reservation_5 && d.reservation_5 > 0) {
-      reserved[
-        getTicketName(d.concert_short_name, d.campaign_name, d.play_guide, d.ticket_5 + '')
-      ] += Number(d.reservation_5);
+    if (d.ticket_5 !== null && d.reservation_5 !== null) {
+      reserved[getTicketName(d.concert_short_name, d.campaign_name, d.play_guide, d.ticket_5)] +=
+        Number(d.reservation_5);
     }
-    if (d.sales_1 && d.sales_1 > 0) {
-      sold[getTicketName(d.concert_short_name, d.campaign_name, d.play_guide, d.ticket_1 + '')] +=
+    if (d.ticket_1 !== null && d.sales_1 !== null) {
+      sold[getTicketName(d.concert_short_name, d.campaign_name, d.play_guide, d.ticket_1)] +=
         Number(d.sales_1);
     }
-    if (d.sales_2 && d.sales_2 > 0) {
-      sold[getTicketName(d.concert_short_name, d.campaign_name, d.play_guide, d.ticket_2 + '')] +=
+    if (d.ticket_2 !== null && d.sales_2 !== null) {
+      sold[getTicketName(d.concert_short_name, d.campaign_name, d.play_guide, d.ticket_2)] +=
         Number(d.sales_2);
     }
-    if (d.sales_3 && d.sales_3 > 0) {
-      sold[getTicketName(d.concert_short_name, d.campaign_name, d.play_guide, d.ticket_3 + '')] +=
+    if (d.ticket_3 !== null && d.sales_3 !== null) {
+      sold[getTicketName(d.concert_short_name, d.campaign_name, d.play_guide, d.ticket_3)] +=
         Number(d.sales_3);
     }
-    if (d.sales_4 && d.sales_4 > 0) {
-      sold[getTicketName(d.concert_short_name, d.campaign_name, d.play_guide, d.ticket_4 + '')] +=
+    if (d.ticket_4 !== null && d.sales_4 !== null) {
+      sold[getTicketName(d.concert_short_name, d.campaign_name, d.play_guide, d.ticket_4)] +=
         Number(d.sales_4);
     }
-    if (d.sales_5 && d.sales_5 > 0) {
-      sold[getTicketName(d.concert_short_name, d.campaign_name, d.play_guide, d.ticket_5 + '')] +=
+    if (d.ticket_5 !== null && d.sales_5 !== null) {
+      sold[getTicketName(d.concert_short_name, d.campaign_name, d.play_guide, d.ticket_5)] +=
         Number(d.sales_5);
     }
   });
