@@ -41,7 +41,7 @@ export type Ticket = {
 // 配券
 export type Distribution = {
   campaign: string;
-  play_guide: 'イープラス' | 'ぴあ' | 'ローソン' | 'teket';
+  play_guide: 'eplus' | 'pia' | 'lawson' | 'teket';
   ticket: string;
   campaign_alias?: string;
   ticket_alias?: string;
