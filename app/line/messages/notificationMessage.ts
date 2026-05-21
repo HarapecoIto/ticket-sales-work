@@ -113,6 +113,39 @@ const getDetails = async (tour: Tour, c: Concert): Promise<SalesDetail[]> => {
   });
 };
 
+const getReserveAndSoled = (details: SalesDetail[], c: Concert) => {
+  const reserved: { [key: string]: number } = {};
+  const soled: { [key: string]: number } = {};
+  details.forEach((d) => {
+    if (d.ticket_1 !== null) {
+      if (d.reservation_1 !== null)
+        reserved[d.ticket_1] = (reserved[d.ticket_1] || 0) + d.reservation_1;
+      if (d.sales_1 !== null) soled[d.ticket_1] = (soled[d.ticket_1] || 0) + d.sales_1;
+    }
+    if (d.ticket_2 !== null) {
+      if (d.reservation_2 !== null)
+        reserved[d.ticket_2] = (reserved[d.ticket_2] || 0) + d.reservation_2;
+      if (d.sales_2 !== null) soled[d.ticket_2] = (soled[d.ticket_2] || 0) + d.sales_2;
+    }
+    if (d.ticket_3 !== null) {
+      if (d.reservation_3 !== null)
+        reserved[d.ticket_3] = (reserved[d.ticket_3] || 0) + d.reservation_3;
+      if (d.sales_3 !== null) soled[d.ticket_3] = (soled[d.ticket_3] || 0) + d.sales_3;
+    }
+    if (d.ticket_4 !== null) {
+      if (d.reservation_4 !== null)
+        reserved[d.ticket_4] = (reserved[d.ticket_4] || 0) + d.reservation_4;
+      if (d.sales_4 !== null) soled[d.ticket_4] = (soled[d.ticket_4] || 0) + d.sales_4;
+    }
+    if (d.ticket_5 !== null) {
+      if (d.reservation_5 !== null)
+        reserved[d.ticket_5] = (reserved[d.ticket_5] || 0) + d.reservation_5;
+      if (d.sales_5 !== null) soled[d.ticket_5] = (soled[d.ticket_5] || 0) + d.sales_5;
+    }
+  });
+  return { reserved, soled };
+};
+
 const formatDate = (date: Date): string => {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -122,49 +155,12 @@ const formatDate = (date: Date): string => {
   return `${year}-${month}-${day} ${hours}:${minutes}`;
 };
 
-export const notificationMessage = async (eventCode: string): Promise<messagingApi.Message> => {
-  const tour = DEFINITIONS.find((t) => t.event_code === eventCode);
-  if (!tour) return { type: 'text', text: 'イベントが見つからないぴょ' };
-  const data = await getDetails(tour, tour.concerts[0]);
-  if (data.length === 0) {
-    return { type: 'text', text: '販売状況のデータが見つからないぴょ' };
-  }
-
-  const reserved: { [key: string]: number } = {};
-  const soled: { [key: string]: number } = {};
-  data.forEach((d) => {
-    if (d.reservation_1 && d.reservation_1 > 0) {
-      reserved[d.ticket_1 + ''] = (reserved[d.ticket_1 + ''] || 0) + Number(d.reservation_1);
-    }
-    if (d.sales_1 && d.sales_1 > 0) {
-      soled[d.ticket_1 + ''] = (soled[d.ticket_1 + ''] || 0) + Number(d.sales_1);
-    }
-    if (d.reservation_2 && d.reservation_2 > 0) {
-      reserved[d.ticket_2 + ''] = (reserved[d.ticket_2 + ''] || 0) + Number(d.reservation_2);
-    }
-    if (d.sales_2 && d.sales_2 > 0) {
-      soled[d.ticket_2 + ''] = (soled[d.ticket_2 + ''] || 0) + Number(d.sales_2);
-    }
-    if (d.reservation_3 && d.reservation_3 > 0) {
-      reserved[d.ticket_3 + ''] = (reserved[d.ticket_3 + ''] || 0) + Number(d.reservation_3);
-    }
-    if (d.sales_3 && d.sales_3 > 0) {
-      soled[d.ticket_3 + ''] = (soled[d.ticket_3 + ''] || 0) + Number(d.sales_3);
-    }
-    if (d.reservation_4 && d.reservation_4 > 0) {
-      reserved[d.ticket_4 + ''] = (reserved[d.ticket_4 + ''] || 0) + Number(d.reservation_4);
-    }
-    if (d.sales_4 && d.sales_4 > 0) {
-      soled[d.ticket_4 + ''] = (soled[d.ticket_4 + ''] || 0) + Number(d.sales_4);
-    }
-    if (d.reservation_5 && d.reservation_5 > 0) {
-      reserved[d.ticket_5 + ''] = (reserved[d.ticket_5 + ''] || 0) + Number(d.reservation_5);
-    }
-    if (d.sales_5 && d.sales_5 > 0) {
-      soled[d.ticket_5 + ''] = (soled[d.ticket_5 + ''] || 0) + Number(d.sales_5);
-    }
-  });
-
+const buildSummaryMessage = (
+  tour: Tour,
+  data: SalesDetail[],
+  reserved: { [key: string]: number },
+  soled: { [key: string]: number }
+): string[] => {
   const lines = [];
   if (tour.concerts.length === 1) {
     // 単発公演の場合
@@ -199,5 +195,78 @@ export const notificationMessage = async (eventCode: string): Promise<messagingA
       }
     });
   }
+  return lines;
+};
+
+const buildDetailMessage = (tour: Tour, data: SalesDetail[]): string[] => {
+  const lines = [];
+  if (tour.concerts.length === 1) {
+    // 単発公演の場合
+    lines.push('本日の販売状況をお知らせするぴょ');
+    lines.push('');
+    if (data[0].aggregated_at === null) {
+      lines.push(`【${tour.name}】`);
+      lines.push('  まだ集計されてないぴょ');
+    } else {
+      lines.push(`【${tour.name}】${formatDate(data[0].aggregated_at)}現在`);
+      tour.concerts[0].tickets.forEach((t) => {
+        data.forEach((d) => {
+          lines.push(`${d.campaign_name} (${d.play_guide})`);
+          if (d.ticket_1 !== null) {
+            lines.push(`  ${d.ticket_1}: 予約 ${d.reservation_1 || 0}枚, 販売 ${d.sales_1 || 0}枚`);
+          }
+          if (d.ticket_2 !== null) {
+            lines.push(`  ${d.ticket_2}: 予約 ${d.reservation_2 || 0}枚, 販売 ${d.sales_2 || 0}枚`);
+          }
+          if (d.ticket_3 !== null) {
+            lines.push(`  ${d.ticket_3}: 予約 ${d.reservation_3 || 0}枚, 販売 ${d.sales_3 || 0}枚`);
+          }
+          if (d.ticket_4 !== null) {
+            lines.push(`  ${d.ticket_4}: 予約 ${d.reservation_4 || 0}枚, 販売 ${d.sales_4 || 0}枚`);
+          }
+          if (d.ticket_5 !== null) {
+            lines.push(`  ${d.ticket_5}: 予約 ${d.reservation_5 || 0}枚, 販売 ${d.sales_5 || 0}枚`);
+          }
+        });
+      });
+    }
+  } else {
+    // ツアー公演の場合
+    lines.push('本日の販売状況をお知らせするぴょ');
+    lines.push('');
+    tour.concerts.forEach((c) => {
+      lines.push(`【${c.short_name}】${formatDate(data[0].aggregated_at || new Date())}現在`);
+      data.forEach((d) => {
+        lines.push(`${d.campaign_name} (${d.play_guide})`);
+        if (d.ticket_1 !== null) {
+          lines.push(`  ${d.ticket_1}: 予約 ${d.reservation_1 || 0}枚, 販売 ${d.sales_1 || 0}枚`);
+        }
+        if (d.ticket_2 !== null) {
+          lines.push(`  ${d.ticket_2}: 予約 ${d.reservation_2 || 0}枚, 販売 ${d.sales_2 || 0}枚`);
+        }
+        if (d.ticket_3 !== null) {
+          lines.push(`  ${d.ticket_3}: 予約 ${d.reservation_3 || 0}枚, 販売 ${d.sales_3 || 0}枚`);
+        }
+        if (d.ticket_4 !== null) {
+          lines.push(`  ${d.ticket_4}: 予約 ${d.reservation_4 || 0}枚, 販売 ${d.sales_4 || 0}枚`);
+        }
+        if (d.ticket_5 !== null) {
+          lines.push(`  ${d.ticket_5}: 予約 ${d.reservation_5 || 0}枚, 販売 ${d.sales_5 || 0}枚`);
+        }
+      });
+    });
+  }
+  return lines;
+};
+
+export const notificationMessage = async (eventCode: string): Promise<messagingApi.Message> => {
+  const tour = DEFINITIONS.find((t) => t.event_code === eventCode);
+  if (!tour) return { type: 'text', text: 'イベントが見つからないぴょ' };
+  const data = await getDetails(tour, tour.concerts[0]);
+  if (data.length === 0) {
+    return { type: 'text', text: '販売状況のデータが見つからないぴょ' };
+  }
+  const { reserved, soled } = getReserveAndSoled(data, tour.concerts[0]);
+  const lines = buildSummaryMessage(tour, data, reserved, soled);
   return { type: 'text', text: lines.join('\n') };
 };
