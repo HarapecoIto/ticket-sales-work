@@ -45,10 +45,6 @@ const getSalesData = async (tour: Tour, c: Concert): Promise<SalesData> => {
 
   const reserved: { [key: string]: number } = {};
   const sold: { [key: string]: number } = {};
-  for (const ticket of c.tickets) {
-    reserved[ticket.name] = 0;
-    sold[ticket.name] = 0;
-  }
 
   // プレイガイドごとのエイリアスを正規のチケット名に変換する
   const getTicketName = (
@@ -66,47 +62,65 @@ const getSalesData = async (tour: Tour, c: Concert): Promise<SalesData> => {
     return dist ? dist.ticket : ticket;
   };
 
+  const countUpSales = (
+    concert_short_name: string,
+    campaign: string,
+    playGuide: string,
+    ticket: string | null,
+    reservation: number | null,
+    sales: number | null
+  ) => {
+    if (ticket === null) return;
+    const ticketName = getTicketName(concert_short_name, campaign, playGuide, ticket);
+    if (reservation !== null) {
+      reserved[ticketName] = (reserved[ticketName] || 0) + Number(reservation);
+    }
+    if (sales !== null) {
+      sold[ticketName] = (sold[ticketName] || 0) + Number(sales);
+    }
+  };
+
   latestDetails.forEach((d) => {
-    if (d.ticket_1 !== null && d.reservation_1 !== null) {
-      reserved[getTicketName(d.concert_short_name, d.campaign_name, d.play_guide, d.ticket_1)] +=
-        Number(d.reservation_1);
-    }
-    if (d.ticket_2 !== null && d.reservation_2 !== null) {
-      reserved[getTicketName(d.concert_short_name, d.campaign_name, d.play_guide, d.ticket_2)] +=
-        Number(d.reservation_2);
-    }
-    if (d.ticket_3 !== null && d.reservation_3 !== null) {
-      reserved[getTicketName(d.concert_short_name, d.campaign_name, d.play_guide, d.ticket_3)] +=
-        Number(d.reservation_3);
-    }
-    if (d.ticket_4 !== null && d.reservation_4 !== null) {
-      reserved[getTicketName(d.concert_short_name, d.campaign_name, d.play_guide, d.ticket_4)] +=
-        Number(d.reservation_4);
-    }
-    if (d.ticket_5 !== null && d.reservation_5 !== null) {
-      reserved[getTicketName(d.concert_short_name, d.campaign_name, d.play_guide, d.ticket_5)] +=
-        Number(d.reservation_5);
-    }
-    if (d.ticket_1 !== null && d.sales_1 !== null) {
-      sold[getTicketName(d.concert_short_name, d.campaign_name, d.play_guide, d.ticket_1)] +=
-        Number(d.sales_1);
-    }
-    if (d.ticket_2 !== null && d.sales_2 !== null) {
-      sold[getTicketName(d.concert_short_name, d.campaign_name, d.play_guide, d.ticket_2)] +=
-        Number(d.sales_2);
-    }
-    if (d.ticket_3 !== null && d.sales_3 !== null) {
-      sold[getTicketName(d.concert_short_name, d.campaign_name, d.play_guide, d.ticket_3)] +=
-        Number(d.sales_3);
-    }
-    if (d.ticket_4 !== null && d.sales_4 !== null) {
-      sold[getTicketName(d.concert_short_name, d.campaign_name, d.play_guide, d.ticket_4)] +=
-        Number(d.sales_4);
-    }
-    if (d.ticket_5 !== null && d.sales_5 !== null) {
-      sold[getTicketName(d.concert_short_name, d.campaign_name, d.play_guide, d.ticket_5)] +=
-        Number(d.sales_5);
-    }
+    countUpSales(
+      d.concert_short_name,
+      d.campaign_name,
+      d.play_guide,
+      d.ticket_1,
+      d.reservation_1 !== null ? Number(d.reservation_1) : null,
+      d.sales_1 !== null ? Number(d.sales_1) : null
+    );
+    countUpSales(
+      d.concert_short_name,
+      d.campaign_name,
+      d.play_guide,
+      d.ticket_2,
+      d.reservation_2 !== null ? Number(d.reservation_2) : null,
+      d.sales_2 !== null ? Number(d.sales_2) : null
+    );
+    countUpSales(
+      d.concert_short_name,
+      d.campaign_name,
+      d.play_guide,
+      d.ticket_3,
+      d.reservation_3 !== null ? Number(d.reservation_3) : null,
+      d.sales_3 !== null ? Number(d.sales_3) : null
+    );
+    countUpSales(
+      d.concert_short_name,
+      d.campaign_name,
+      d.play_guide,
+      d.ticket_4,
+      d.reservation_4 !== null ? Number(d.reservation_4) : null,
+      d.sales_4 !== null ? Number(d.sales_4) : null
+    );
+    countUpSales(
+      d.concert_short_name,
+      d.campaign_name,
+      d.play_guide,
+      d.ticket_5,
+      d.reservation_5 !== null ? Number(d.reservation_5) : null,
+      d.sales_5 !== null ? Number(d.sales_5) : null
+    );
   });
 
   const tickets = new Set<string>();
