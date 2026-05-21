@@ -54,7 +54,7 @@ const getSalesData = async (tour: Tour, c: Concert): Promise<SalesData> => {
     ticket: string
   ): string => {
     const concert = tour.concerts.find((c) => c.short_name === concert_short_name);
-    if (!concert) return ticket;
+    if (!concert) return '';
     const dist = concert.distribution.find(
       (d) =>
         d.play_guide === playGuide && d.campaign_alias === campaign && d.ticket_alias === ticket
@@ -167,7 +167,7 @@ export const notificationMessage = async (eventCode: string): Promise<messagingA
     } else {
       lines.push(`【${tour.name}】${formatDate(data[0].aggregated_at)}現在`);
       data[0].tickets.forEach((t) => {
-        lines.push(`  ${t}: 予約 ${data[0].reserved[t]}枚, 販売 ${data[0].sold[t]}枚`);
+        lines.push(`  ${t}: 予約 ${data[0].reserved[t] || 0}枚, 販売 ${data[0].sold[t] || 0}枚`);
       });
     }
   } else {
@@ -181,7 +181,7 @@ export const notificationMessage = async (eventCode: string): Promise<messagingA
       } else {
         lines.push(`【${d.concert_short_name}】${formatDate(d.aggregated_at)}現在`);
         d.tickets.forEach((t) => {
-          lines.push(`  ${t}: 予約 ${d.reserved[t]}枚, 販売 ${d.sold[t]}枚`);
+          lines.push(`  ${t}: 予約 ${d.reserved[t] || 0}枚, 販売 ${d.sold[t] || 0}枚`);
         });
       }
     });
