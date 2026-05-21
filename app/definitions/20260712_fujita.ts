@@ -1,6 +1,6 @@
 import type { Tour, Concert, Campaign } from '../types';
 
-const PERFORMANCES: Concert[] = [
+const CONCERTS: Concert[] = [
   {
     name: '新潟公演',
     short_name: '新潟公演',
@@ -11,6 +11,43 @@ const PERFORMANCES: Concert[] = [
         name: '一般席',
         price: 6600,
         number: 110,
+      },
+    ],
+    distribution: [
+      {
+        campaign: 'FC先行',
+        play_guide: 'イープラス',
+        ticket: '一般席',
+        campaign_alias: 'ＦＣ限定抽選先行受付',
+        ticket_alias: '全席自由席',
+      },
+      {
+        campaign: '一般先行',
+        play_guide: 'イープラス',
+        ticket: '一般席',
+        campaign_alias: 'プレオーダー受付',
+        ticket_alias: '全席自由席',
+      },
+      {
+        campaign: '一般発売',
+        play_guide: 'イープラス',
+        ticket: '一般席',
+        campaign_alias: '一般発売',
+        ticket_alias: '全席自由席',
+      },
+      {
+        campaign: '一般発売',
+        play_guide: 'ローソン',
+        ticket: '一般席',
+        campaign_alias: '一般販売',
+        ticket_alias: '全席自由席',
+      },
+      {
+        campaign: '一般発売',
+        play_guide: 'ぴあ',
+        ticket: '一般席',
+        campaign_alias: '一般販売',
+        ticket_alias: '全席自由席',
       },
     ],
   },
@@ -26,6 +63,43 @@ const PERFORMANCES: Concert[] = [
         number: 150,
       },
     ],
+    distribution: [
+      {
+        campaign: 'FC先行',
+        play_guide: 'イープラス',
+        ticket: '一般席',
+        campaign_alias: 'ＦＣ限定抽選先行受付',
+        ticket_alias: '全席自由席',
+      },
+      {
+        campaign: '一般先行',
+        play_guide: 'イープラス',
+        ticket: '一般席',
+        campaign_alias: 'プレオーダー受付',
+        ticket_alias: '全席自由席',
+      },
+      {
+        campaign: '一般発売',
+        play_guide: 'イープラス',
+        ticket: '一般席',
+        campaign_alias: '一般発売',
+        ticket_alias: '全席自由席',
+      },
+      {
+        campaign: '一般発売',
+        play_guide: 'ローソン',
+        ticket: '一般席',
+        campaign_alias: '一般販売',
+        ticket_alias: '全席自由席',
+      },
+      {
+        campaign: '一般発売',
+        play_guide: 'ぴあ',
+        ticket: '一般席',
+        campaign_alias: '一般販売',
+        ticket_alias: '全席自由席',
+      },
+    ],
   },
 ];
 
@@ -39,7 +113,6 @@ const CAMPAIGNS: Campaign[] = [
     settlement_at: new Date('2026-03-21T23:59:00'), // 入金期間が満了して販売数が確定する日
     sales_start_at: null,
     collection_start_at: new Date('2026-04-04T00:00:00'), // 紙チケットの発行開始日
-    distribution: [{ play_guide: 'イープラス', ticket_names: ['一般席'] }],
   },
   {
     campaign_name: '一般先行',
@@ -50,11 +123,6 @@ const CAMPAIGNS: Campaign[] = [
     settlement_at: new Date('2026-04-03T23:59:00'), // 入金期間が満了して販売数が確定する日
     sales_start_at: null,
     collection_start_at: new Date('2026-04-04T00:00:00'), // 紙チケットの発行開始日
-    distribution: [
-      { play_guide: 'イープラス', ticket_names: ['一般席'] },
-      { play_guide: 'ぴあ', ticket_names: ['一般席'] },
-      { play_guide: 'ローソン', ticket_names: ['一般席'] },
-    ],
   },
   {
     campaign_name: '一般発売',
@@ -65,11 +133,6 @@ const CAMPAIGNS: Campaign[] = [
     settlement_at: null,
     sales_start_at: new Date('2026-04-04T00:00:00'), // 発売日
     collection_start_at: new Date('2026-04-04T00:00:00'), // 紙チケットの発行開始日
-    distribution: [
-      { play_guide: 'イープラス', ticket_names: ['一般席'] },
-      { play_guide: 'ぴあ', ticket_names: ['一般席'] },
-      { play_guide: 'ローソン', ticket_names: ['一般席'] },
-    ],
   },
 ];
 
@@ -78,7 +141,7 @@ const DEFINITIONS: Tour = {
   name: '藤田麻衣子 20th Anniversary Live Tour 2026',
   short_name: '藤田麻衣子',
   campaigns: CAMPAIGNS,
-  concerts: PERFORMANCES,
+  concerts: CONCERTS,
 };
 
 export default DEFINITIONS;
