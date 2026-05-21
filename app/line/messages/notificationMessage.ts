@@ -52,8 +52,8 @@ const getSalesData = async (tour: Tour, c: Concert): Promise<SalesData> => {
 
   // プレイガイドごとのエイリアスを正規のチケット名に変換する
   const getTicketName = (
-    campaign: string,
     concert_short_name: string,
+    campaign: string,
     playGuide: string,
     ticket: string
   ): string => {
@@ -69,55 +69,65 @@ const getSalesData = async (tour: Tour, c: Concert): Promise<SalesData> => {
   latestDetails.forEach((d) => {
     if (d.reservation_1 && d.reservation_1 > 0) {
       reserved[
-        getTicketName(d.campaign_name, d.concert_short_name, d.play_guide, d.ticket_1 + '')
+        getTicketName(d.concert_short_name, d.campaign_name, d.play_guide, d.ticket_1 + '')
       ] += Number(d.reservation_1);
     }
     if (d.reservation_2 && d.reservation_2 > 0) {
       reserved[
-        getTicketName(d.campaign_name, d.concert_short_name, d.play_guide, d.ticket_2 + '')
+        getTicketName(d.concert_short_name, d.campaign_name, d.play_guide, d.ticket_2 + '')
       ] += Number(d.reservation_2);
     }
     if (d.reservation_3 && d.reservation_3 > 0) {
       reserved[
-        getTicketName(d.campaign_name, d.concert_short_name, d.play_guide, d.ticket_3 + '')
+        getTicketName(d.concert_short_name, d.campaign_name, d.play_guide, d.ticket_3 + '')
       ] += Number(d.reservation_3);
     }
     if (d.reservation_4 && d.reservation_4 > 0) {
       reserved[
-        getTicketName(d.campaign_name, d.concert_short_name, d.play_guide, d.ticket_4 + '')
+        getTicketName(d.concert_short_name, d.campaign_name, d.play_guide, d.ticket_4 + '')
       ] += Number(d.reservation_4);
     }
     if (d.reservation_5 && d.reservation_5 > 0) {
       reserved[
-        getTicketName(d.campaign_name, d.concert_short_name, d.play_guide, d.ticket_5 + '')
+        getTicketName(d.concert_short_name, d.campaign_name, d.play_guide, d.ticket_5 + '')
       ] += Number(d.reservation_5);
     }
     if (d.sales_1 && d.sales_1 > 0) {
-      sold[getTicketName(d.campaign_name, d.concert_short_name, d.play_guide, d.ticket_1 + '')] +=
+      sold[getTicketName(d.concert_short_name, d.campaign_name, d.play_guide, d.ticket_1 + '')] +=
         Number(d.sales_1);
     }
     if (d.sales_2 && d.sales_2 > 0) {
-      sold[getTicketName(d.campaign_name, d.concert_short_name, d.play_guide, d.ticket_2 + '')] +=
+      sold[getTicketName(d.concert_short_name, d.campaign_name, d.play_guide, d.ticket_2 + '')] +=
         Number(d.sales_2);
     }
     if (d.sales_3 && d.sales_3 > 0) {
-      sold[getTicketName(d.campaign_name, d.concert_short_name, d.play_guide, d.ticket_3 + '')] +=
+      sold[getTicketName(d.concert_short_name, d.campaign_name, d.play_guide, d.ticket_3 + '')] +=
         Number(d.sales_3);
     }
     if (d.sales_4 && d.sales_4 > 0) {
-      sold[getTicketName(d.campaign_name, d.concert_short_name, d.play_guide, d.ticket_4 + '')] +=
+      sold[getTicketName(d.concert_short_name, d.campaign_name, d.play_guide, d.ticket_4 + '')] +=
         Number(d.sales_4);
     }
     if (d.sales_5 && d.sales_5 > 0) {
-      sold[getTicketName(d.campaign_name, d.concert_short_name, d.play_guide, d.ticket_5 + '')] +=
+      sold[getTicketName(d.concert_short_name, d.campaign_name, d.play_guide, d.ticket_5 + '')] +=
         Number(d.sales_5);
     }
   });
+
+  const tickets = new Set<string>();
+  c.tickets.forEach((t) => tickets.add(t.name));
+  Object.keys(reserved).forEach((t) => {
+    tickets.add(t);
+  });
+  Object.keys(sold).forEach((t) => {
+    tickets.add(t);
+  });
+
   return {
     concert_short_name: c.short_name,
     date_at: c.date_at,
     aggregated_at: latestDetails[0].aggregated_at,
-    tickets: c.tickets.map((t) => t.name),
+    tickets: tickets.size > 0 ? Array.from(tickets) : [],
     reserved,
     sold,
   };
