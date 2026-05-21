@@ -1,6 +1,6 @@
 import prisma from '@/lib/prisma';
 import { messagingApi } from '@line/bot-sdk';
-import { Concert } from '@/app/types';
+import { type Tour, type Concert } from '@/app/types';
 import DEFINITIONS from '@/app/definitions/definitions';
 
 type SalesData = {
@@ -12,10 +12,10 @@ type SalesData = {
   sold: { [key: string]: number };
 };
 
-const getSalesData = async (event_code: string, c: Concert): Promise<SalesData> => {
+const getSalesData = async (tour: Tour, c: Concert): Promise<SalesData> => {
   const datails = await prisma.daily_sales_details.findMany({
     where: {
-      event_code: event_code,
+      event_code: tour.event_code,
       concert_short_name: c.short_name,
       aggregated_at: { gte: new Date(Date.now() - 1000 * 60 * 60 * 24) },
     },
@@ -49,6 +49,43 @@ const getSalesData = async (event_code: string, c: Concert): Promise<SalesData> 
     reserved[ticket.name] = 0;
     sold[ticket.name] = 0;
   }
+
+  // プレイガイドごとのエイリアスを正規のキャンペーン名に変換する
+  const getCampaignName = (campaign: string, playGuide: string): string => {
+    if (playGuide === 'イープラス') {
+      const camp = tour.campaigns.find((c) => c.campaign_name_alias?.eplus === campaign);
+      return camp ? camp.campaign_name : campaign;
+    } else if (playGuide === 'ぴあ') {
+      const camp = tour.campaigns.find((c) => c.campaign_name_alias?.pia === campaign);
+      return camp ? camp.campaign_name : campaign;
+    } else if (playGuide === 'ローソン') {
+      const camp = tour.campaigns.find((c) => c.campaign_name_alias?.lawson === campaign);
+      return camp ? camp.campaign_name : campaign;
+    } else if (playGuide === 'teket') {
+      const camp = tour.campaigns.find((c) => c.campaign_name_alias?.teket === campaign);
+      return camp ? camp.campaign_name : campaign;
+    }
+    return campaign;
+  };
+
+  // プレイガイドごとのエイリアスを正規のチケット名に変換する
+  const getTicketName = (campaign: string, playGuide: string, ticket: string): string => {
+    const ticketObj = c.tickets.find((t) => {
+      if (playGuide === 'イープラス') {
+        return t.name_alias?.eplus === ticket;
+      } else if (playGuide === 'ぴあ') {
+        return t.name_alias?.pia === ticket;
+      } else if (playGuide === 'ローソン') {
+        return t.name_alias?.lawson === ticket;
+      } else if (playGuide === 'teket') {
+        return t.name_alias?.teket === ticket;
+      } else {
+        return t.name === ticket;
+      }
+    });
+    return ticketObj ? ticketObj.name : ticket;
+  };
+
   latestDetails.forEach((d) => {
     if (d.reservation_1 && d.reservation_1 > 0) {
       reserved[d.ticket_1 + ''] += Number(d.reservation_1);
