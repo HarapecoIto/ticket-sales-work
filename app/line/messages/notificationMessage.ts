@@ -13,7 +13,7 @@ type SalesData = {
 };
 
 const getSalesData = async (event_code: string, c: Concert): Promise<SalesData> => {
-  const data = await prisma.daily_sales.findFirst({
+  const datails = await prisma.daily_sales_details.findMany({
     where: {
       event_code: event_code,
       concert_short_name: c.short_name,
@@ -21,7 +21,18 @@ const getSalesData = async (event_code: string, c: Concert): Promise<SalesData> 
     },
     orderBy: { aggregated_at: 'desc' },
   });
-  if (!data) {
+
+  // キャンペーン名とプレイガイドの組が一致するレコードは最新を残して削除する
+  const latestDetailsMap = new Map<string, (typeof datails)[number]>();
+  datails.forEach((detail) => {
+    const key = `${detail.campaign_name}::${detail.play_guide}`;
+    if (!latestDetailsMap.has(key)) {
+      latestDetailsMap.set(key, detail);
+    }
+  });
+  const latestDetails = [...latestDetailsMap.values()];
+
+  if (latestDetails.length === 0) {
     return {
       concert_short_name: c.short_name,
       date_at: c.date_at,
@@ -31,20 +42,14 @@ const getSalesData = async (event_code: string, c: Concert): Promise<SalesData> 
       sold: {} as { [key: string]: number },
     };
   }
-  const details = await prisma.daily_sales_details.findMany({
-    where: {
-      event_code: event_code,
-      concert_short_name: c.short_name,
-      aggregated_at: data?.aggregated_at,
-    },
-  });
+
   const reserved: { [key: string]: number } = {};
   const sold: { [key: string]: number } = {};
   for (const ticket of c.tickets) {
     reserved[ticket.name] = 0;
     sold[ticket.name] = 0;
   }
-  details.forEach((d) => {
+  latestDetails.forEach((d) => {
     if (d.reservation_1 && d.reservation_1 > 0) {
       reserved[d.ticket_1 + ''] += Number(d.reservation_1);
     }
@@ -79,7 +84,7 @@ const getSalesData = async (event_code: string, c: Concert): Promise<SalesData> 
   return {
     concert_short_name: c.short_name,
     date_at: c.date_at,
-    aggregated_at: data?.aggregated_at,
+    aggregated_at: latestDetails[0].aggregated_at,
     tickets: c.tickets.map((t) => t.name),
     reserved,
     sold,
