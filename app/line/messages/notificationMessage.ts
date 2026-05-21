@@ -50,72 +50,67 @@ const getSalesData = async (tour: Tour, c: Concert): Promise<SalesData> => {
     sold[ticket.name] = 0;
   }
 
-  // プレイガイドごとのエイリアスを正規のキャンペーン名に変換する
-  const getCampaignName = (campaign: string, playGuide: string): string => {
-    if (playGuide === 'イープラス') {
-      const camp = tour.campaigns.find((c) => c.campaign_name_alias?.eplus === campaign);
-      return camp ? camp.campaign_name : campaign;
-    } else if (playGuide === 'ぴあ') {
-      const camp = tour.campaigns.find((c) => c.campaign_name_alias?.pia === campaign);
-      return camp ? camp.campaign_name : campaign;
-    } else if (playGuide === 'ローソン') {
-      const camp = tour.campaigns.find((c) => c.campaign_name_alias?.lawson === campaign);
-      return camp ? camp.campaign_name : campaign;
-    } else if (playGuide === 'teket') {
-      const camp = tour.campaigns.find((c) => c.campaign_name_alias?.teket === campaign);
-      return camp ? camp.campaign_name : campaign;
-    }
-    return campaign;
-  };
-
   // プレイガイドごとのエイリアスを正規のチケット名に変換する
-  const getTicketName = (campaign: string, playGuide: string, ticket: string): string => {
-    const ticketObj = c.tickets.find((t) => {
-      if (playGuide === 'イープラス') {
-        return t.name_alias?.eplus === ticket;
-      } else if (playGuide === 'ぴあ') {
-        return t.name_alias?.pia === ticket;
-      } else if (playGuide === 'ローソン') {
-        return t.name_alias?.lawson === ticket;
-      } else if (playGuide === 'teket') {
-        return t.name_alias?.teket === ticket;
-      } else {
-        return t.name === ticket;
-      }
-    });
-    return ticketObj ? ticketObj.name : ticket;
+  const getTicketName = (
+    campaign: string,
+    concert_short_name: string,
+    playGuide: string,
+    ticket: string
+  ): string => {
+    const concert = tour.concerts.find((c) => c.short_name === concert_short_name);
+    if (!concert) return ticket;
+    const dist = concert.distribution.find(
+      (d) =>
+        d.play_guide === playGuide && d.campaign_alias === campaign && d.ticket_alias === ticket
+    );
+    return dist ? dist.ticket : ticket;
   };
 
   latestDetails.forEach((d) => {
     if (d.reservation_1 && d.reservation_1 > 0) {
-      reserved[d.ticket_1 + ''] += Number(d.reservation_1);
+      reserved[
+        getTicketName(d.campaign_name, d.concert_short_name, d.play_guide, d.ticket_1 + '')
+      ] += Number(d.reservation_1);
     }
     if (d.reservation_2 && d.reservation_2 > 0) {
-      reserved[d.ticket_2 + ''] += Number(d.reservation_2);
+      reserved[
+        getTicketName(d.campaign_name, d.concert_short_name, d.play_guide, d.ticket_2 + '')
+      ] += Number(d.reservation_2);
     }
     if (d.reservation_3 && d.reservation_3 > 0) {
-      reserved[d.ticket_3 + ''] += Number(d.reservation_3);
+      reserved[
+        getTicketName(d.campaign_name, d.concert_short_name, d.play_guide, d.ticket_3 + '')
+      ] += Number(d.reservation_3);
     }
     if (d.reservation_4 && d.reservation_4 > 0) {
-      reserved[d.ticket_4 + ''] += Number(d.reservation_4);
+      reserved[
+        getTicketName(d.campaign_name, d.concert_short_name, d.play_guide, d.ticket_4 + '')
+      ] += Number(d.reservation_4);
     }
     if (d.reservation_5 && d.reservation_5 > 0) {
-      reserved[d.ticket_5 + ''] += Number(d.reservation_5);
+      reserved[
+        getTicketName(d.campaign_name, d.concert_short_name, d.play_guide, d.ticket_5 + '')
+      ] += Number(d.reservation_5);
     }
     if (d.sales_1 && d.sales_1 > 0) {
-      sold[d.ticket_1 + ''] += Number(d.sales_1);
+      sold[getTicketName(d.campaign_name, d.concert_short_name, d.play_guide, d.ticket_1 + '')] +=
+        Number(d.sales_1);
     }
     if (d.sales_2 && d.sales_2 > 0) {
-      sold[d.ticket_2 + ''] += Number(d.sales_2);
+      sold[getTicketName(d.campaign_name, d.concert_short_name, d.play_guide, d.ticket_2 + '')] +=
+        Number(d.sales_2);
     }
     if (d.sales_3 && d.sales_3 > 0) {
-      sold[d.ticket_3 + ''] += Number(d.sales_3);
+      sold[getTicketName(d.campaign_name, d.concert_short_name, d.play_guide, d.ticket_3 + '')] +=
+        Number(d.sales_3);
     }
     if (d.sales_4 && d.sales_4 > 0) {
-      sold[d.ticket_4 + ''] += Number(d.sales_4);
+      sold[getTicketName(d.campaign_name, d.concert_short_name, d.play_guide, d.ticket_4 + '')] +=
+        Number(d.sales_4);
     }
     if (d.sales_5 && d.sales_5 > 0) {
-      sold[d.ticket_5 + ''] += Number(d.sales_5);
+      sold[getTicketName(d.campaign_name, d.concert_short_name, d.play_guide, d.ticket_5 + '')] +=
+        Number(d.sales_5);
     }
   });
   return {
@@ -131,9 +126,7 @@ const getSalesData = async (tour: Tour, c: Concert): Promise<SalesData> => {
 export const notificationMessage = async (eventCode: string): Promise<messagingApi.Message> => {
   const tour = DEFINITIONS.find((t) => t.event_code === eventCode);
   if (!tour) return { type: 'text', text: 'イベントが見つからないぴょ' };
-  const data: SalesData[] = await Promise.all(
-    tour.concerts.map((c) => getSalesData(tour.event_code, c))
-  );
+  const data: SalesData[] = await Promise.all(tour.concerts.map((c) => getSalesData(tour, c)));
 
   const formatDate = (date: Date): string => {
     const year = date.getFullYear();
