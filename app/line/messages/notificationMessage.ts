@@ -128,16 +128,12 @@ const buildSummaryMessage = async (tour: Tour): Promise<string[]> => {
     } else {
       const reserved: Record<string, number> = {};
       const soled: Record<string, number> = {};
-      tour.concerts[0].tickets.forEach((t) => {
-        reserved[t.name] = 0;
-        soled[t.name] = 0;
-      });
       data.forEach((d) => {
         if (d.reserved && d.reserved > 0) {
-          reserved[d.ticket + ''] += Number(d.reserved);
+          reserved[d.ticket] = (reserved[d.ticket] || 0) + Number(d.reserved);
         }
         if (d.sold && d.sold > 0) {
-          soled[d.ticket + ''] += Number(d.sold);
+          soled[d.ticket] = (soled[d.ticket] || 0) + Number(d.sold);
         }
       });
       lines.push(`【${tour.name}】${formatDate(data[0].aggregated_at)}現在`);
@@ -149,24 +145,18 @@ const buildSummaryMessage = async (tour: Tour): Promise<string[]> => {
     tour.concerts.forEach(async (c) => {
       const data = await getDetails(tour, c);
       lines.push(`【${c.short_name}】${formatDate(data[0].aggregated_at)}現在`);
-      tour.concerts.forEach((c) => {
-        const reserved: Record<string, number> = {};
-        const soled: Record<string, number> = {};
-        c.tickets.forEach((t) => {
-          reserved[t.name] = 0;
-          soled[t.name] = 0;
-        });
-        data.forEach((d) => {
-          if (d.reserved && d.reserved > 0) {
-            reserved[d.ticket + ''] += Number(d.reserved);
-          }
-          if (d.sold && d.sold > 0) {
-            soled[d.ticket + ''] += Number(d.sold);
-          }
-        });
-        c.tickets.forEach((t) => {
-          lines.push(`  ${t.name}: 予約 ${reserved[t.name] || 0}枚, 販売 ${soled[t.name] || 0}枚`);
-        });
+      const reserved: Record<string, number> = {};
+      const soled: Record<string, number> = {};
+      data.forEach((d) => {
+        if (d.reserved && d.reserved > 0) {
+          reserved[d.ticket] = (reserved[d.ticket] || 0) + Number(d.reserved);
+        }
+        if (d.sold && d.sold > 0) {
+          soled[d.ticket] = (soled[d.ticket] || 0) + Number(d.sold);
+        }
+      });
+      c.tickets.forEach((t) => {
+        lines.push(`  ${t.name}: 予約 ${reserved[t.name] || 0}枚, 販売 ${soled[t.name] || 0}枚`);
       });
     });
   }
