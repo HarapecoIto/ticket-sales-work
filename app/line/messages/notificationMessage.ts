@@ -39,6 +39,15 @@ const getDetails = async (tour: Tour, c: Concert): Promise<SalesData[]> => {
       return c.distribution
         .filter((d) => d.campaign_alias === r.campaign_name && d.play_guide === r.play_guide)
         .map((d): SalesData | null => {
+          const exists: boolean =
+            d.ticket_alias === r.ticket_1 ||
+            d.ticket_alias === r.ticket_2 ||
+            d.ticket_alias === r.ticket_3 ||
+            d.ticket_alias === r.ticket_4 ||
+            d.ticket_alias === r.ticket_5;
+          if (!exists) {
+            return null;
+          }
           const reserved =
             d.ticket_alias === r.ticket_1
               ? r.reservation_1
@@ -63,17 +72,15 @@ const getDetails = async (tour: Tour, c: Concert): Promise<SalesData[]> => {
                     : d.ticket_alias === r.ticket_5
                       ? r.sales_5
                       : null;
-          return reserved !== null && sold !== null
-            ? ({
-                concert_short_name: c.short_name,
-                aggregated_at: r.aggregated_at,
-                campaign: d.campaign,
-                play_guide: d.play_guide,
-                ticket: d.ticket,
-                reserved: Number(reserved),
-                sold: Number(sold),
-              } as SalesData)
-            : null;
+          return {
+            concert_short_name: c.short_name,
+            aggregated_at: r.aggregated_at,
+            campaign: d.campaign,
+            play_guide: d.play_guide,
+            ticket: d.ticket,
+            reserved: reserved !== null ? Number(reserved) : null,
+            sold: sold !== null ? Number(sold) : null,
+          } as SalesData;
         })
         .filter((s): s is SalesData => s !== null);
     })
@@ -117,7 +124,7 @@ const buildSummaryMessage = async (tour: Tour): Promise<string[]> => {
       });
     }
   } else {
-    tour.concerts.forEach(async (c) => {
+    for (const c of tour.concerts) {
       const data = await getDetails(tour, c);
       lines.push(`【${c.short_name}】${formatDate(data[0].aggregated_at)}現在`);
       const reserved: Record<string, number> = {};
@@ -133,7 +140,7 @@ const buildSummaryMessage = async (tour: Tour): Promise<string[]> => {
       c.tickets.forEach((t) => {
         lines.push(`  ${t.name}: 予約 ${reserved[t.name] || 0}枚, 販売 ${soled[t.name] || 0}枚`);
       });
-    });
+    }
   }
   return lines;
 };
@@ -159,14 +166,14 @@ const buildDetailMessage = async (tour: Tour): Promise<string[]> => {
     // ツアー公演の場合
     lines.push('本日の販売状況をお知らせするぴょ');
     lines.push('');
-    tour.concerts.forEach(async (c) => {
+    for (const c of tour.concerts) {
       const data = await getDetails(tour, c);
       lines.push(`【${c.short_name}】${formatDate(data[0].aggregated_at || new Date())}現在`);
       data.forEach((d) => {
         lines.push(`${d.campaign} (${d.play_guide})`);
         lines.push(`  ${d.ticket}: 予約 ${d.reserved || 0}枚, 販売 ${d.sold || 0}枚`);
       });
-    });
+    }
   }
   return lines;
 };
