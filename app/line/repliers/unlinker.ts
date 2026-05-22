@@ -71,7 +71,7 @@ export const unlinker = async (
     await prisma.line_group_event_relations.deleteMany({
       where: { source_id: sourceId, event_code: eventCode },
     });
-    const tour: Tour | undefined = DEFINITIONS.find((d) => d.event_code === eventCode);
+    const tour: Tour | undefined = TOURS.find((d) => d.event_code === eventCode);
     const eventName = tour ? tour.short_name : eventCode;
     return [{ type: 'text', text: `「${eventName}」のお知らせを終了するぴょ` }];
   }
