@@ -43,8 +43,8 @@ export type Distribution = {
   campaign: string;
   play_guide: 'eplus' | 'pia' | 'lawson' | 'teket';
   ticket: string;
-  campaign_alias?: string;
-  ticket_alias?: string;
+  campaign_alias: string;
+  ticket_alias: string;
 };
 
 // 各プレイガイド用メタデータ

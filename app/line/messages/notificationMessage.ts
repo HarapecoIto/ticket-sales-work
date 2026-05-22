@@ -2,12 +2,11 @@ import prisma from '@/lib/prisma';
 import { messagingApi } from '@line/bot-sdk';
 import { type Tour, type Concert, Distribution } from '@/app/types';
 import DEFINITIONS from '@/app/definitions/definitions';
-import { get } from 'http';
 
 type SalesData = {
   concert_short_name: string;
   aggregated_at: Date;
-  campaign_name: string;
+  campaign: string;
   play_guide: string;
   ticket: string;
   reserved: number | null;
@@ -33,77 +32,52 @@ const getDetails = async (tour: Tour, c: Concert): Promise<SalesData[]> => {
       temp.set(key, record);
     }
   });
-  const latestRecords = Array.from(temp.values());
+  const latest = Array.from(temp.values()); // プレイガイドごとキャンペーンの売上データ
 
-  const getSales = (distribution: Distribution): SalesData | null => {
-    const record = latestRecords.find(
-      (r) =>
-        r.concert_short_name === c.short_name &&
-        r.campaign_name === distribution.campaign_alias &&
-        r.play_guide === distribution.play_guide
-    );
-    if (!record) {
-      return null;
-    }
-    if (record.ticket_1 === distribution.ticket_alias) {
-      return {
-        concert_short_name: c.short_name,
-        aggregated_at: record.aggregated_at,
-        campaign_name: distribution.campaign,
-        play_guide: distribution.play_guide,
-        ticket: distribution.ticket,
-        reserved: Number(record.reservation_1 || 0),
-        sold: Number(record.sales_1 || 0),
-      };
-    }
-    if (record.ticket_2 === distribution.ticket_alias) {
-      return {
-        concert_short_name: c.short_name,
-        aggregated_at: record.aggregated_at,
-        campaign_name: distribution.campaign,
-        play_guide: distribution.play_guide,
-        ticket: distribution.ticket,
-        reserved: Number(record.reservation_2 || 0),
-        sold: Number(record.sales_2 || 0),
-      };
-    }
-    if (record.ticket_3 === distribution.ticket_alias) {
-      return {
-        concert_short_name: c.short_name,
-        aggregated_at: record.aggregated_at,
-        campaign_name: distribution.campaign,
-        play_guide: distribution.play_guide,
-        ticket: distribution.ticket,
-        reserved: Number(record.reservation_3 || 0),
-        sold: Number(record.sales_3 || 0),
-      };
-    }
-    if (record.ticket_4 === distribution.ticket_alias) {
-      return {
-        concert_short_name: c.short_name,
-        aggregated_at: record.aggregated_at,
-        campaign_name: distribution.campaign,
-        play_guide: distribution.play_guide,
-        ticket: distribution.ticket,
-        reserved: Number(record.reservation_4 || 0),
-        sold: Number(record.sales_4 || 0),
-      };
-    }
-    if (record.ticket_5 === distribution.ticket_alias) {
-      return {
-        concert_short_name: c.short_name,
-        aggregated_at: record.aggregated_at,
-        campaign_name: distribution.campaign,
-        play_guide: distribution.play_guide,
-        ticket: distribution.ticket,
-        reserved: Number(record.reservation_5 || 0),
-        sold: Number(record.sales_5 || 0),
-      };
-    }
-    return null;
-  };
-
-  return c.distribution.map((d) => getSales(d)).filter((s): s is SalesData => s !== null);
+  return latest
+    .map((r): SalesData[] => {
+      return c.distribution
+        .filter((d) => d.campaign_alias === r.campaign_name && d.play_guide === r.play_guide)
+        .map((d): SalesData | null => {
+          const reserved =
+            d.ticket_alias === r.ticket_1
+              ? r.reservation_1
+              : d.ticket_alias === r.ticket_2
+                ? r.reservation_2
+                : d.ticket_alias === r.ticket_3
+                  ? r.reservation_3
+                  : d.ticket_alias === r.ticket_4
+                    ? r.reservation_4
+                    : d.ticket_alias === r.ticket_5
+                      ? r.reservation_5
+                      : null;
+          const sold =
+            d.ticket_alias === r.ticket_1
+              ? r.sales_1
+              : d.ticket_alias === r.ticket_2
+                ? r.sales_2
+                : d.ticket_alias === r.ticket_3
+                  ? r.sales_3
+                  : d.ticket_alias === r.ticket_4
+                    ? r.sales_4
+                    : d.ticket_alias === r.ticket_5
+                      ? r.sales_5
+                      : null;
+          return reserved !== null && sold !== null
+            ? ({
+                concert_short_name: c.short_name,
+                aggregated_at: r.aggregated_at,
+                campaign: d.campaign,
+                play_guide: d.play_guide,
+                ticket: d.ticket,
+                reserved: Number(reserved),
+                sold: Number(sold),
+              } as SalesData)
+            : null;
+        })
+        .filter((s): s is SalesData => s !== null);
+    })
+    .flat();
 };
 
 const formatDate = (date: Date): string => {
@@ -121,6 +95,7 @@ const buildSummaryMessage = async (tour: Tour): Promise<string[]> => {
     // 単発公演の場合
     lines.push('本日の販売状況をお知らせするぴょ');
     lines.push('');
+
     lines.push(`【${tour.name}】`);
     const data = await getDetails(tour, tour.concerts[0]);
     if (data.length === 0 || data[0].aggregated_at === null) {
@@ -176,7 +151,7 @@ const buildDetailMessage = async (tour: Tour): Promise<string[]> => {
     } else {
       lines.push(`【${tour.name}】${formatDate(data[0].aggregated_at)}現在`);
       data.forEach((d) => {
-        lines.push(`${d.campaign_name} (${d.play_guide})`);
+        lines.push(`${d.campaign} (${d.play_guide})`);
         lines.push(`  ${d.ticket}: 予約 ${d.reserved || 0}枚, 販売 ${d.sold || 0}枚`);
       });
     }
@@ -188,7 +163,7 @@ const buildDetailMessage = async (tour: Tour): Promise<string[]> => {
       const data = await getDetails(tour, c);
       lines.push(`【${c.short_name}】${formatDate(data[0].aggregated_at || new Date())}現在`);
       data.forEach((d) => {
-        lines.push(`${d.campaign_name} (${d.play_guide})`);
+        lines.push(`${d.campaign} (${d.play_guide})`);
         lines.push(`  ${d.ticket}: 予約 ${d.reserved || 0}枚, 販売 ${d.sold || 0}枚`);
       });
     });
