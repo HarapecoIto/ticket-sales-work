@@ -1,7 +1,7 @@
 import prisma from '@/lib/prisma';
 import { messagingApi, webhook } from '@line/bot-sdk';
 import { type Tour, ConversationState } from '@/app/types';
-import DEFINITIONS from '@/app/definitions/definitions';
+import TOURS from '@/app/definitions/definitions';
 
 export const linker = async (
   sourceId: string,
@@ -38,7 +38,7 @@ export const linker = async (
       // ここで会話を終了する
       await prisma.conversation_state.delete({ where: { source_id: sourceId } });
       // リンク対象のイベント
-      const tour: Tour | undefined = DEFINITIONS.find((d) => d.event_code === text);
+      const tour: Tour | undefined = TOURS.find((d) => d.event_code === text);
       if (!tour) {
         return [
           {
