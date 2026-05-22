@@ -1,6 +1,6 @@
 import type { Tour, Concert, Campaign } from '../types';
 
-const PERFORMANCES: Concert[] = [
+const CONCERTS: Concert[] = [
   {
     name: '千野哲太 Sax in the Opera City',
     short_name: 'オペラシティ',
@@ -8,7 +8,7 @@ const PERFORMANCES: Concert[] = [
     hall: '東京オペラシティ コンサートホール',
     tickets: [
       {
-        name: 'VIP席',
+        name: 'ＶＩＰ席',
         price: 13200,
         number: 50,
       },
@@ -16,6 +16,43 @@ const PERFORMANCES: Concert[] = [
         name: '一般席',
         price: 6600,
         number: 110,
+      },
+    ],
+    distribution: [
+      {
+        campaign: '先行受付',
+        play_guide: 'eplus',
+        ticket: 'ＶＩＰ席',
+        campaign_alias: 'プレオーダー受付',
+        ticket_alias: 'ＶＩＰ席',
+      },
+      {
+        campaign: '先行受付',
+        play_guide: 'eplus',
+        ticket: '一般席',
+        campaign_alias: 'プレオーダー受付',
+        ticket_alias: '一般席',
+      },
+      {
+        campaign: '一般発売',
+        play_guide: 'eplus',
+        ticket: 'ＶＩＰ席',
+        campaign_alias: '一般発売',
+        ticket_alias: 'ＶＩＰ席',
+      },
+      {
+        campaign: '一般発売',
+        play_guide: 'eplus',
+        ticket: '一般席',
+        campaign_alias: '一般発売',
+        ticket_alias: '一般席',
+      },
+      {
+        campaign: '一般発売',
+        play_guide: 'pia',
+        ticket: '一般席',
+        campaign_alias: '一般販売',
+        ticket_alias: '一般席',
       },
     ],
   },
@@ -31,10 +68,6 @@ const CAMPAIGNS: Campaign[] = [
     settlement_at: new Date('2026-04-03T23:59:00'), // 入金期間が満了して販売数が確定する日
     sales_start_at: null,
     collection_start_at: new Date('2026-04-04T00:00:00'), // 紙チケットの発行開始日
-    distribution: [
-      { play_guide: 'イープラス', ticket_names: ['VIP席'] },
-      { play_guide: 'イープラス', ticket_names: ['一般席'] },
-    ],
   },
   {
     campaign_name: '一般発売',
@@ -45,11 +78,6 @@ const CAMPAIGNS: Campaign[] = [
     settlement_at: null,
     sales_start_at: new Date('2026-04-01T10:00:00'), // 発売日
     collection_start_at: new Date('2026-04-04T00:00:00'), // 紙チケットの発行開始日
-    distribution: [
-      { play_guide: 'イープラス', ticket_names: ['一般席'] },
-      { play_guide: 'ぴあ', ticket_names: ['一般席'] },
-      { play_guide: 'teket', ticket_names: ['一般席'] },
-    ],
   },
 ];
 
@@ -58,7 +86,7 @@ const DEFINITIONS: Tour = {
   name: '千野哲太 Sax in the Opera City',
   short_name: 'オペラシティ',
   campaigns: CAMPAIGNS,
-  concerts: PERFORMANCES,
+  concerts: CONCERTS,
 };
 
 export default DEFINITIONS;

@@ -14,6 +14,7 @@ export type Concert = {
   date_at: Date;
   hall: string;
   tickets: Ticket[];
+  distribution: Distribution[];
 };
 
 // FC先行、独占先行、一般発売など
@@ -29,7 +30,6 @@ export type Campaign = {
   sales_start_at: Date | null; // 発売日
   // 共通
   collection_start_at: Date; // 紙チケットの発行開始日
-  distribution: Distribution[];
 };
 
 export type Ticket = {
@@ -40,8 +40,11 @@ export type Ticket = {
 
 // 配券
 export type Distribution = {
-  play_guide: 'イープラス' | 'ぴあ' | 'ローソン' | 'teket';
-  ticket_names: string[];
+  campaign: string;
+  play_guide: 'eplus' | 'pia' | 'lawson' | 'teket';
+  ticket: string;
+  campaign_alias: string;
+  ticket_alias: string;
 };
 
 // 各プレイガイド用メタデータ
@@ -75,3 +78,8 @@ export type SpreadSheetInfo = {
   url: string;
   refference_cell: string;
 };
+
+export enum ConversationState {
+  WaitingForEventCodeForLinking = 'waiting_for_event_code_for_linking',
+  WaitingForEventCodeForUnlinking = 'waiting_for_event_code_for_unlinking',
+}
