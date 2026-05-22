@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
+import prisma from '@/lib/prisma';
 import { messagingApi } from '@line/bot-sdk';
+import { type Tour } from '@/app/types';
+import TOURS from '@/app/definitions/definitions';
+import { summaryMessage } from '@/app/line/messages/notificationMessage';
 
 const client = new messagingApi.MessagingApiClient({
   channelAccessToken: process.env.CHANNEL_ACCESS_TOKEN || '',
@@ -18,61 +22,39 @@ const isAuthorized = (request: NextRequest): boolean => {
   return authHeader === `Bearer ${cronSecret}`;
 };
 
-const getRecipients = (): string[] => {
-  const rawRecipients = process.env.LINE_PUSH_TO || '';
-
-  return rawRecipients
-    .split(',')
-    .map((value) => value.trim())
-    .filter((value) => value.length > 0);
-};
-
-type DeliverLineResult = {
-  sent: number;
-  failed: number;
-  recipients: string[];
-};
-
-const execute = async (): Promise<DeliverLineResult> => {
-  const recipients = getRecipients();
-
-  if (recipients.length === 0) {
-    console.warn('[cron] deliver-line skipped: LINE_PUSH_TO is empty');
-    return { sent: 0, failed: 0, recipients: [] };
+const execute = async (): Promise<string> => {
+  let messagesSent = 0;
+  for (const tour of TOURS) {
+    const sourceIds = await prisma.line_group_event_relations
+      .findMany({ where: { event_code: tour.event_code } })
+      .then((relations) => relations.map((r) => r.source_id))
+      .catch((error) => {
+        console.error(`Error fetching source IDs for event code ${tour.event_code}:`, error);
+        return [];
+      });
+    if (sourceIds.length > 0) {
+      const message: messagingApi.Message = await summaryMessage(tour.event_code);
+      await Promise.allSettled(
+        sourceIds.map((to) => client.pushMessage({ to, messages: [message] }))
+      ).catch((error) => {
+        console.error(`Error pushing message for event code ${tour.event_code}:`, error);
+      });
+      messagesSent += sourceIds.length;
+    }
   }
-
-  const messageText = process.env.LINE_PUSH_MESSAGE || '日次販売レポートを配信しました。';
-  const messages: messagingApi.Message[] = [{ type: 'text', text: messageText }];
-
-  const results = await Promise.allSettled(
-    recipients.map((to) => client.pushMessage({ to, messages }))
-  );
-
-  const failed = results.filter((result) => result.status === 'rejected').length;
-
-  if (failed > 0) {
-    results.forEach((result, index) => {
-      if (result.status === 'rejected') {
-        console.error(`[cron] deliver-line failed: recipient=${recipients[index]}`, result.reason);
-      }
-    });
-  }
-
-  return { sent: recipients.length - failed, failed, recipients };
+  console.log(`[cron] deliver-line: ${messagesSent} messages sent`);
+  return `[cron] deliver-line: ${messagesSent} messages sent`;
 };
 
 export async function GET(request: NextRequest) {
   if (!isAuthorized(request)) {
     return NextResponse.json({ ok: false, message: 'Unauthorized' }, { status: 401 });
   }
-
   console.log('[cron] deliver-line started');
-
   try {
     const result = await execute();
-    console.log('[cron] deliver-line finished', result);
-
-    return NextResponse.json({ ok: true, job: 'deliver-line', ...result });
+    console.log('[cron] deliver-line finished');
+    return NextResponse.json({ ok: true, job: 'deliver-line', result }, { status: 200 });
   } catch (error) {
     console.error('Error in deliver-line:', error);
     return NextResponse.json(
