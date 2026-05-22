@@ -1,7 +1,7 @@
 import prisma from '@/lib/prisma';
 import { messagingApi, webhook } from '@line/bot-sdk';
 import { type Tour, ConversationState } from '@/app/types';
-import DEFINITIONS from '@/app/definitions/definitions';
+import TOURS from '@/app/definitions/definitions';
 import { unlinkSelectorMessage } from '@/app/line/messages/unlinkSelectorMessage';
 
 export const unlinker = async (
@@ -24,7 +24,7 @@ export const unlinker = async (
         })
       )
         .map((r) => r.event_code)
-        .filter((code) => DEFINITIONS.some((d) => d.event_code === code));
+        .filter((code) => TOURS.some((d) => d.event_code === code));
       // リンクされていない場合は終了
       if (eventCodes.length === 0) {
         return [{ type: 'text', text: '今はお知らせしているイベントがないぴょ' }];

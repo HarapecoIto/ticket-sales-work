@@ -1,7 +1,7 @@
 import prisma from '@/lib/prisma';
 import { messagingApi } from '@line/bot-sdk';
 import { type Tour, type Concert } from '@/app/types';
-import DEFINITIONS from '@/app/definitions/definitions';
+import TOURS from '@/app/definitions/definitions';
 
 type SalesData = {
   concert_short_name: string;
@@ -191,14 +191,14 @@ const buildDetailMessage = async (tour: Tour): Promise<string[]> => {
 };
 
 export const summaryMessage = async (eventCode: string): Promise<messagingApi.Message> => {
-  const tour = DEFINITIONS.find((t) => t.event_code === eventCode);
+  const tour = TOURS.find((t) => t.event_code === eventCode);
   if (!tour) return { type: 'text', text: 'イベントが見つからないぴょ' };
   const lines = await buildSummaryMessage(tour);
   return { type: 'text', text: lines.join('\n') };
 };
 
 export const detailMessage = async (eventCode: string): Promise<messagingApi.Message> => {
-  const tour = DEFINITIONS.find((t) => t.event_code === eventCode);
+  const tour = TOURS.find((t) => t.event_code === eventCode);
   if (!tour) return { type: 'text', text: 'イベントが見つからないぴょ' };
   const lines = await buildDetailMessage(tour);
   return { type: 'text', text: lines.join('\n') };
