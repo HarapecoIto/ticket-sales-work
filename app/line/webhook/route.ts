@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { messagingApi, webhook } from '@line/bot-sdk';
 import crypto from 'crypto';
-import prisma from '@/lib/prisma';
 import { notificator } from '@/app/line/repliers/notificator';
 import { linker } from '../repliers/linker';
 import { unlinker } from '@/app/line/repliers/unlinker';

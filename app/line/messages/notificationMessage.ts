@@ -1,6 +1,6 @@
 import prisma from '@/lib/prisma';
 import { messagingApi } from '@line/bot-sdk';
-import { type Tour, type Concert, Distribution } from '@/app/types';
+import { type Tour, type Concert } from '@/app/types';
 import DEFINITIONS from '@/app/definitions/definitions';
 
 type SalesData = {
