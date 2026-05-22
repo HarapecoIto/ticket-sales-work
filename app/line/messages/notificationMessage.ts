@@ -103,9 +103,9 @@ const buildSummaryMessage = async (tour: Tour): Promise<string[]> => {
     lines.push('本日の販売状況をお知らせするぴょ');
     lines.push('');
 
-    lines.push(`【${tour.name}】`);
     const data = await getDetails(tour, tour.concerts[0]);
     if (data.length === 0 || data[0].aggregated_at === null) {
+      lines.push(`【${tour.name}】`);
       lines.push('  まだ集計されてないぴょ');
     } else {
       const reserved: Record<string, number> = {};
@@ -118,7 +118,8 @@ const buildSummaryMessage = async (tour: Tour): Promise<string[]> => {
           soled[d.ticket] = (soled[d.ticket] || 0) + Number(d.sold);
         }
       });
-      lines.push(`【${tour.name}】${formatDate(data[0].aggregated_at)}現在`);
+      lines.push(`【${tour.name}】`);
+      lines.push(`${formatDate(data[0].aggregated_at)}現在`);
       tour.concerts[0].tickets.forEach((t) => {
         lines.push(`  ${t.name}: 予約 ${reserved[t.name] || 0}枚, 販売 ${soled[t.name] || 0}枚`);
       });
