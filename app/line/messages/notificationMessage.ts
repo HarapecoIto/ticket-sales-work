@@ -98,48 +98,47 @@ const formatDate = (date: Date): string => {
 
 const buildSummaryMessage = async (tour: Tour): Promise<string[]> => {
   const lines: string[] = [];
+  lines.push('本日の販売状況をお知らせするぴょ');
   if (tour.concerts.length === 1) {
     // 単発公演の場合
-    lines.push('本日の販売状況をお知らせするぴょ');
     lines.push('');
-
+    lines.push(`【${tour.name}】`);
     const data = await getDetails(tour, tour.concerts[0]);
     if (data.length === 0 || data[0].aggregated_at === null) {
-      lines.push(`【${tour.name}】`);
       lines.push('  まだ集計されてないぴょ');
     } else {
       const reserved: Record<string, number> = {};
-      const soled: Record<string, number> = {};
+      const sold: Record<string, number> = {};
       data.forEach((d) => {
         if (d.reserved && d.reserved > 0) {
           reserved[d.ticket] = (reserved[d.ticket] || 0) + Number(d.reserved);
         }
         if (d.sold && d.sold > 0) {
-          soled[d.ticket] = (soled[d.ticket] || 0) + Number(d.sold);
+          sold[d.ticket] = (sold[d.ticket] || 0) + Number(d.sold);
         }
       });
-      lines.push(`【${tour.name}】`);
       lines.push(`${formatDate(data[0].aggregated_at)}現在`);
       tour.concerts[0].tickets.forEach((t) => {
-        lines.push(`  ${t.name}: 予約 ${reserved[t.name] || 0}枚, 販売 ${soled[t.name] || 0}枚`);
+        lines.push(`  ${t.name}: 予約 ${reserved[t.name] || 0}枚, 販売 ${sold[t.name] || 0}枚`);
       });
     }
   } else {
     for (const c of tour.concerts) {
       const data = await getDetails(tour, c);
+      lines.push('');
       lines.push(`【${c.short_name}】${formatDate(data[0].aggregated_at)}現在`);
       const reserved: Record<string, number> = {};
-      const soled: Record<string, number> = {};
+      const sold: Record<string, number> = {};
       data.forEach((d) => {
         if (d.reserved && d.reserved > 0) {
           reserved[d.ticket] = (reserved[d.ticket] || 0) + Number(d.reserved);
         }
         if (d.sold && d.sold > 0) {
-          soled[d.ticket] = (soled[d.ticket] || 0) + Number(d.sold);
+          sold[d.ticket] = (sold[d.ticket] || 0) + Number(d.sold);
         }
       });
       c.tickets.forEach((t) => {
-        lines.push(`  ${t.name}: 予約 ${reserved[t.name] || 0}枚, 販売 ${soled[t.name] || 0}枚`);
+        lines.push(`  ${t.name}: 予約 ${reserved[t.name] || 0}枚, 販売 ${sold[t.name] || 0}枚`);
       });
     }
   }
@@ -150,7 +149,7 @@ const buildDetailMessage = async (tour: Tour): Promise<string[]> => {
   const lines = [];
   if (tour.concerts.length === 1) {
     // 単発公演の場合
-    lines.push('本日の販売状況をお知らせするぴょ');
+    lines.push('本日の販売状況を詳しくお知らせするぴょ');
     lines.push('');
     const data = await getDetails(tour, tour.concerts[0]);
     if (data.length === 0 || data[0].aggregated_at === null) {
@@ -165,10 +164,10 @@ const buildDetailMessage = async (tour: Tour): Promise<string[]> => {
     }
   } else {
     // ツアー公演の場合
-    lines.push('本日の販売状況をお知らせするぴょ');
-    lines.push('');
+    lines.push('本日の販売状況を詳しくお知らせするぴょ');
     for (const c of tour.concerts) {
       const data = await getDetails(tour, c);
+      lines.push('');
       lines.push(`【${c.short_name}】${formatDate(data[0].aggregated_at || new Date())}現在`);
       data.forEach((d) => {
         lines.push(`${d.campaign} (${d.play_guide})`);
