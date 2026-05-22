@@ -22,8 +22,9 @@ const isAuthorized = (request: NextRequest): boolean => {
   return authHeader === `Bearer ${cronSecret}`;
 };
 
-const execute = async (): Promise<void> => {
-  TOURS.forEach(async (tour: Tour) => {
+const execute = async (): Promise<string> => {
+  let messagesSent = 0;
+  for (const tour of TOURS) {
     const sourceIds = await prisma.line_group_event_relations
       .findMany({ where: { event_code: tour.event_code } })
       .then((relations) => relations.map((r) => r.source_id))
@@ -38,9 +39,11 @@ const execute = async (): Promise<void> => {
       ).catch((error) => {
         console.error(`Error pushing message for event code ${tour.event_code}:`, error);
       });
+      messagesSent += sourceIds.length;
     }
-  });
-  return;
+  }
+  console.log(`[cron] deliver-line: ${messagesSent} messages sent`);
+  return `[cron] deliver-line: ${messagesSent} messages sent`;
 };
 
 export async function GET(request: NextRequest) {
@@ -49,9 +52,9 @@ export async function GET(request: NextRequest) {
   }
   console.log('[cron] deliver-line started');
   try {
-    await execute();
+    const result = await execute();
     console.log('[cron] deliver-line finished');
-    return NextResponse.json({ ok: true, job: 'deliver-line' }, { status: 200 });
+    return NextResponse.json({ ok: true, job: 'deliver-line', result }, { status: 200 });
   } catch (error) {
     console.error('Error in deliver-line:', error);
     return NextResponse.json(
