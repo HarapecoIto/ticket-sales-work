@@ -95,7 +95,7 @@ model conversation_state {
 }
 
 // スプレッドシートのURLと対応するイベント
-model spread_sheets_url {
+model spreadsheets {
   url         String   @id @db.VarChar(200)
   event_code  String   @db.VarChar(20)
 }
