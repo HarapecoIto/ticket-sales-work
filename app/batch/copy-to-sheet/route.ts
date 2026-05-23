@@ -1,3 +1,4 @@
+import prisma from '@/lib/prisma';
 import { NextRequest, NextResponse } from 'next/server';
 import { type Tour, type Concert, type TicketSales } from '@/app/types';
 import TOURS from '@/app/definitions/definitions';
@@ -17,7 +18,13 @@ const isAuthorized = (request: NextRequest): boolean => {
 };
 
 const execute = async (): Promise<string> => {
-  TOURS.forEach(async (tour) => {
+  const spreadsheets = await prisma.spreadsheets.findMany();
+  spreadsheets.forEach((sheet) => {
+    const tour: Tour | undefined = TOURS.find((t) => t.event_code === sheet.event_code);
+    if (!tour) {
+      console.warn(`Tour with ID ${sheet.event_code} not found for spreadsheet ${sheet.url}`);
+      return;
+    }
     const data = tour.concerts.map(async (concert) => {
       const records: TicketSales[] = await getTicketSales(tour, concert);
       const sales = records.map((d) => {
