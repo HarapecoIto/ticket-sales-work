@@ -34,9 +34,7 @@ export const getTicketSales = async (tour: Tour, c: Concert): Promise<TicketSale
       return c.distribution
         .filter((d) => d.campaign_alias === r.campaign_name && d.play_guide === r.play_guide)
         .map((d): TicketSales | null => {
-          const campaign = tour.campaigns.find(
-            (ca: Campaign) => ca.campaign_name === d.campaign_alias
-          );
+          const campaign = tour.campaigns.find((ca: Campaign) => ca.campaign_name === d.campaign);
           if (!campaign) {
             return null;
           }
