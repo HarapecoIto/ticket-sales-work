@@ -79,10 +79,7 @@ export const getTicketSales = async (tour: Tour, c: Concert): Promise<TicketSale
             play_guide: d.play_guide,
             ticket: d.ticket,
             applied_number: campaign.campaign_type === 'ByLottery' ? Number(reserved) : null,
-            unconfirmed_winning_number:
-              campaign.campaign_type === 'ByLottery' && reserved !== null
-                ? Number(reserved) - Number(sold !== null ? sold : BigInt(0))
-                : null,
+            unconfirmed_winning_number: campaign.campaign_type === 'ByLottery' ? 0 : null, // TODO: 抽選の当落がわかるようになったら修正する
             confirmed_winning_number: campaign.campaign_type === 'ByLottery' ? Number(sold) : null,
             unconfirmed_sales_number:
               campaign.campaign_type === 'FirstCome' ? Number(reserved) : null,
