@@ -82,17 +82,6 @@ export type TeketInfo = {
   event_code: string; // teketコード
 };
 
-// 配信先LINEグループ
-export type LineInfo = {
-  line_group_id: number;
-};
-
-// 転記先スプレッドシート
-export type SpreadSheetInfo = {
-  url: string;
-  refference_cell: string;
-};
-
 export enum ConversationState {
   WaitingForEventCodeForLinking = 'waiting_for_event_code_for_linking',
   WaitingForEventCodeForUnlinking = 'waiting_for_event_code_for_unlinking',

@@ -93,3 +93,9 @@ model conversation_state {
   state       String   @db.VarChar(50)
   updated_at  DateTime @updatedAt @db.Timestamptz(6)
 }
+
+// スプレッドシートのURLと対応するイベント
+model spread_sheets_url {
+  url         String   @id @db.VarChar(200)
+  event_code  String   @db.VarChar(20)
+}
