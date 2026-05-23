@@ -35,6 +35,7 @@ const execute = async (): Promise<string> => {
           (d.confirmed_winning_number ?? 0);
         const soldNumber = (d.unconfirmed_sales_number ?? 0) + (d.confirmed_sales_number ?? 0);
         return {
+          aggregated_at: d.aggregated_at,
           campaign: d.campaign,
           play_guide: d.play_guide,
           ticket: d.ticket,
