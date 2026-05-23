@@ -48,6 +48,16 @@ const execute = async (): Promise<string> => {
       date: new Date().toISOString(),
       data: data,
     };
+    fetch(sheet.url, {
+      method: 'POST',
+      redirect: 'follow',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(contents),
+    }).catch((error) => {
+      console.error(`Error sending data to sheet ${sheet.url}:`, error);
+    });
   });
   console.log(`[cron] copy-to-sheet: ${TOURS.length} tours processed`);
   return `[cron] copy-to-sheet: ${TOURS.length} tours processed`;
