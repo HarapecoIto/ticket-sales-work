@@ -14,9 +14,9 @@ const formatDate = (date: Date): string => {
 
 const getReservationAndSales = async (
   data: TicketSales[]
-): Promise<{ reserved: Record<string, number>; sold: Record<string, number> }> => {
+): Promise<{ reserved: Record<string, number>; confirmed: Record<string, number> }> => {
   const reserved: Record<string, number> = {};
-  const sold: Record<string, number> = {};
+  const confirmed: Record<string, number> = {};
   data.forEach((d) => {
     if (d.applied_number && d.applied_number > 0) {
       reserved[d.ticket] = (reserved[d.ticket] || 0) + Number(d.applied_number);
@@ -25,17 +25,16 @@ const getReservationAndSales = async (
       reserved[d.ticket] = (reserved[d.ticket] || 0) + Number(d.unconfirmed_winning_number);
     }
     if (d.confirmed_winning_number && d.confirmed_winning_number > 0) {
-      reserved[d.ticket] = (reserved[d.ticket] || 0) + Number(d.confirmed_winning_number);
+      confirmed[d.ticket] = (confirmed[d.ticket] || 0) + Number(d.confirmed_winning_number);
     }
     if (d.unconfirmed_sales_number && d.unconfirmed_sales_number > 0) {
-      sold[d.ticket] = (sold[d.ticket] || 0) + Number(d.unconfirmed_sales_number);
+      reserved[d.ticket] = (reserved[d.ticket] || 0) + Number(d.unconfirmed_sales_number);
     }
-
     if (d.confirmed_sales_number && d.confirmed_sales_number > 0) {
-      sold[d.ticket] = (sold[d.ticket] || 0) + Number(d.confirmed_sales_number);
+      confirmed[d.ticket] = (confirmed[d.ticket] || 0) + Number(d.confirmed_sales_number);
     }
   });
-  return { reserved, sold };
+  return { reserved, confirmed };
 };
 
 const buildSummaryMessage = async (tour: Tour): Promise<string[]> => {
@@ -49,10 +48,12 @@ const buildSummaryMessage = async (tour: Tour): Promise<string[]> => {
     if (salesData.length === 0 || salesData[0].aggregated_at === null) {
       lines.push('  まだ集計されてないぴょ');
     } else {
-      const { reserved, sold } = await getReservationAndSales(salesData);
+      const { reserved, confirmed } = await getReservationAndSales(salesData);
       lines.push(`${formatDate(salesData[0].aggregated_at)}現在`);
       tour.concerts[0].tickets.forEach((t) => {
-        lines.push(`  ${t.name}: 予約 ${reserved[t.name] || 0}枚, 販売 ${sold[t.name] || 0}枚`);
+        lines.push(
+          `  ${t.name}: 予約 ${reserved[t.name] || 0}枚, 確定 ${confirmed[t.name] || 0}枚`
+        );
       });
     }
   } else {
@@ -65,9 +66,11 @@ const buildSummaryMessage = async (tour: Tour): Promise<string[]> => {
       } else {
         lines.push('');
         lines.push(`【${c.short_name}】${formatDate(data[0].aggregated_at)}現在`);
-        const { reserved, sold } = await getReservationAndSales(data);
+        const { reserved, confirmed } = await getReservationAndSales(data);
         c.tickets.forEach((t) => {
-          lines.push(`  ${t.name}: 予約 ${reserved[t.name] || 0}枚, 販売 ${sold[t.name] || 0}枚`);
+          lines.push(
+            `  ${t.name}: 予約 ${reserved[t.name] || 0}枚, 確定 ${confirmed[t.name] || 0}枚`
+          );
         });
       }
     }
@@ -89,12 +92,12 @@ const buildDetailMessage = async (tour: Tour): Promise<string[]> => {
       lines.push(`【${tour.name}】${formatDate(data[0].aggregated_at)}現在`);
       data.forEach((d: TicketSales) => {
         lines.push(`${d.campaign} (${d.play_guide})`);
-        const reservedNumber =
+        const reserved =
           (d.applied_number ?? 0) +
           (d.unconfirmed_winning_number ?? 0) +
-          (d.confirmed_winning_number ?? 0);
-        const soldNumber = (d.unconfirmed_sales_number ?? 0) + (d.confirmed_sales_number ?? 0);
-        lines.push(`  ${d.ticket}: 予約 ${reservedNumber}枚, 販売 ${soldNumber}枚`);
+          (d.unconfirmed_sales_number ?? 0);
+        const confirmed = (d.confirmed_winning_number ?? 0) + (d.confirmed_sales_number ?? 0);
+        lines.push(`  ${d.ticket}: 予約 ${reserved}枚, 確定 ${confirmed}枚`);
       });
     }
   } else {
@@ -111,12 +114,12 @@ const buildDetailMessage = async (tour: Tour): Promise<string[]> => {
         lines.push(`【${c.short_name}】${formatDate(data[0].aggregated_at || new Date())}現在`);
         data.forEach((d) => {
           lines.push(`${d.campaign} (${d.play_guide})`);
-          const reservedNumber =
+          const reserved =
             (d.applied_number ?? 0) +
             (d.unconfirmed_winning_number ?? 0) +
-            (d.confirmed_winning_number ?? 0);
-          const soldNumber = (d.unconfirmed_sales_number ?? 0) + (d.confirmed_sales_number ?? 0);
-          lines.push(`  ${d.ticket}: 予約 ${reservedNumber}枚, 販売 ${soldNumber}枚`);
+            (d.unconfirmed_sales_number ?? 0);
+          const confirmed = (d.confirmed_winning_number ?? 0) + (d.confirmed_sales_number ?? 0);
+          lines.push(`  ${d.ticket}: 予約 ${reserved}枚, 確定 ${confirmed}枚`);
         });
       }
     }

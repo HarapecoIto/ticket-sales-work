@@ -29,21 +29,21 @@ const execute = async (): Promise<string> => {
     for (const concert of tour.concerts) {
       const records: TicketSales[] = await getTicketSales(tour, concert);
       const sales = records.map((d) => {
-        const reservedNumber =
+        const reserved =
           (d.applied_number ?? 0) +
           (d.unconfirmed_winning_number ?? 0) +
-          (d.confirmed_winning_number ?? 0);
-        const soldNumber = (d.unconfirmed_sales_number ?? 0) + (d.confirmed_sales_number ?? 0);
+          (d.unconfirmed_sales_number ?? 0);
+        const confirmed = (d.confirmed_winning_number ?? 0) + (d.confirmed_sales_number ?? 0);
         return {
           aggregated_at: d.aggregated_at,
           campaign: d.campaign,
           play_guide: d.play_guide,
           ticket: d.ticket,
-          reserved: reservedNumber,
-          sold: soldNumber,
+          reserved: reserved,
+          confirmed: confirmed,
         };
       });
-      data.push({ concert_name: concert.short_name, sales });
+      data.push({ concert_name: concert.short_name, sales: sales });
     }
     const contents = {
       api_key: process.env.SPREADSHEETS_API_KEY,
