@@ -10,6 +10,7 @@ datasource db {
 // 日次販売データ
 // 非正規化
 // 全てのプレイガイドのサマリー
+// deprecated
 model daily_sales {
   event_code               String   @db.VarChar(20)
   concert_short_name       String   @db.VarChar(20)
@@ -59,6 +60,23 @@ model daily_sales_details {
   sales_5                  BigInt?
 
   @@id([event_code, concert_short_name, aggregated_at, campaign_name, play_guide])
+}
+
+// 販売データ
+model ticket_sales_details {
+  event_code                      String   @db.VarChar(20)
+  concert_short_name              String   @db.VarChar(20)
+  campaign                        String   @db.VarChar(20)
+  play_guide                      String   @db.VarChar(20)
+  aggregated_at                   String   @db.VarChar(20)
+  ticket                          String   @db.VarChar(20)
+  applied_number                  BigInt?
+  unconfirmed_winning_number      BigInt?
+  confirmed_winning_number        BigInt?
+  unconfirmed_sales_number        BigInt?
+  confirmed_sales_number          BigInt?
+
+  @@id([event_code, concert_short_name, aggregated_at, campaign, play_guide, ticket])
 }
 
 // LINEグループと興行の対応
