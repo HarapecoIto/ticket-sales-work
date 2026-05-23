@@ -45,7 +45,7 @@ const execute = async (): Promise<string> => {
       data.push({ concert_name: concert.short_name, sales });
     }
     const contents = {
-      api_key: process.env.SHEET_API_KEY,
+      api_key: process.env.SPREADSHEETS_API_KEY,
       date: new Date().toISOString(),
       data: data,
     };

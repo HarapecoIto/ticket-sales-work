@@ -4,6 +4,6 @@ declare namespace NodeJS {
     readonly CHANNEL_SECRET: string;
     readonly CRON_SECRET: string;
     readonly VERCEL_ENV: 'production' | 'preview' | 'development' | undefined;
-    readonly DOMAIN_NAME: string;
+    readonly SPREADSHEETS_API_KEY: string;
   }
 }
