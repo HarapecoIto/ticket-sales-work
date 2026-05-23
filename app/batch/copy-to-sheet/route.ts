@@ -51,7 +51,7 @@ const execute = async (): Promise<string> => {
     };
     console.log(`Sending data to sheet ${sheet.url} for tour ${tour.event_code}`);
     fetch(sheet.url, {
-      method: 'GET',
+      method: 'POST',
       redirect: 'follow',
       headers: {
         'Content-Type': 'application/json',
