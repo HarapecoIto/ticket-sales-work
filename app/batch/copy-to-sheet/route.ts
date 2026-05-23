@@ -49,6 +49,7 @@ const execute = async (): Promise<string> => {
       date: new Date().toISOString(),
       data: data,
     };
+    console.log(`Sending data to sheet ${sheet.url} for tour ${tour.event_code}`);
     fetch(sheet.url, {
       method: 'GET',
       redirect: 'follow',
@@ -60,8 +61,8 @@ const execute = async (): Promise<string> => {
       console.error(`Error sending data to sheet ${sheet.url}:`, error);
     });
   }
-  console.log(`[cron] copy-to-sheet: ${TOURS.length} tours processed`);
-  return `[cron] copy-to-sheet: ${TOURS.length} tours processed`;
+  console.log(`[cron] copy-to-sheet: ${spreadsheets.length} spreadsheets processed`);
+  return `[cron] copy-to-sheet: ${spreadsheets.length} spreadsheets processed`;
 };
 
 export async function GET(request: NextRequest) {
