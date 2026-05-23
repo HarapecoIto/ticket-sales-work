@@ -19,13 +19,14 @@ const isAuthorized = (request: NextRequest): boolean => {
 
 const execute = async (): Promise<string> => {
   const spreadsheets = await prisma.spreadsheets.findMany();
-  spreadsheets.forEach((sheet) => {
+  for (const sheet of spreadsheets) {
     const tour: Tour | undefined = TOURS.find((t) => t.event_code === sheet.event_code);
     if (!tour) {
       console.warn(`Tour with ID ${sheet.event_code} not found for spreadsheet ${sheet.url}`);
-      return;
+      continue;
     }
-    const data = tour.concerts.map(async (concert) => {
+    const data = [];
+    for (const concert of tour.concerts) {
       const records: TicketSales[] = await getTicketSales(tour, concert);
       const sales = records.map((d) => {
         const reservedNumber =
@@ -41,15 +42,15 @@ const execute = async (): Promise<string> => {
           sold: soldNumber,
         };
       });
-      return { concert_name: concert.short_name, sales };
-    });
+      data.push({ concert_name: concert.short_name, sales });
+    }
     const contents = {
       api_key: process.env.SHEET_API_KEY,
       date: new Date().toISOString(),
       data: data,
     };
     fetch(sheet.url, {
-      method: 'POST',
+      method: 'GET',
       redirect: 'follow',
       headers: {
         'Content-Type': 'application/json',
@@ -58,7 +59,7 @@ const execute = async (): Promise<string> => {
     }).catch((error) => {
       console.error(`Error sending data to sheet ${sheet.url}:`, error);
     });
-  });
+  }
   console.log(`[cron] copy-to-sheet: ${TOURS.length} tours processed`);
   return `[cron] copy-to-sheet: ${TOURS.length} tours processed`;
 };
