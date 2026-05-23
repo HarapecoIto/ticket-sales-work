@@ -1,4 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { type Tour, type Concert, type TicketSales } from '@/app/types';
+import TOURS from '@/app/definitions/definitions';
+import { getTicketSales } from '@/app/utility/loadSales';
 
 const isAuthorized = (request: NextRequest): boolean => {
   const isGuarded = process.env.VERCEL_ENV === 'production' || process.env.VERCEL_ENV === undefined;
@@ -13,16 +16,47 @@ const isAuthorized = (request: NextRequest): boolean => {
   return authHeader === `Bearer ${cronSecret}`;
 };
 
+const execute = async (): Promise<string> => {
+  TOURS.forEach(async (tour) => {
+    const data = tour.concerts.map(async (concert) => {
+      const records: TicketSales[] = await getTicketSales(tour, concert);
+      const sales = records.map((d) => {
+        const reservedNumber =
+          (d.applied_number ?? 0) +
+          (d.unconfirmed_winning_number ?? 0) +
+          (d.confirmed_winning_number ?? 0);
+        const soldNumber = (d.unconfirmed_sales_number ?? 0) + (d.confirmed_sales_number ?? 0);
+        return {
+          campaign: d.campaign,
+          play_guide: d.play_guide,
+          ticket: d.ticket,
+          reserved: reservedNumber,
+          sold: soldNumber,
+        };
+      });
+      return { concert_name: concert.short_name, sales };
+    });
+    const contents = {
+      api_key: process.env.SHEET_API_KEY,
+      date: new Date().toISOString(),
+      data: data,
+    };
+  });
+  console.log(`[cron] copy-to-sheet: ${TOURS.length} tours processed`);
+  return `[cron] copy-to-sheet: ${TOURS.length} tours processed`;
+};
+
 export async function GET(request: NextRequest) {
   if (!isAuthorized(request)) {
     return NextResponse.json({ ok: false, message: 'Unauthorized' }, { status: 401 });
   }
-
   console.log('[cron] copy-to-sheet started');
-
-  // TODO: Copy aggregated data to spreadsheet.
-
-  console.log('[cron] copy-to-sheet finished');
-
-  return NextResponse.json({ ok: true, job: 'copy-to-sheet' });
+  try {
+    const result = await execute();
+    console.log('[cron] copy-to-sheet finished');
+    return NextResponse.json({ ok: true, job: 'copy-to-sheet', result }, { status: 200 });
+  } catch (error) {
+    console.error('Error in copy-to-sheet:', error);
+    return NextResponse.json({ ok: false, message: 'Failed to copy to sheet' }, { status: 500 });
+  }
 }
