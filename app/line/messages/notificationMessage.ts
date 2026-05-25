@@ -93,12 +93,12 @@ const buildSummaryMessage = async (tour: Tour): Promise<string[]> => {
 };
 
 const buildDetailMessage = async (tour: Tour): Promise<string[]> => {
-  const lines = [];
+  const lines: string[] = [];
   if (tour.concerts.length === 1) {
     // 単発公演の場合
     lines.push('本日の販売状況を詳しくお知らせするぴょ');
     lines.push('');
-    const data = await getTicketSales(tour, tour.concerts[0]);
+    const data: TicketSales[] = await getTicketSales(tour, tour.concerts[0]);
     if (data.length === 0 || data[0].aggregated_at === null) {
       lines.push(`【${tour.name}】`);
       lines.push('  まだ集計されてないぴょ');
@@ -106,7 +106,7 @@ const buildDetailMessage = async (tour: Tour): Promise<string[]> => {
       lines.push(`【${tour.name}】${formatDate(data[0].aggregated_at)}現在`);
       data.forEach((d: TicketSales) => {
         lines.push(`${d.campaign} (${d.play_guide})`);
-        const disp = [];
+        const disp: string[] = [];
         if (d.applied_number !== null) {
           disp.push(`申込 ${d.applied_number}枚`);
         }
@@ -125,7 +125,7 @@ const buildDetailMessage = async (tour: Tour): Promise<string[]> => {
     // ツアー公演の場合
     lines.push('本日の販売状況を詳しくお知らせするぴょ');
     for (const c of tour.concerts) {
-      const data = await getTicketSales(tour, c);
+      const data: TicketSales[] = await getTicketSales(tour, c);
       if (data.length === 0 || data[0].aggregated_at === null) {
         lines.push('');
         lines.push(`【${c.short_name}】`);
@@ -133,9 +133,9 @@ const buildDetailMessage = async (tour: Tour): Promise<string[]> => {
       } else {
         lines.push('');
         lines.push(`【${c.short_name}】${formatDate(data[0].aggregated_at || new Date())}現在`);
-        data.forEach((d) => {
+        data.forEach((d: TicketSales) => {
           lines.push(`${d.campaign} (${d.play_guide})`);
-          const disp = [];
+          const disp: string[] = [];
           if (d.applied_number !== null) {
             disp.push(`申込 ${d.applied_number}枚`);
           }
