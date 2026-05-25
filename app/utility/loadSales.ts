@@ -47,7 +47,7 @@ export const getTicketSales = async (tour: Tour, c: Concert): Promise<TicketSale
           if (!exists) {
             return null;
           }
-          const reserved: BigInt | null =
+          const reserved =
             d.ticket_alias === r.ticket_1
               ? r.reservation_1
               : d.ticket_alias === r.ticket_2
@@ -59,7 +59,7 @@ export const getTicketSales = async (tour: Tour, c: Concert): Promise<TicketSale
                     : d.ticket_alias === r.ticket_5
                       ? r.reservation_5
                       : null;
-          const sold: BigInt | null =
+          const sold =
             d.ticket_alias === r.ticket_1
               ? r.sales_1
               : d.ticket_alias === r.ticket_2
