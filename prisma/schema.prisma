@@ -37,6 +37,7 @@ model daily_sales {
 // 日次販売明細
 // 非正規化
 // プレイガイドごと、
+// deprecated
 model daily_sales_details {
   event_code               String   @db.VarChar(20)               // あえて外部キーは用いない
   concert_short_name       String   @db.VarChar(20)               // あえて外部キーは用いない
@@ -71,10 +72,8 @@ model ticket_sales_details {
   aggregated_at                   String   @db.VarChar(20)
   ticket                          String   @db.VarChar(20)
   applied_number                  BigInt?
-  unconfirmed_winning_number      BigInt?
-  confirmed_winning_number        BigInt?
-  unconfirmed_sales_number        BigInt?
-  confirmed_sales_number          BigInt?
+  reserved_number                 BigInt?
+  confirmed_number                BigInt?
 
   @@id([event_code, concert_short_name, aggregated_at, campaign, play_guide, ticket])
 }
