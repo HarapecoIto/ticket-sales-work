@@ -90,36 +90,3 @@ export const getTicketSales = async (tour: Tour, c: Concert): Promise<TicketSale
     })
     .flat();
 };
-
-const normalize = (record: TicketSales): TicketSales | null => {
-  const tour = TOURS.find((t: Tour) => t.event_code === record.event_code);
-  if (!tour) {
-    return null;
-  }
-  const concert = tour.concerts.find((c: Concert) => c.short_name === record.concert_short_name);
-  if (!concert) {
-    return null;
-  }
-  const distribution = concert.distribution.find(
-    (d: Distribution) =>
-      d.campaign_alias === record.campaign &&
-      d.play_guide === record.play_guide &&
-      d.ticket_alias === record.ticket
-  );
-  if (!distribution) {
-    return null;
-  }
-  return {
-    event_code: record.event_code,
-    concert_short_name: record.concert_short_name,
-    campaign: distribution.campaign,
-    play_guide: record.play_guide,
-    aggregated_at: record.aggregated_at,
-    ticket: distribution.ticket,
-    applied_number: record.applied_number,
-    unconfirmed_winning_number: record.unconfirmed_winning_number,
-    confirmed_winning_number: record.confirmed_winning_number,
-    unconfirmed_sales_number: record.unconfirmed_sales_number,
-    confirmed_sales_number: record.confirmed_sales_number,
-  };
-};
