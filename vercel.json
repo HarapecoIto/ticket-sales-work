@@ -6,16 +6,12 @@
   "framework": "nextjs",
   "crons": [
     {
-      "path": "/batch/fetch-sales",
-      "schedule": "0 18 * * *"
-    },
-    {
       "path": "/batch/copy-to-sheet",
-      "schedule": "5 18 * * *"
+      "schedule": "5 9 * * *"
     },
     {
       "path": "/batch/deliver-line",
-      "schedule": "10 18 * * *"
+      "schedule": "10 9 * * *"
     }
   ]
 }
