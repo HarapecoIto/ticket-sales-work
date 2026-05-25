@@ -47,6 +47,20 @@ export type Distribution = {
   ticket_alias: string;
 };
 
+export type TicketSales = {
+  event_code: string;
+  concert_short_name: string;
+  campaign: string;
+  play_guide: 'eplus' | 'pia' | 'lawson' | 'teket';
+  aggregated_at: Date;
+  ticket: string;
+  applied_number: number | null;
+  unconfirmed_winning_number: number | null;
+  confirmed_winning_number: number | null;
+  unconfirmed_sales_number: number | null;
+  confirmed_sales_number: number | null;
+};
+
 // 各プレイガイド用メタデータ
 export type PiaInfo = {
   name: string;
@@ -66,17 +80,6 @@ export type LawsonInfo = {
 export type TeketInfo = {
   name: string;
   event_code: string; // teketコード
-};
-
-// 配信先LINEグループ
-export type LineInfo = {
-  line_group_id: number;
-};
-
-// 転記先スプレッドシート
-export type SpreadSheetInfo = {
-  url: string;
-  refference_cell: string;
 };
 
 export enum ConversationState {

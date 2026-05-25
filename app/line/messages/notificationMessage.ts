@@ -1,91 +1,7 @@
-import prisma from '@/lib/prisma';
 import { messagingApi } from '@line/bot-sdk';
-import { type Tour, type Concert } from '@/app/types';
+import { type Tour, type Concert, type TicketSales } from '@/app/types';
 import TOURS from '@/app/definitions/definitions';
-
-type SalesData = {
-  concert_short_name: string;
-  aggregated_at: Date;
-  campaign: string;
-  play_guide: string;
-  ticket: string;
-  reserved: number | null;
-  sold: number | null;
-};
-
-const getDetails = async (tour: Tour, c: Concert): Promise<SalesData[]> => {
-  // 24時間以内に集計されたレコードを取得する
-  const records = await prisma.daily_sales_details.findMany({
-    where: {
-      event_code: tour.event_code,
-      concert_short_name: c.short_name,
-      aggregated_at: { gte: new Date(Date.now() - 1000 * 60 * 60 * 24) },
-    },
-    orderBy: { aggregated_at: 'desc' },
-  });
-
-  // 重複がある場合は最新のもののみを採用する
-  const temp = new Map<string, (typeof records)[number]>();
-  records.forEach((record) => {
-    const key = `${record.concert_short_name}::${record.campaign_name}::${record.play_guide}`;
-    if (!temp.has(key)) {
-      temp.set(key, record);
-    }
-  });
-  const latest = Array.from(temp.values()); // プレイガイドごとキャンペーンの売上データ
-
-  return latest
-    .map((r): SalesData[] => {
-      return c.distribution
-        .filter((d) => d.campaign_alias === r.campaign_name && d.play_guide === r.play_guide)
-        .map((d): SalesData | null => {
-          const exists: boolean =
-            d.ticket_alias === r.ticket_1 ||
-            d.ticket_alias === r.ticket_2 ||
-            d.ticket_alias === r.ticket_3 ||
-            d.ticket_alias === r.ticket_4 ||
-            d.ticket_alias === r.ticket_5;
-          if (!exists) {
-            return null;
-          }
-          const reserved =
-            d.ticket_alias === r.ticket_1
-              ? r.reservation_1
-              : d.ticket_alias === r.ticket_2
-                ? r.reservation_2
-                : d.ticket_alias === r.ticket_3
-                  ? r.reservation_3
-                  : d.ticket_alias === r.ticket_4
-                    ? r.reservation_4
-                    : d.ticket_alias === r.ticket_5
-                      ? r.reservation_5
-                      : null;
-          const sold =
-            d.ticket_alias === r.ticket_1
-              ? r.sales_1
-              : d.ticket_alias === r.ticket_2
-                ? r.sales_2
-                : d.ticket_alias === r.ticket_3
-                  ? r.sales_3
-                  : d.ticket_alias === r.ticket_4
-                    ? r.sales_4
-                    : d.ticket_alias === r.ticket_5
-                      ? r.sales_5
-                      : null;
-          return {
-            concert_short_name: c.short_name,
-            aggregated_at: r.aggregated_at,
-            campaign: d.campaign,
-            play_guide: d.play_guide,
-            ticket: d.ticket,
-            reserved: reserved !== null ? Number(reserved) : null,
-            sold: sold !== null ? Number(sold) : null,
-          } as SalesData;
-        })
-        .filter((s): s is SalesData => s !== null);
-    })
-    .flat();
-};
+import { getTicketSales } from '@/app/utility/loadSales';
 
 const formatDate = (date: Date): string => {
   const year = date.getFullYear();
@@ -96,6 +12,31 @@ const formatDate = (date: Date): string => {
   return `${year}-${month}-${day} ${hours}:${minutes}`;
 };
 
+const getReservationAndSales = async (
+  data: TicketSales[]
+): Promise<{ reserved: Record<string, number>; confirmed: Record<string, number> }> => {
+  const reserved: Record<string, number> = {};
+  const confirmed: Record<string, number> = {};
+  data.forEach((d) => {
+    if (d.applied_number && d.applied_number > 0) {
+      reserved[d.ticket] = (reserved[d.ticket] || 0) + Number(d.applied_number);
+    }
+    if (d.unconfirmed_winning_number && d.unconfirmed_winning_number > 0) {
+      reserved[d.ticket] = (reserved[d.ticket] || 0) + Number(d.unconfirmed_winning_number);
+    }
+    if (d.confirmed_winning_number && d.confirmed_winning_number > 0) {
+      confirmed[d.ticket] = (confirmed[d.ticket] || 0) + Number(d.confirmed_winning_number);
+    }
+    if (d.unconfirmed_sales_number && d.unconfirmed_sales_number > 0) {
+      reserved[d.ticket] = (reserved[d.ticket] || 0) + Number(d.unconfirmed_sales_number);
+    }
+    if (d.confirmed_sales_number && d.confirmed_sales_number > 0) {
+      confirmed[d.ticket] = (confirmed[d.ticket] || 0) + Number(d.confirmed_sales_number);
+    }
+  });
+  return { reserved, confirmed };
+};
+
 const buildSummaryMessage = async (tour: Tour): Promise<string[]> => {
   const lines: string[] = [];
   lines.push('本日の販売状況をお知らせするぴょ');
@@ -103,28 +44,21 @@ const buildSummaryMessage = async (tour: Tour): Promise<string[]> => {
     // 単発公演の場合
     lines.push('');
     lines.push(`【${tour.name}】`);
-    const data = await getDetails(tour, tour.concerts[0]);
-    if (data.length === 0 || data[0].aggregated_at === null) {
+    const salesData: TicketSales[] = await getTicketSales(tour, tour.concerts[0]);
+    if (salesData.length === 0 || salesData[0].aggregated_at === null) {
       lines.push('  まだ集計されてないぴょ');
     } else {
-      const reserved: Record<string, number> = {};
-      const sold: Record<string, number> = {};
-      data.forEach((d) => {
-        if (d.reserved && d.reserved > 0) {
-          reserved[d.ticket] = (reserved[d.ticket] || 0) + Number(d.reserved);
-        }
-        if (d.sold && d.sold > 0) {
-          sold[d.ticket] = (sold[d.ticket] || 0) + Number(d.sold);
-        }
-      });
-      lines.push(`${formatDate(data[0].aggregated_at)}現在`);
+      const { reserved, confirmed } = await getReservationAndSales(salesData);
+      lines.push(`${formatDate(salesData[0].aggregated_at)}現在`);
       tour.concerts[0].tickets.forEach((t) => {
-        lines.push(`  ${t.name}: 予約 ${reserved[t.name] || 0}枚, 販売 ${sold[t.name] || 0}枚`);
+        lines.push(
+          `  ${t.name}: 予約 ${reserved[t.name] || 0}枚, 確定 ${confirmed[t.name] || 0}枚`
+        );
       });
     }
   } else {
     for (const c of tour.concerts) {
-      const data = await getDetails(tour, c);
+      const data = await getTicketSales(tour, c);
       if (data.length === 0 || data[0].aggregated_at === null) {
         lines.push('');
         lines.push(`【${c.short_name}】`);
@@ -132,18 +66,11 @@ const buildSummaryMessage = async (tour: Tour): Promise<string[]> => {
       } else {
         lines.push('');
         lines.push(`【${c.short_name}】${formatDate(data[0].aggregated_at)}現在`);
-        const reserved: Record<string, number> = {};
-        const sold: Record<string, number> = {};
-        data.forEach((d) => {
-          if (d.reserved && d.reserved > 0) {
-            reserved[d.ticket] = (reserved[d.ticket] || 0) + Number(d.reserved);
-          }
-          if (d.sold && d.sold > 0) {
-            sold[d.ticket] = (sold[d.ticket] || 0) + Number(d.sold);
-          }
-        });
+        const { reserved, confirmed } = await getReservationAndSales(data);
         c.tickets.forEach((t) => {
-          lines.push(`  ${t.name}: 予約 ${reserved[t.name] || 0}枚, 販売 ${sold[t.name] || 0}枚`);
+          lines.push(
+            `  ${t.name}: 予約 ${reserved[t.name] || 0}枚, 確定 ${confirmed[t.name] || 0}枚`
+          );
         });
       }
     }
@@ -157,22 +84,27 @@ const buildDetailMessage = async (tour: Tour): Promise<string[]> => {
     // 単発公演の場合
     lines.push('本日の販売状況を詳しくお知らせするぴょ');
     lines.push('');
-    const data = await getDetails(tour, tour.concerts[0]);
+    const data = await getTicketSales(tour, tour.concerts[0]);
     if (data.length === 0 || data[0].aggregated_at === null) {
       lines.push(`【${tour.name}】`);
       lines.push('  まだ集計されてないぴょ');
     } else {
       lines.push(`【${tour.name}】${formatDate(data[0].aggregated_at)}現在`);
-      data.forEach((d) => {
+      data.forEach((d: TicketSales) => {
         lines.push(`${d.campaign} (${d.play_guide})`);
-        lines.push(`  ${d.ticket}: 予約 ${d.reserved || 0}枚, 販売 ${d.sold || 0}枚`);
+        const reserved =
+          (d.applied_number ?? 0) +
+          (d.unconfirmed_winning_number ?? 0) +
+          (d.unconfirmed_sales_number ?? 0);
+        const confirmed = (d.confirmed_winning_number ?? 0) + (d.confirmed_sales_number ?? 0);
+        lines.push(`  ${d.ticket}: 予約 ${reserved}枚, 確定 ${confirmed}枚`);
       });
     }
   } else {
     // ツアー公演の場合
     lines.push('本日の販売状況を詳しくお知らせするぴょ');
     for (const c of tour.concerts) {
-      const data = await getDetails(tour, c);
+      const data = await getTicketSales(tour, c);
       if (data.length === 0 || data[0].aggregated_at === null) {
         lines.push('');
         lines.push(`【${c.short_name}】`);
@@ -182,7 +114,12 @@ const buildDetailMessage = async (tour: Tour): Promise<string[]> => {
         lines.push(`【${c.short_name}】${formatDate(data[0].aggregated_at || new Date())}現在`);
         data.forEach((d) => {
           lines.push(`${d.campaign} (${d.play_guide})`);
-          lines.push(`  ${d.ticket}: 予約 ${d.reserved || 0}枚, 販売 ${d.sold || 0}枚`);
+          const reserved =
+            (d.applied_number ?? 0) +
+            (d.unconfirmed_winning_number ?? 0) +
+            (d.unconfirmed_sales_number ?? 0);
+          const confirmed = (d.confirmed_winning_number ?? 0) + (d.confirmed_sales_number ?? 0);
+          lines.push(`  ${d.ticket}: 予約 ${reserved}枚, 確定 ${confirmed}枚`);
         });
       }
     }
