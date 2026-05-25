@@ -60,7 +60,7 @@ const CONCERTS: Concert[] = [
 
 const CAMPAIGNS: Campaign[] = [
   {
-    campaign_name: '一般先行',
+    campaign_name: '先行受付',
     campaign_type: 'ByLottery', // 抽選販売
     reservation_start_at: new Date('2026-03-14T00:00:00'), // 予約受付開始日
     reservation_end_at: new Date('2026-03-26T23:59:00'), // 予約受付終了日
