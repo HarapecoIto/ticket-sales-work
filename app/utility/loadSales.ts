@@ -1,12 +1,5 @@
 import prisma from '@/lib/prisma';
-import {
-  type Tour,
-  type Concert,
-  type Campaign,
-  type Distribution,
-  type TicketSales,
-} from '@/app/types';
-import TOURS from '@/app/definitions/definitions';
+import { type Tour, type Concert, type Campaign, type TicketSales } from '@/app/types';
 
 export const getTicketSales = async (tour: Tour, c: Concert): Promise<TicketSales[]> => {
   // 24時間以内に集計されたレコードを取得する
@@ -47,7 +40,7 @@ export const getTicketSales = async (tour: Tour, c: Concert): Promise<TicketSale
           if (!exists) {
             return null;
           }
-          const reserved: BigInt | null =
+          const reserved =
             d.ticket_alias === r.ticket_1
               ? r.reservation_1
               : d.ticket_alias === r.ticket_2
@@ -59,7 +52,7 @@ export const getTicketSales = async (tour: Tour, c: Concert): Promise<TicketSale
                     : d.ticket_alias === r.ticket_5
                       ? r.reservation_5
                       : null;
-          const sold: BigInt | null =
+          const sold =
             d.ticket_alias === r.ticket_1
               ? r.sales_1
               : d.ticket_alias === r.ticket_2
@@ -89,37 +82,4 @@ export const getTicketSales = async (tour: Tour, c: Concert): Promise<TicketSale
         .filter((s): s is TicketSales => s !== null);
     })
     .flat();
-};
-
-const normalize = (record: TicketSales): TicketSales | null => {
-  const tour = TOURS.find((t: Tour) => t.event_code === record.event_code);
-  if (!tour) {
-    return null;
-  }
-  const concert = tour.concerts.find((c: Concert) => c.short_name === record.concert_short_name);
-  if (!concert) {
-    return null;
-  }
-  const distribution = concert.distribution.find(
-    (d: Distribution) =>
-      d.campaign_alias === record.campaign &&
-      d.play_guide === record.play_guide &&
-      d.ticket_alias === record.ticket
-  );
-  if (!distribution) {
-    return null;
-  }
-  return {
-    event_code: record.event_code,
-    concert_short_name: record.concert_short_name,
-    campaign: distribution.campaign,
-    play_guide: record.play_guide,
-    aggregated_at: record.aggregated_at,
-    ticket: distribution.ticket,
-    applied_number: record.applied_number,
-    unconfirmed_winning_number: record.unconfirmed_winning_number,
-    confirmed_winning_number: record.confirmed_winning_number,
-    unconfirmed_sales_number: record.unconfirmed_sales_number,
-    confirmed_sales_number: record.confirmed_sales_number,
-  };
 };

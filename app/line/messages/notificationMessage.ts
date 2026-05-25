@@ -1,5 +1,5 @@
 import { messagingApi } from '@line/bot-sdk';
-import { type Tour, type Concert, type TicketSales } from '@/app/types';
+import { type Tour, type TicketSales } from '@/app/types';
 import TOURS from '@/app/definitions/definitions';
 import { getTicketSales } from '@/app/utility/loadSales';
 

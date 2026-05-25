@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { messagingApi } from '@line/bot-sdk';
-import { type Tour } from '@/app/types';
 import TOURS from '@/app/definitions/definitions';
 import { summaryMessage } from '@/app/line/messages/notificationMessage';
 
