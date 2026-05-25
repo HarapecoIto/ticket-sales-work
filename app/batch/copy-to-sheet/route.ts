@@ -1,6 +1,6 @@
 import prisma from '@/lib/prisma';
 import { NextRequest, NextResponse } from 'next/server';
-import { type Tour, type TicketSales } from '@/app/types';
+import { type Tour } from '@/app/types';
 import TOURS from '@/app/definitions/definitions';
 import { getTicketSales } from '@/app/utility/loadSales';
 
@@ -25,26 +25,12 @@ const execute = async (): Promise<string> => {
       console.warn(`Tour with ID ${sheet.event_code} not found for spreadsheet ${sheet.url}`);
       continue;
     }
-    const data = [];
-    for (const concert of tour.concerts) {
-      const records: TicketSales[] = await getTicketSales(tour, concert);
-      const sales = records.map((d) => {
-        const reserved =
-          (d.applied_number ?? 0) +
-          (d.unconfirmed_winning_number ?? 0) +
-          (d.unconfirmed_sales_number ?? 0);
-        const confirmed = (d.confirmed_winning_number ?? 0) + (d.confirmed_sales_number ?? 0);
-        return {
-          aggregated_at: d.aggregated_at,
-          campaign: d.campaign,
-          play_guide: d.play_guide,
-          ticket: d.ticket,
-          reserved: reserved,
-          confirmed: confirmed,
-        };
-      });
-      data.push({ concert_name: concert.short_name, sales: sales });
-    }
+    const data = await Promise.all(
+      tour.concerts.map(async (concert) => ({
+        concert_name: concert.short_name,
+        sales: await getTicketSales(tour, concert),
+      }))
+    );
     const contents = {
       api_key: process.env.SPREADSHEETS_API_KEY,
       date: new Date().toISOString(),

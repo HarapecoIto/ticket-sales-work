@@ -55,10 +55,8 @@ export type TicketSales = {
   aggregated_at: Date;
   ticket: string;
   applied_number: number | null;
-  unconfirmed_winning_number: number | null;
-  confirmed_winning_number: number | null;
-  unconfirmed_sales_number: number | null;
-  confirmed_sales_number: number | null;
+  reserved_number: number | null;
+  confirmed_number: number | null;
 };
 
 // 各プレイガイド用メタデータ
