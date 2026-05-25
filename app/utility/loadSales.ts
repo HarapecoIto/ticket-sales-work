@@ -75,11 +75,11 @@ export const getTicketSales = async (tour: Tour, c: Concert): Promise<TicketSale
         play_guide: d.play_guide,
         ticket: d.ticket,
         applied_number:
-          campaign.campaign_type === 'ByLottery'
-            ? reserved === null && sold === null && Number(reserved)
+          campaign.campaign_type === 'ByLottery' && reserved === null && sold === null
+            ? Number(reserved)
             : null,
-        reserved_number: reserved ? Number(reserved) : null,
-        confirmed_number: sold ? Number(sold) : null,
+        reserved_number: reserved !== null ? Number(reserved) : null,
+        confirmed_number: sold !== null ? Number(sold) : null,
       };
     })
     .filter((s): s is TicketSales => s !== null);
