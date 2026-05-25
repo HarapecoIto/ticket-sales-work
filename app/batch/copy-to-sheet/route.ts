@@ -1,6 +1,6 @@
 import prisma from '@/lib/prisma';
 import { NextRequest, NextResponse } from 'next/server';
-import { type Tour, type Concert, type TicketSales } from '@/app/types';
+import { type Tour, type TicketSales } from '@/app/types';
 import TOURS from '@/app/definitions/definitions';
 import { getTicketSales } from '@/app/utility/loadSales';
 
