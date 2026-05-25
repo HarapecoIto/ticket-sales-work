@@ -34,21 +34,21 @@ const CONCERTS: Concert[] = [
         ticket_alias: '一般席',
       },
       {
-        campaign: '一般発売',
+        campaign: '一般販売',
         play_guide: 'eplus',
         ticket: 'ＶＩＰ席',
         campaign_alias: '一般発売',
         ticket_alias: 'ＶＩＰ席',
       },
       {
-        campaign: '一般発売',
+        campaign: '一般販売',
         play_guide: 'eplus',
         ticket: '一般席',
         campaign_alias: '一般発売',
         ticket_alias: '一般席',
       },
       {
-        campaign: '一般発売',
+        campaign: '一般販売',
         play_guide: 'pia',
         ticket: '一般席',
         campaign_alias: '一般販売',
@@ -70,7 +70,7 @@ const CAMPAIGNS: Campaign[] = [
     collection_start_at: new Date('2026-04-04T00:00:00'), // 紙チケットの発行開始日
   },
   {
-    campaign_name: '一般発売',
+    campaign_name: '一般販売',
     campaign_type: 'FirstCome',
     reservation_start_at: null,
     reservation_end_at: null,

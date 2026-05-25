@@ -1,5 +1,5 @@
 import { messagingApi } from '@line/bot-sdk';
-import { type Tour, type TicketSales } from '@/app/types';
+import { type Tour, type TicketSales, Ticket, Concert } from '@/app/types';
 import TOURS from '@/app/definitions/definitions';
 import { getTicketSales } from '@/app/utility/loadSales';
 
@@ -12,29 +12,43 @@ const formatDate = (date: Date): string => {
   return `${year}-${month}-${day} ${hours}:${minutes}`;
 };
 
-const getReservationAndSales = async (
-  data: TicketSales[]
-): Promise<{ reserved: Record<string, number>; confirmed: Record<string, number> }> => {
+const summarize = (data: TicketSales[]) => {
+  const applied: Record<string, number> = {};
   const reserved: Record<string, number> = {};
   const confirmed: Record<string, number> = {};
   data.forEach((d) => {
     if (d.applied_number && d.applied_number > 0) {
-      reserved[d.ticket] = (reserved[d.ticket] || 0) + Number(d.applied_number);
+      applied[d.ticket] = (applied[d.ticket] || 0) + Number(d.applied_number);
     }
-    if (d.unconfirmed_winning_number && d.unconfirmed_winning_number > 0) {
-      reserved[d.ticket] = (reserved[d.ticket] || 0) + Number(d.unconfirmed_winning_number);
+    if (d.reserved_number && d.reserved_number > 0) {
+      reserved[d.ticket] = (reserved[d.ticket] || 0) + Number(d.reserved_number);
     }
-    if (d.confirmed_winning_number && d.confirmed_winning_number > 0) {
-      confirmed[d.ticket] = (confirmed[d.ticket] || 0) + Number(d.confirmed_winning_number);
-    }
-    if (d.unconfirmed_sales_number && d.unconfirmed_sales_number > 0) {
-      reserved[d.ticket] = (reserved[d.ticket] || 0) + Number(d.unconfirmed_sales_number);
-    }
-    if (d.confirmed_sales_number && d.confirmed_sales_number > 0) {
-      confirmed[d.ticket] = (confirmed[d.ticket] || 0) + Number(d.confirmed_sales_number);
+    if (d.confirmed_number && d.confirmed_number > 0) {
+      confirmed[d.ticket] = (confirmed[d.ticket] || 0) + Number(d.confirmed_number);
     }
   });
-  return { reserved, confirmed };
+  return { applied, reserved, confirmed };
+};
+
+const expressSummary = (concert: Concert, data: TicketSales[]): string[] => {
+  const lines: string[] = [];
+  const { applied, reserved, confirmed } = summarize(data);
+  concert.tickets.forEach((t: Ticket) => {
+    const dsip = [];
+    if (Object.keys(applied).includes(t.name)) {
+      dsip.push(`申込 ${applied[t.name] || 0}枚`);
+    }
+    if (Object.keys(reserved).includes(t.name)) {
+      dsip.push(`予約 ${reserved[t.name] || 0}枚`);
+    }
+    if (Object.keys(confirmed).includes(t.name)) {
+      dsip.push(`確定 ${confirmed[t.name] || 0}枚`);
+    }
+    if (dsip.length > 0) {
+      lines.push(`  ${t.name}: ${dsip.join(', ')}`);
+    }
+  });
+  return lines;
 };
 
 const buildSummaryMessage = async (tour: Tour): Promise<string[]> => {
@@ -48,13 +62,8 @@ const buildSummaryMessage = async (tour: Tour): Promise<string[]> => {
     if (salesData.length === 0 || salesData[0].aggregated_at === null) {
       lines.push('  まだ集計されてないぴょ');
     } else {
-      const { reserved, confirmed } = await getReservationAndSales(salesData);
       lines.push(`${formatDate(salesData[0].aggregated_at)}現在`);
-      tour.concerts[0].tickets.forEach((t) => {
-        lines.push(
-          `  ${t.name}: 予約 ${reserved[t.name] || 0}枚, 確定 ${confirmed[t.name] || 0}枚`
-        );
-      });
+      lines.push(...expressSummary(tour.concerts[0], salesData));
     }
   } else {
     for (const c of tour.concerts) {
@@ -66,12 +75,7 @@ const buildSummaryMessage = async (tour: Tour): Promise<string[]> => {
       } else {
         lines.push('');
         lines.push(`【${c.short_name}】${formatDate(data[0].aggregated_at)}現在`);
-        const { reserved, confirmed } = await getReservationAndSales(data);
-        c.tickets.forEach((t) => {
-          lines.push(
-            `  ${t.name}: 予約 ${reserved[t.name] || 0}枚, 確定 ${confirmed[t.name] || 0}枚`
-          );
-        });
+        lines.push(...expressSummary(c, data));
       }
     }
   }
@@ -92,12 +96,19 @@ const buildDetailMessage = async (tour: Tour): Promise<string[]> => {
       lines.push(`【${tour.name}】${formatDate(data[0].aggregated_at)}現在`);
       data.forEach((d: TicketSales) => {
         lines.push(`${d.campaign} (${d.play_guide})`);
-        const reserved =
-          (d.applied_number ?? 0) +
-          (d.unconfirmed_winning_number ?? 0) +
-          (d.unconfirmed_sales_number ?? 0);
-        const confirmed = (d.confirmed_winning_number ?? 0) + (d.confirmed_sales_number ?? 0);
-        lines.push(`  ${d.ticket}: 予約 ${reserved}枚, 確定 ${confirmed}枚`);
+        const disp = [];
+        if (d.applied_number !== null) {
+          disp.push(`申込 ${d.applied_number}枚`);
+        }
+        if (d.reserved_number !== null) {
+          disp.push(`予約 ${d.reserved_number}枚`);
+        }
+        if (d.confirmed_number !== null) {
+          disp.push(`確定 ${d.confirmed_number}枚`);
+        }
+        if (disp.length > 0) {
+          lines.push(`  ${d.ticket}: ${disp.join(', ')}`);
+        }
       });
     }
   } else {
@@ -114,12 +125,19 @@ const buildDetailMessage = async (tour: Tour): Promise<string[]> => {
         lines.push(`【${c.short_name}】${formatDate(data[0].aggregated_at || new Date())}現在`);
         data.forEach((d) => {
           lines.push(`${d.campaign} (${d.play_guide})`);
-          const reserved =
-            (d.applied_number ?? 0) +
-            (d.unconfirmed_winning_number ?? 0) +
-            (d.unconfirmed_sales_number ?? 0);
-          const confirmed = (d.confirmed_winning_number ?? 0) + (d.confirmed_sales_number ?? 0);
-          lines.push(`  ${d.ticket}: 予約 ${reserved}枚, 確定 ${confirmed}枚`);
+          const disp = [];
+          if (d.applied_number !== null) {
+            disp.push(`申込 ${d.applied_number}枚`);
+          }
+          if (d.reserved_number !== null) {
+            disp.push(`予約 ${d.reserved_number}枚`);
+          }
+          if (d.confirmed_number !== null) {
+            disp.push(`確定 ${d.confirmed_number}枚`);
+          }
+          if (disp.length > 0) {
+            lines.push(`  ${d.ticket}: ${disp.join(', ')}`);
+          }
         });
       }
     }
