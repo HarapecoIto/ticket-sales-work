@@ -30,14 +30,15 @@ const execute = async (): Promise<string> => {
       const message: string = await summaryMessage(tour.event_code);
       for (const taskId of taskIds) {
         try {
-          fetch('/api/asana/comment', {
+          const url = `https://app.asana.com/api/1.0/tasks/${taskId}/stories`;
+          fetch(url, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
+              Authorization: `Bearer ${process.env.ASANA_ACCESS_TOKEN}`,
             },
             body: JSON.stringify({
-              taskGid: taskId,
-              message,
+              data: { text: message },
             }),
           });
         } catch (error) {
