@@ -31,7 +31,7 @@ const execute = async (): Promise<string> => {
       for (const taskId of taskIds) {
         try {
           const url = `https://app.asana.com/api/1.0/tasks/${taskId}/stories`;
-          fetch(url, {
+          await fetch(url, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
