@@ -1,12 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { messagingApi } from '@line/bot-sdk';
 import TOURS from '@/app/definitions/definitions';
 import { summaryMessage } from '@/app/messages/notificationMessage';
-
-const client = new messagingApi.MessagingApiClient({
-  channelAccessToken: process.env.CHANNEL_ACCESS_TOKEN || '',
-});
 
 const isAuthorized = (request: NextRequest): boolean => {
   const isGuarded = process.env.VERCEL_ENV === 'production' || process.env.VERCEL_ENV === undefined;
@@ -24,42 +19,55 @@ const isAuthorized = (request: NextRequest): boolean => {
 const execute = async (): Promise<string> => {
   let messagesSent = 0;
   for (const tour of TOURS) {
-    const sourceIds = await prisma.line_group_event_relations
+    const taskIds = await prisma.asana_tasks
       .findMany({ where: { event_code: tour.event_code } })
-      .then((relations) => relations.map((r) => r.source_id))
+      .then((relations) => relations.map((r) => r.task_id))
       .catch((error) => {
-        console.error(`Error fetching source IDs for event code ${tour.event_code}:`, error);
+        console.error(`Error fetching task IDs for event code ${tour.event_code}:`, error);
         return [];
       });
-    if (sourceIds.length > 0) {
+    if (taskIds.length > 0) {
       const message: string = await summaryMessage(tour.event_code);
       await Promise.allSettled(
-        sourceIds.map((to) =>
-          client.pushMessage({ to, messages: [{ type: 'text', text: message }] })
-        )
+        taskIds.map((taskId) => {
+          try {
+            fetch('/api/asana/comment', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                taskGid: taskId,
+                message,
+              }),
+            });
+          } catch (error) {
+            console.error(`Error pushing message for task ID ${taskId}:`, error);
+          }
+        })
       ).catch((error) => {
         console.error(`Error pushing message for event code ${tour.event_code}:`, error);
       });
-      messagesSent += sourceIds.length;
+      messagesSent += taskIds.length;
     }
   }
-  console.log(`[cron] deliver-line: ${messagesSent} messages sent`);
-  return `[cron] deliver-line: ${messagesSent} messages sent`;
+  console.log(`[cron] post-asana: ${messagesSent} messages sent`);
+  return `[cron] post-asana: ${messagesSent} messages sent`;
 };
 
 export async function GET(request: NextRequest) {
   if (!isAuthorized(request)) {
     return NextResponse.json({ ok: false, message: 'Unauthorized' }, { status: 401 });
   }
-  console.log('[cron] deliver-line started');
+  console.log('[cron] post-asana started');
   try {
     const result = await execute();
-    console.log('[cron] deliver-line finished');
-    return NextResponse.json({ ok: true, job: 'deliver-line', result }, { status: 200 });
+    console.log('[cron] post-asana finished');
+    return NextResponse.json({ ok: true, job: 'post-asana', result }, { status: 200 });
   } catch (error) {
-    console.error('Error in deliver-line:', error);
+    console.error('Error in post-asana:', error);
     return NextResponse.json(
-      { ok: false, message: 'Failed to deliver LINE push messages' },
+      { ok: false, message: 'Failed to post Asana comments' },
       { status: 500 }
     );
   }

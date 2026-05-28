@@ -1,4 +1,3 @@
-import { messagingApi } from '@line/bot-sdk';
 import { type Tour, type TicketSales, Ticket, Concert } from '@/app/types';
 import TOURS from '@/app/definitions/definitions';
 import { getTicketSales } from '@/app/utility/loadSales';
@@ -155,16 +154,16 @@ const buildDetailMessage = async (tour: Tour): Promise<string[]> => {
   return lines;
 };
 
-export const summaryMessage = async (eventCode: string): Promise<messagingApi.Message> => {
+export const summaryMessage = async (eventCode: string): Promise<string> => {
   const tour = TOURS.find((t) => t.event_code === eventCode);
-  if (!tour) return { type: 'text', text: 'イベントが見つからないぴょ' };
+  if (!tour) return 'イベントが見つからないぴょ';
   const lines = await buildSummaryMessage(tour);
-  return { type: 'text', text: lines.join('\n') };
+  return lines.join('\n');
 };
 
-export const detailMessage = async (eventCode: string): Promise<messagingApi.Message> => {
+export const detailMessage = async (eventCode: string): Promise<string> => {
   const tour = TOURS.find((t) => t.event_code === eventCode);
-  if (!tour) return { type: 'text', text: 'イベントが見つからないぴょ' };
+  if (!tour) return 'イベントが見つからないぴょ';
   const lines = await buildDetailMessage(tour);
-  return { type: 'text', text: lines.join('\n') };
+  return lines.join('\n');
 };
