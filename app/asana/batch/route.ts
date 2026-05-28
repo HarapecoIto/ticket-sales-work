@@ -31,7 +31,7 @@ const execute = async (): Promise<string> => {
       for (const taskId of taskIds) {
         try {
           const url = `https://app.asana.com/api/1.0/tasks/${taskId}/stories`;
-          await fetch(url, {
+          const response = await fetch(url, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -41,6 +41,9 @@ const execute = async (): Promise<string> => {
               data: { text: message },
             }),
           });
+          if (!response.ok) {
+            console.error(`Failed to post comment to Asana task ${taskId}:`, await response.text());
+          }
         } catch (error) {
           console.error(`Error pushing message for task ID ${taskId}:`, error);
         }
