@@ -15,12 +15,11 @@ export const notificator = async (
           where: { source_id: sourceId },
         })
       ).map((r) => r.event_code);
-      const messages: messagingApi.Message[] = await Promise.all(
-        eventCodes.map(async (eventCode) => {
-          const message = await summaryMessage(eventCode);
-          return { type: 'text', text: message };
-        })
-      );
+      const messages: messagingApi.Message[] = [];
+      for (const eventCode of eventCodes) {
+        const message = await summaryMessage(eventCode);
+        messages.push({ type: 'text', text: message });
+      }
       return messages.length > 0 ? messages : [{ type: 'text', text: 'お知らせはないぴょ' }];
     }
     // 明細
@@ -30,12 +29,11 @@ export const notificator = async (
           where: { source_id: sourceId },
         })
       ).map((r) => r.event_code);
-      const messages: messagingApi.Message[] = await Promise.all(
-        eventCodes.map(async (eventCode) => {
-          const message = await detailMessage(eventCode);
-          return { type: 'text', text: message };
-        })
-      );
+      const messages: messagingApi.Message[] = [];
+      for (const eventCode of eventCodes) {
+        const message = await detailMessage(eventCode);
+        messages.push({ type: 'text', text: message });
+      }
       return messages.length > 0 ? messages : [{ type: 'text', text: 'お知らせはないぴょ' }];
     }
   }

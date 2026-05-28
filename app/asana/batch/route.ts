@@ -28,26 +28,26 @@ const execute = async (): Promise<string> => {
       });
     if (taskIds.length > 0) {
       const message: string = await summaryMessage(tour.event_code);
-      await Promise.allSettled(
-        taskIds.map((taskId) => {
-          try {
-            fetch('/api/asana/comment', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                taskGid: taskId,
-                message,
-              }),
-            });
-          } catch (error) {
-            console.error(`Error pushing message for task ID ${taskId}:`, error);
+      for (const taskId of taskIds) {
+        try {
+          const url = `https://app.asana.com/api/1.0/tasks/${taskId}/stories`;
+          const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${process.env.ASANA_ACCESS_TOKEN}`,
+            },
+            body: JSON.stringify({
+              data: { text: message },
+            }),
+          });
+          if (!response.ok) {
+            console.error(`Failed to post comment to Asana task ${taskId}:`, await response.text());
           }
-        })
-      ).catch((error) => {
-        console.error(`Error pushing message for event code ${tour.event_code}:`, error);
-      });
+        } catch (error) {
+          console.error(`Error pushing message for task ID ${taskId}:`, error);
+        }
+      }
       messagesSent += taskIds.length;
     }
   }
