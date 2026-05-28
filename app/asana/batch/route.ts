@@ -28,26 +28,22 @@ const execute = async (): Promise<string> => {
       });
     if (taskIds.length > 0) {
       const message: string = await summaryMessage(tour.event_code);
-      await Promise.allSettled(
-        taskIds.map((taskId) => {
-          try {
-            fetch('/api/asana/comment', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                taskGid: taskId,
-                message,
-              }),
-            });
-          } catch (error) {
-            console.error(`Error pushing message for task ID ${taskId}:`, error);
-          }
-        })
-      ).catch((error) => {
-        console.error(`Error pushing message for event code ${tour.event_code}:`, error);
-      });
+      for (const taskId of taskIds) {
+        try {
+          fetch('/api/asana/comment', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              taskGid: taskId,
+              message,
+            }),
+          });
+        } catch (error) {
+          console.error(`Error pushing message for task ID ${taskId}:`, error);
+        }
+      }
       messagesSent += taskIds.length;
     }
   }
