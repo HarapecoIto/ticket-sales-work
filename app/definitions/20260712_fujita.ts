@@ -9,8 +9,6 @@ const CONCERTS: Concert[] = [
     tickets: [
       {
         name: '一般席',
-        price: 6600,
-        number: 110,
       },
     ],
     distribution: [
@@ -59,8 +57,6 @@ const CONCERTS: Concert[] = [
     tickets: [
       {
         name: '一般席',
-        price: 6600,
-        number: 150,
       },
     ],
     distribution: [
@@ -112,7 +108,6 @@ const CAMPAIGNS: Campaign[] = [
     lottery_at: new Date('2026-03-16T12:00:00+09:00'), // 抽選実施日
     settlement_at: new Date('2026-03-21T23:59:00+09:00'), // 入金期間が満了して販売数が確定する日
     sales_start_at: null,
-    collection_start_at: new Date('2026-04-04T00:00:00+09:00'), // 紙チケットの発行開始日
   },
   {
     campaign_name: '一般先行',
@@ -122,7 +117,6 @@ const CAMPAIGNS: Campaign[] = [
     lottery_at: new Date('2026-03-30T00:00:00+09:00'), // 抽選実施日
     settlement_at: new Date('2026-04-03T23:59:00+09:00'), // 入金期間が満了して販売数が確定する日
     sales_start_at: null,
-    collection_start_at: new Date('2026-04-04T00:00:00+09:00'), // 紙チケットの発行開始日
   },
   {
     campaign_name: '一般発売',
@@ -132,7 +126,6 @@ const CAMPAIGNS: Campaign[] = [
     lottery_at: null,
     settlement_at: null,
     sales_start_at: new Date('2026-04-04T00:00:00+09:00'), // 発売日
-    collection_start_at: new Date('2026-04-04T00:00:00+09:00'), // 紙チケットの発行開始日
   },
 ];
 
