@@ -129,7 +129,7 @@ const CAMPAIGNS: Campaign[] = [
   },
 ];
 
-const DEFINITIONS: Tour = {
+const TOUR: Tour = {
   event_code: '20260712_fujita',
   name: '藤田麻衣子 20th Anniversary Live Tour 2026',
   short_name: '藤田麻衣子',
@@ -137,4 +137,4 @@ const DEFINITIONS: Tour = {
   concerts: CONCERTS,
 };
 
-export default DEFINITIONS;
+export default TOUR;

@@ -75,7 +75,7 @@ const CAMPAIGNS: Campaign[] = [
   },
 ];
 
-const DEFINITIONS: Tour = {
+const TOUR: Tour = {
   event_code: '20260910_opera_city',
   name: '千野哲太 Sax in the Opera City',
   short_name: 'オペラシティ',
@@ -83,4 +83,4 @@ const DEFINITIONS: Tour = {
   concerts: CONCERTS,
 };
 
-export default DEFINITIONS;
+export default TOUR;

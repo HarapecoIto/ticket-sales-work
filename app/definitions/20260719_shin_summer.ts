@@ -65,7 +65,7 @@ const CAMPAIGNS: Campaign[] = [
   },
 ];
 
-const DEFINITIONS: Tour = {
+const TOUR: Tour = {
   event_code: '20260719_shin_summer',
   name: 'シン・サマー・オーケストラコンサート Opera 編',
   short_name: 'シン・サマー',
@@ -73,4 +73,4 @@ const DEFINITIONS: Tour = {
   concerts: CONCERTS,
 };
 
-export default DEFINITIONS;
+export default TOUR;
