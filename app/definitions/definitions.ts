@@ -6,7 +6,17 @@ import TOKYO_BOUKEN from './20260724_chino_tokyo';
 import SHIN_SUMMER from './20260719_shin_summer';
 import TABICLA from './20260825_tabicla';
 import FAFNER from './20260820_fafner';
+import OHARA_TAMAI from './20260824_ohara_tamai';
 
-const TOURS: Tour[] = [FUJITA, OPERA_CITY, KOBE_BOUKEN, TOKYO_BOUKEN, SHIN_SUMMER, TABICLA, FAFNER];
+const TOURS: Tour[] = [
+  FUJITA,
+  OPERA_CITY,
+  KOBE_BOUKEN,
+  TOKYO_BOUKEN,
+  SHIN_SUMMER,
+  TABICLA,
+  FAFNER,
+  OHARA_TAMAI,
+];
 
 export default TOURS;
