@@ -7,36 +7,9 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// 日次販売データ
-// 非正規化
-// 全てのプレイガイドのサマリー
-// deprecated
-model daily_sales {
-  event_code               String   @db.VarChar(20)
-  concert_short_name       String   @db.VarChar(20)
-  aggregated_at            DateTime @default(now()) @db.Timestamptz(6)
-  ticket_1                 String?  @db.VarChar(20)
-  reservation_1            BigInt?
-  sales_1                  BigInt?
-  ticket_2                 String?  @db.VarChar(20)
-  reservation_2            BigInt?
-  sales_2                  BigInt?
-  ticket_3                 String?  @db.VarChar(20)
-  reservation_3            BigInt?
-  sales_3                  BigInt?
-  ticket_4                 String?  @db.VarChar(20)
-  reservation_4            BigInt?
-  sales_4                  BigInt?
-  ticket_5                 String?  @db.VarChar(20)
-  reservation_5            BigInt?
-  sales_5                  BigInt?
-
-  @@id([event_code, concert_short_name, aggregated_at])
-}
-
 // 日次販売明細
 // 非正規化
-// プレイガイドごと、
+// イベントごと、コンサート名ごと、販売ごと、プレイガイドごと
 // deprecated
 model daily_sales_details {
   event_code               String   @db.VarChar(20)               // あえて外部キーは用いない
