@@ -98,3 +98,9 @@ model spreadsheets {
   url         String   @id @db.VarChar(200)
   event_code  String   @db.VarChar(20)
 }
+
+// Asanaタスクと対応するイベント
+model asana_tasks {
+  task_id     String   @id @db.VarChar(20)
+  event_code  String   @db.VarChar(20)
+}

@@ -1,6 +1,6 @@
 import prisma from '@/lib/prisma';
 import { messagingApi, webhook } from '@line/bot-sdk';
-import { summaryMessage, detailMessage } from '@/app/line/messages/notificationMessage';
+import { summaryMessage, detailMessage } from '@/app/messages/notificationMessage';
 
 export const notificator = async (
   sourceId: string,
@@ -15,9 +15,11 @@ export const notificator = async (
           where: { source_id: sourceId },
         })
       ).map((r) => r.event_code);
-      const messages: messagingApi.Message[] = await Promise.all(
-        eventCodes.map((eventCode) => summaryMessage(eventCode))
-      );
+      const messages: messagingApi.Message[] = [];
+      for (const eventCode of eventCodes) {
+        const message = await summaryMessage(eventCode);
+        messages.push({ type: 'text', text: message });
+      }
       return messages.length > 0 ? messages : [{ type: 'text', text: 'お知らせはないぴょ' }];
     }
     // 明細
@@ -27,9 +29,11 @@ export const notificator = async (
           where: { source_id: sourceId },
         })
       ).map((r) => r.event_code);
-      const messages: messagingApi.Message[] = await Promise.all(
-        eventCodes.map((eventCode) => detailMessage(eventCode))
-      );
+      const messages: messagingApi.Message[] = [];
+      for (const eventCode of eventCodes) {
+        const message = await detailMessage(eventCode);
+        messages.push({ type: 'text', text: message });
+      }
       return messages.length > 0 ? messages : [{ type: 'text', text: 'お知らせはないぴょ' }];
     }
   }
