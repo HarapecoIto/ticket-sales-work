@@ -9,13 +9,9 @@ const CONCERTS: Concert[] = [
     tickets: [
       {
         name: 'ＶＩＰ席',
-        price: 13200,
-        number: 50,
       },
       {
         name: '一般席',
-        price: 6600,
-        number: 110,
       },
     ],
     distribution: [
@@ -67,7 +63,6 @@ const CAMPAIGNS: Campaign[] = [
     lottery_at: new Date('2026-03-27T12:00:00+09:00'), // 抽選実施日
     settlement_at: new Date('2026-04-03T23:59:00+09:00'), // 入金期間が満了して販売数が確定する日
     sales_start_at: null,
-    collection_start_at: new Date('2026-04-04T00:00:00+09:00'), // 紙チケットの発行開始日
   },
   {
     campaign_name: '一般販売',
@@ -77,11 +72,10 @@ const CAMPAIGNS: Campaign[] = [
     lottery_at: null,
     settlement_at: null,
     sales_start_at: new Date('2026-04-01T10:00:00+09:00'), // 発売日
-    collection_start_at: new Date('2026-04-04T00:00:00+09:00'), // 紙チケットの発行開始日
   },
 ];
 
-const DEFINITIONS: Tour = {
+const TOUR: Tour = {
   event_code: '20260910_opera_city',
   name: '千野哲太 Sax in the Opera City',
   short_name: 'オペラシティ',
@@ -89,4 +83,4 @@ const DEFINITIONS: Tour = {
   concerts: CONCERTS,
 };
 
-export default DEFINITIONS;
+export default TOUR;

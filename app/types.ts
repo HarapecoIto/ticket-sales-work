@@ -28,14 +28,12 @@ export type Campaign = {
   settlement_at: Date | null; // 入金期間が満了して販売数が確定する日
   // 先着の場合
   sales_start_at: Date | null; // 発売日
-  // 共通
-  collection_start_at: Date; // 紙チケットの発行開始日
 };
 
+// チケット種別
+// ※サブチケット等は管理しない
 export type Ticket = {
   name: string;
-  price: number;
-  number: number;
 };
 
 // 配券
@@ -57,27 +55,6 @@ export type TicketSales = {
   applied_number: number | null;
   reserved_number: number | null;
   confirmed_number: number | null;
-};
-
-// 各プレイガイド用メタデータ
-export type PiaInfo = {
-  name: string;
-  event_code: string; // ぴあコード
-};
-
-export type EPlusInfo = {
-  name: string;
-  event_code: string; // イープラスコード
-};
-
-export type LawsonInfo = {
-  name: string;
-  event_code: string; // ローソンコード
-};
-
-export type TeketInfo = {
-  name: string;
-  event_code: string; // teketコード
 };
 
 export enum ConversationState {

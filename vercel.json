@@ -6,12 +6,12 @@
   "framework": "nextjs",
   "crons": [
     {
-      "path": "/batch/copy-to-sheet",
-      "schedule": "5 9 * * *"
+      "path": "/spreadsheets/batch/",
+      "schedule": "50 8 * * *"
     },
     {
-      "path": "/batch/deliver-line",
-      "schedule": "10 9 * * *"
+      "path": "/line/batch/",
+      "schedule": "0 9 * * *"
     }
   ]
 }
