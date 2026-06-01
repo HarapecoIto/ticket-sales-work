@@ -6,10 +6,6 @@
   "framework": "nextjs",
   "crons": [
     {
-      "path": "/spreadsheets/batch/",
-      "schedule": "50 8 * * *"
-    },
-    {
       "path": "/line/batch/",
       "schedule": "0 9 * * *"
     }
