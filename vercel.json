@@ -6,8 +6,12 @@
   "framework": "nextjs",
   "crons": [
     {
-      "path": "/line/batch/",
-      "schedule": "0 9 * * *"
+      "path": "/line/batch",
+      "schedule": "15 9 * * *"
+    },
+    {
+      "path": "/cron/ping",
+      "schedule": "*/5 * * * *"
     }
   ]
 }

@@ -15,10 +15,18 @@ const isAuthorized = (request: NextRequest): boolean => {
   }
   const cronSecret = process.env.CRON_SECRET;
   if (!cronSecret) {
+    console.error('[cron] deliver-line unauthorized: CRON_SECRET is missing');
     return false;
   }
   const authHeader = request.headers.get('authorization');
-  return authHeader === `Bearer ${cronSecret}`;
+  const authorized = authHeader === `Bearer ${cronSecret}`;
+  if (!authorized) {
+    console.warn('[cron] deliver-line unauthorized: Authorization header mismatch', {
+      hasAuthorizationHeader: Boolean(authHeader),
+      vercelEnv: process.env.VERCEL_ENV ?? 'undefined',
+    });
+  }
+  return authorized;
 };
 
 const execute = async (): Promise<string> => {
