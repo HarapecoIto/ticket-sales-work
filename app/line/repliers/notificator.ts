@@ -12,7 +12,7 @@ export const notificator = async (
     if (text === '教えてシエル' || text === '知らせてシエル') {
       const eventCodes = (
         await prisma.line_group_event_relations.findMany({
-          where: { source_id: sourceId },
+          where: { ciel_id: process.env.CIEL_ID, source_id: sourceId },
         })
       ).map((r) => r.event_code);
       const messages: messagingApi.Message[] = [];
@@ -26,7 +26,7 @@ export const notificator = async (
     if (text === '詳しくシエル') {
       const eventCodes = (
         await prisma.line_group_event_relations.findMany({
-          where: { source_id: sourceId },
+          where: { ciel_id: process.env.CIEL_ID, source_id: sourceId },
         })
       ).map((r) => r.event_code);
       const messages: messagingApi.Message[] = [];
