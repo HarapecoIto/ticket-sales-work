@@ -55,8 +55,11 @@ model spreadsheets {
 }
 
 model asana_tasks {
-  task_id    String @id @db.VarChar(20)
+  ciel_id    String @db.VarChar(100)
+  task_id    String @db.VarChar(20)
   event_code String @db.VarChar(20)
+
+  @@id([ciel_id, task_id])
 }
 
 model daily_ticket_sales {
