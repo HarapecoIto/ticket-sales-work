@@ -7,7 +7,7 @@
   "crons": [
     {
       "path": "/line/batch",
-      "schedule": "15 9 * * *"
+      "schedule": "0 9 * * *"
     },
     {
       "path": "/cron/ping",
