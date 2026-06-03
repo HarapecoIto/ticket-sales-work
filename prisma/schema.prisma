@@ -1,5 +1,5 @@
 generator client {
-  provider      = "prisma-client-js"
+  provider = "prisma-client-js"
 }
 
 datasource db {
@@ -7,73 +7,50 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// 日次販売明細
-// 非正規化
-// イベントごと、コンサート名ごと、販売ごと、プレイガイドごと
-// deprecated
 model daily_sales_details {
-  event_code               String   @db.VarChar(20)               // あえて外部キーは用いない
-  concert_short_name       String   @db.VarChar(20)               // あえて外部キーは用いない
-  aggregated_at            DateTime @default(now()) @db.Timestamptz(6) // あえて外部キーは用いない
-  campaign_name            String   @db.VarChar(20)               // あえて外部キーは用いない
-  play_guide               String   @db.VarChar(20)
-  ticket_1                 String?  @db.VarChar(20)
-  reservation_1            BigInt?
-  sales_1                  BigInt?
-  ticket_2                 String?  @db.VarChar(20)
-  reservation_2            BigInt?
-  sales_2                  BigInt?
-  ticket_3                 String?  @db.VarChar(20)
-  reservation_3            BigInt?
-  sales_3                  BigInt?
-  ticket_4                 String?  @db.VarChar(20)
-  reservation_4            BigInt?
-  sales_4                  BigInt?
-  ticket_5                 String?  @db.VarChar(20)
-  reservation_5            BigInt?
-  sales_5                  BigInt?
+  event_code         String   @db.VarChar(20)
+  concert_short_name String   @db.VarChar(20)
+  aggregated_at      DateTime @default(now()) @db.Timestamptz(6)
+  campaign_name      String   @db.VarChar(20)
+  play_guide         String   @db.VarChar(20)
+  ticket_1           String?  @db.VarChar(20)
+  reservation_1      BigInt?
+  sales_1            BigInt?
+  ticket_2           String?  @db.VarChar(20)
+  reservation_2      BigInt?
+  sales_2            BigInt?
+  ticket_3           String?  @db.VarChar(20)
+  reservation_3      BigInt?
+  sales_3            BigInt?
+  ticket_4           String?  @db.VarChar(20)
+  reservation_4      BigInt?
+  sales_4            BigInt?
+  ticket_5           String?  @db.VarChar(20)
+  reservation_5      BigInt?
+  sales_5            BigInt?
 
   @@id([event_code, concert_short_name, aggregated_at, campaign_name, play_guide])
 }
 
-// 販売データ
-model ticket_sales_details {
-  event_code                      String   @db.VarChar(20)
-  concert_short_name              String   @db.VarChar(20)
-  campaign                        String   @db.VarChar(20)
-  play_guide                      String   @db.VarChar(20)
-  aggregated_at                   String   @db.VarChar(20)
-  ticket                          String   @db.VarChar(20)
-  applied_number                  BigInt?
-  reserved_number                 BigInt?
-  confirmed_number                BigInt?
-
-  @@id([event_code, concert_short_name, aggregated_at, campaign, play_guide, ticket])
-}
-
-// LINEグループと興行の対応
 model line_group_event_relations {
-  source_id                String   @db.VarChar(100)
-  event_code               String   @db.VarChar(20)
+  source_id  String @db.VarChar(100)
+  event_code String @db.VarChar(20)
+
   @@id([source_id, event_code])
 }
 
-// 会話の途中状態管理
-// LINEでどこまで話したか
 model conversation_state {
-  source_id   String   @id @db.VarChar(100)
-  state       String   @db.VarChar(50)
-  updated_at  DateTime @updatedAt @db.Timestamptz(6)
+  source_id  String   @id @db.VarChar(100)
+  state      String   @db.VarChar(50)
+  updated_at DateTime @updatedAt @db.Timestamptz(6)
 }
 
-// スプレッドシートのURLと対応するイベント
 model spreadsheets {
-  url         String   @id @db.VarChar(200)
-  event_code  String   @db.VarChar(20)
+  url        String @id @db.VarChar(200)
+  event_code String @db.VarChar(20)
 }
 
-// Asanaタスクと対応するイベント
 model asana_tasks {
-  task_id     String   @id @db.VarChar(20)
-  event_code  String   @db.VarChar(20)
+  task_id    String @id @db.VarChar(20)
+  event_code String @db.VarChar(20)
 }
