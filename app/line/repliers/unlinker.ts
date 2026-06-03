@@ -9,7 +9,7 @@ export const unlinker = async (
   event: webhook.Event
 ): Promise<messagingApi.Message[] | null> => {
   // 1時間以上前の状態は削除してクリーンアップする
-  await prisma.conversation_state.deleteMany({
+  await prisma.conversation_states.deleteMany({
     where: {
       updated_at: { lt: new Date(Date.now() - 60 * 60 * 1000) },
     },
@@ -30,13 +30,14 @@ export const unlinker = async (
         return [{ type: 'text', text: '今はお知らせしているイベントがないぴょ' }];
       }
       // 会話ステートを更新する
-      await prisma.conversation_state.upsert({
-        where: { source_id: sourceId },
+      await prisma.conversation_states.upsert({
+        where: { ciel_id_source_id: { ciel_id: process.env.CIEL_ID, source_id: sourceId } },
         update: {
           state: ConversationState.WaitingForEventCodeForUnlinking,
           updated_at: new Date(),
         },
         create: {
+          ciel_id: process.env.CIEL_ID,
           source_id: sourceId,
           state: ConversationState.WaitingForEventCodeForUnlinking,
           updated_at: new Date(),
@@ -51,15 +52,17 @@ export const unlinker = async (
 
   if (event.type === 'postback') {
     // 会話ステータスを取得する
-    const state = await prisma.conversation_state.findUnique({
-      where: { source_id: sourceId },
+    const state = await prisma.conversation_states.findUnique({
+      where: { ciel_id_source_id: { ciel_id: process.env.CIEL_ID, source_id: sourceId } },
     });
     // アンリンク待ちでない場合はスルーする
     if (state?.state !== ConversationState.WaitingForEventCodeForUnlinking) {
       return null;
     }
     // 会話ステータスをクリアする
-    await prisma.conversation_state.delete({ where: { source_id: sourceId } });
+    await prisma.conversation_states.delete({
+      where: { ciel_id_source_id: { ciel_id: process.env.CIEL_ID, source_id: sourceId } },
+    });
     // 対象のイベントコードを取得する
     const data = (event as webhook.PostbackEvent).postback.data;
     const eventCodeMatch = data.match(/event_code=([^&]+)/);
@@ -68,8 +71,14 @@ export const unlinker = async (
     }
     const eventCode = decodeURIComponent(eventCodeMatch[1]);
     // アンリンク
-    await prisma.line_group_event_relations.deleteMany({
-      where: { source_id: sourceId, event_code: eventCode },
+    await prisma.line_group_event_relations.delete({
+      where: {
+        ciel_id_source_id_event_code: {
+          ciel_id: process.env.CIEL_ID,
+          source_id: sourceId,
+          event_code: eventCode,
+        },
+      },
     });
     const tour: Tour | undefined = TOURS.find((d) => d.event_code === eventCode);
     const eventName = tour ? tour.short_name : eventCode;

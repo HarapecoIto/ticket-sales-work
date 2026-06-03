@@ -33,7 +33,7 @@ const execute = async (): Promise<string> => {
   let messagesSent = 0;
   for (const tour of TOURS) {
     const sourceIds = await prisma.line_group_event_relations
-      .findMany({ where: { event_code: tour.event_code } })
+      .findMany({ where: { ciel_id: process.env.CIEL_ID, event_code: tour.event_code } })
       .then((relations) => relations.map((r) => r.source_id))
       .catch((error) => {
         console.error(`Error fetching source IDs for event code ${tour.event_code}:`, error);
