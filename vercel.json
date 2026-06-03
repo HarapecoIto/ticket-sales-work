@@ -8,10 +8,6 @@
     {
       "path": "/line/batch",
       "schedule": "0 9 * * *"
-    },
-    {
-      "path": "/cron/ping",
-      "schedule": "*/5 * * * *"
     }
   ]
 }
