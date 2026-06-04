@@ -18,9 +18,9 @@ const CONCERTS: Concert[] = [
       {
         campaign: '一般販売',
         play_guide: 'teket',
-        ticket: 'リハーサル観覧付き(17:30～18:00)',
+        ticket: 'リハーサル観覧付き席',
         campaign_alias: '一般販売',
-        ticket_alias: 'リハーサル観覧付き席',
+        ticket_alias: 'リハーサル観覧付き(17:30～18:00)',
       },
       {
         campaign: '一般販売',
