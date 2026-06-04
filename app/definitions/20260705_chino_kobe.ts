@@ -3,7 +3,7 @@ import type { Tour, Concert, Campaign } from '../types';
 const CONCERTS: Concert[] = [
   {
     name: '千野哲太夏の大冒険ツアー2026 feat.尾崎一宏神戸公演',
-    short_name: '神戸公演',
+    short_name: '千野哲太夏の大冒険ツアー神戸',
     date_at: new Date('2026-07-05T19:00:00+09:00'),
     hall: '神戸煉瓦倉庫K-wave',
     tickets: [
@@ -48,7 +48,7 @@ const CAMPAIGNS: Campaign[] = [
 const TOUR: Tour = {
   event_code: '20260705_chino_kobe',
   name: '千野哲太夏の大冒険ツアー2026 feat.尾崎一宏神戸公演',
-  short_name: '夏の大冒険ツアー2026 神戸公演',
+  short_name: '千野哲太夏の大冒険ツアー神戸',
   campaigns: CAMPAIGNS,
   concerts: CONCERTS,
 };
