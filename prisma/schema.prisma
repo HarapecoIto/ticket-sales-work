@@ -13,19 +13,19 @@ model daily_sales_details {
   aggregated_at      DateTime @default(now()) @db.Timestamptz(6)
   campaign_name      String   @db.VarChar(20)
   play_guide         String   @db.VarChar(20)
-  ticket_1           String?  @db.VarChar(20)
+  ticket_1           String?  @db.VarChar(100)
   reservation_1      BigInt?
   sales_1            BigInt?
-  ticket_2           String?  @db.VarChar(20)
+  ticket_2           String?  @db.VarChar(100)
   reservation_2      BigInt?
   sales_2            BigInt?
-  ticket_3           String?  @db.VarChar(20)
+  ticket_3           String?  @db.VarChar(100)
   reservation_3      BigInt?
   sales_3            BigInt?
-  ticket_4           String?  @db.VarChar(20)
+  ticket_4           String?  @db.VarChar(100)
   reservation_4      BigInt?
   sales_4            BigInt?
-  ticket_5           String?  @db.VarChar(20)
+  ticket_5           String?  @db.VarChar(100)
   reservation_5      BigInt?
   sales_5            BigInt?
 
