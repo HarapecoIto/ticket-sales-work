@@ -71,7 +71,7 @@ const buildSummaryMessage = async (tour: Tour): Promise<string[]> => {
     if (salesData.length === 0 || salesData[0].aggregated_at === null) {
       lines.push('  まだ集計されてないぴょ');
     } else {
-      lines.push(`${formatDate(salesData[0].aggregated_at)}現在`);
+      lines.push(`${formatDate(salesData[0].aggregated_at)}`);
       lines.push(...expressSummary(tour.concerts[0], salesData));
     }
   } else {
@@ -83,7 +83,7 @@ const buildSummaryMessage = async (tour: Tour): Promise<string[]> => {
         lines.push('  まだ集計されてないぴょ');
       } else {
         lines.push('');
-        lines.push(`【${c.short_name}】${formatDate(data[0].aggregated_at)}現在`);
+        lines.push(`【${c.short_name}】${formatDate(data[0].aggregated_at)}`);
         lines.push(...expressSummary(c, data));
       }
     }
@@ -102,7 +102,7 @@ const buildDetailMessage = async (tour: Tour): Promise<string[]> => {
       lines.push(`【${tour.name}】`);
       lines.push('  まだ集計されてないぴょ');
     } else {
-      lines.push(`【${tour.name}】${formatDate(data[0].aggregated_at)}現在`);
+      lines.push(`【${tour.name}】${formatDate(data[0].aggregated_at)}`);
       data.forEach((d: TicketSales) => {
         lines.push(`${d.campaign} (${d.play_guide})`);
         const disp: string[] = [];
@@ -131,7 +131,7 @@ const buildDetailMessage = async (tour: Tour): Promise<string[]> => {
         lines.push('  まだ集計されてないぴょ');
       } else {
         lines.push('');
-        lines.push(`【${c.short_name}】${formatDate(data[0].aggregated_at || new Date())}現在`);
+        lines.push(`【${c.short_name}】${formatDate(data[0].aggregated_at || new Date())}`);
         data.forEach((d: TicketSales) => {
           lines.push(`${d.campaign} (${d.play_guide})`);
           const disp: string[] = [];
