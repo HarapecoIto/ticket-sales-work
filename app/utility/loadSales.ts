@@ -15,72 +15,83 @@ export const getTicketSales = async (tour: Tour, c: Concert): Promise<TicketSale
   // 重複がある場合は最新のもののみを採用する
   const temp = new Map<string, (typeof records)[number]>();
   records.forEach((record) => {
-    const key = `${record.concert_short_name}::${record.campaign_name}::${record.play_guide}`;
+    const key = `${record.campaign_name}::${record.play_guide}`;
     if (!temp.has(key)) {
       temp.set(key, record);
     }
   });
-  const latest = Array.from(temp.values());
 
-  return c.distribution
-    .map((d) => {
-      const record = latest.find(
-        (r) => r.campaign_name === d.campaign_alias && r.play_guide === d.play_guide
+  return Array.from(temp.values())
+    .map((record): TicketSales[] => {
+      return [1, 2, 3, 4, 5]
+        .map((i) => {
+          const d = c.distribution.find(
+            (d) =>
+              d.campaign_alias === record.campaign_name &&
+              d.play_guide === record.play_guide &&
+              d.ticket_alias === record[`ticket_${i}` as keyof typeof record]
+          );
+          if (!d) {
+            return null;
+          }
+          return {
+            event_code: tour.event_code,
+            concert_short_name: c.short_name,
+            campaign: d.campaign,
+            play_guide: d.play_guide,
+            ticket: d.ticket,
+            aggregated_at: record.aggregated_at,
+            applied_number: null,
+            reserved_number: record[`reservation_${i}` as keyof typeof record],
+            confirmed_number: record[`sales_${i}` as keyof typeof record],
+          };
+        })
+        .filter((sales) => sales !== null) as TicketSales[];
+    })
+    .flat();
+};
+
+export const getTicketSalesCandidate = async (tour: Tour, c: Concert): Promise<TicketSales[]> => {
+  // 24時間以内に集計されたレコードを取得する
+  const records = await prisma.daily_ticket_sales.findMany({
+    where: {
+      event_code: tour.event_code,
+      concert_short_name: c.short_name,
+      aggregated_at: { gte: new Date(Date.now() - 1000 * 60 * 60 * 24) },
+    },
+    orderBy: { aggregated_at: 'desc' },
+  });
+
+  // 重複がある場合は最新のもののみを採用する
+  const temp = new Map<string, (typeof records)[number]>();
+  records.forEach((record) => {
+    const key = `${record.campaign_name}::${record.play_guide}::${record.ticket}`;
+    if (!temp.has(key)) {
+      temp.set(key, record);
+    }
+  });
+  return Array.from(temp.values())
+    .map((record): TicketSales | null => {
+      const d = c.distribution.find(
+        (d) =>
+          d.campaign_alias === record.campaign_name &&
+          d.play_guide === record.play_guide &&
+          d.ticket_alias === record.ticket
       );
-      if (!record) {
+      if (!d) {
         return null;
       }
-      const campaign = tour.campaigns.find((ca: Campaign) => ca.campaign_name === d.campaign);
-      if (!campaign) {
-        return null;
-      }
-      const exists: boolean =
-        d.ticket_alias === record.ticket_1 ||
-        d.ticket_alias === record.ticket_2 ||
-        d.ticket_alias === record.ticket_3 ||
-        d.ticket_alias === record.ticket_4 ||
-        d.ticket_alias === record.ticket_5;
-      if (!exists) {
-        return null;
-      }
-      const reserved =
-        d.ticket_alias === record.ticket_1
-          ? record.reservation_1
-          : d.ticket_alias === record.ticket_2
-            ? record.reservation_2
-            : d.ticket_alias === record.ticket_3
-              ? record.reservation_3
-              : d.ticket_alias === record.ticket_4
-                ? record.reservation_4
-                : d.ticket_alias === record.ticket_5
-                  ? record.reservation_5
-                  : null;
-      const sold =
-        d.ticket_alias === record.ticket_1
-          ? record.sales_1
-          : d.ticket_alias === record.ticket_2
-            ? record.sales_2
-            : d.ticket_alias === record.ticket_3
-              ? record.sales_3
-              : d.ticket_alias === record.ticket_4
-                ? record.sales_4
-                : d.ticket_alias === record.ticket_5
-                  ? record.sales_5
-                  : null;
       return {
         event_code: tour.event_code,
         concert_short_name: c.short_name,
-        aggregated_at: record.aggregated_at,
-        campaign: campaign.campaign_name,
+        campaign: d.campaign,
         play_guide: d.play_guide,
         ticket: d.ticket,
-        applied_number:
-          campaign.campaign_type === 'ByLottery' && reserved === null && sold === null
-            ? Number(reserved)
-            : null,
-        reserved_number: reserved !== null ? Number(reserved) : null,
-        confirmed_number: sold !== null ? Number(sold) : null,
+        aggregated_at: record.aggregated_at,
+        applied_number: record.applied_number,
+        reserved_number: record.reserved_number,
+        confirmed_number: record.confirmed_number,
       };
     })
-    .filter((s): s is TicketSales => s !== null);
+    .filter((sales) => sales !== null) as TicketSales[];
 };

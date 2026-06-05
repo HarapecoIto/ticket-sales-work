@@ -20,7 +20,7 @@ const execute = async (): Promise<string> => {
   let messagesSent = 0;
   for (const tour of TOURS) {
     const taskIds = await prisma.asana_tasks
-      .findMany({ where: { event_code: tour.event_code } })
+      .findMany({ where: { ciel_id: process.env.CIEL_ID, event_code: tour.event_code } })
       .then((relations) => relations.map((r) => r.task_id))
       .catch((error) => {
         console.error(`Error fetching task IDs for event code ${tour.event_code}:`, error);

@@ -3,7 +3,7 @@ import type { Tour, Concert, Campaign } from '../types';
 const CONCERTS: Concert[] = [
   {
     name: 'Festival Django Reinhardt JAPAN in TAKANAWA GATEWAY CITY',
-    short_name: 'Festival Django Reinhardt JAPAN',
+    short_name: '高輪ゲートウェイ',
     date_at: new Date('2026-06-20T12:00:00+09:00'),
     hall: '高輪ゲートウェイシティ Gateway Park',
     tickets: [

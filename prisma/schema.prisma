@@ -8,24 +8,24 @@ datasource db {
 }
 
 model daily_sales_details {
-  event_code         String   @db.VarChar(20)
-  concert_short_name String   @db.VarChar(20)
+  event_code         String
+  concert_short_name String
   aggregated_at      DateTime @default(now()) @db.Timestamptz(6)
-  campaign_name      String   @db.VarChar(20)
-  play_guide         String   @db.VarChar(20)
-  ticket_1           String?  @db.VarChar(100)
+  campaign_name      String
+  play_guide         String
+  ticket_1           String?
   reservation_1      BigInt?
   sales_1            BigInt?
-  ticket_2           String?  @db.VarChar(100)
+  ticket_2           String?
   reservation_2      BigInt?
   sales_2            BigInt?
-  ticket_3           String?  @db.VarChar(100)
+  ticket_3           String?
   reservation_3      BigInt?
   sales_3            BigInt?
-  ticket_4           String?  @db.VarChar(100)
+  ticket_4           String?
   reservation_4      BigInt?
   sales_4            BigInt?
-  ticket_5           String?  @db.VarChar(100)
+  ticket_5           String?
   reservation_5      BigInt?
   sales_5            BigInt?
 
@@ -33,30 +33,33 @@ model daily_sales_details {
 }
 
 model line_group_event_relations {
-  ciel_id    String @db.VarChar(100)
-  source_id  String @db.VarChar(100)
-  event_code String @db.VarChar(20)
+  ciel_id    String
+  source_id  String
+  event_code String
 
   @@id([ciel_id, source_id, event_code])
 }
 
 model conversation_states {
-  ciel_id    String   @db.VarChar(100)
-  source_id  String   @db.VarChar(100)
-  state      String   @db.VarChar(50)
+  ciel_id    String
+  source_id  String
+  state      String
   updated_at DateTime @updatedAt @db.Timestamptz(6)
 
   @@id([ciel_id, source_id])
 }
 
 model spreadsheets {
-  url        String @id @db.VarChar(200)
-  event_code String @db.VarChar(20)
+  url        String @id
+  event_code String
 }
 
 model asana_tasks {
-  task_id    String @id @db.VarChar(20)
-  event_code String @db.VarChar(20)
+  ciel_id    String
+  task_id    String
+  event_code String
+
+  @@id([ciel_id, task_id])
 }
 
 model daily_ticket_sales {
