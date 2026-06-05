@@ -17,7 +17,7 @@ const CONCERTS: Concert[] = [
         name: '応援席',
       },
       {
-        name: 'はじめてのオペラ招待席（後払い投げ銭）',
+        name: 'はじめてのオペラ招待席',
       },
     ],
     distribution: [
