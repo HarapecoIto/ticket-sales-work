@@ -63,12 +63,12 @@ model daily_ticket_sales {
   event_code         String
   concert_short_name String
   campaign_name      String
-  play_guid          String
+  play_guide         String
   ticket             String
   aggrigated_at      DateTime @db.Timestamptz(6)
   applied_number     Int?
   reserved_number    Int?
   confirmed_number   Int?
 
-  @@id([event_code, concert_short_name, campaign_name, play_guid, ticket, aggrigated_at])
+  @@id([event_code, concert_short_name, campaign_name, play_guide, ticket, aggrigated_at])
 }
