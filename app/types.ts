@@ -50,8 +50,8 @@ export type TicketSales = {
   concert_short_name: string;
   campaign: string;
   play_guide: 'eplus' | 'pia' | 'lawson' | 'teket';
-  aggregated_at: Date;
   ticket: string;
+  aggregated_at: Date;
   applied_number: number | null;
   reserved_number: number | null;
   confirmed_number: number | null;
