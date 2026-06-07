@@ -130,7 +130,7 @@ const buildMessage = async (tour: Tour): Promise<string[]> => {
 
 export const createHTMLMessage = async (eventCode: string): Promise<string> => {
   const tour = TOURS.find((t) => t.event_code === eventCode);
-  if (!tour) return 'イベントが見つからないぴょ';
+  if (!tour) return '<body>イベントが見つからないぴょ</body>';
   const lines = await buildMessage(tour);
-  return marked.parse(lines.join('\n'));
+  return marked.parse('<body>' + lines.join('\n') + '</body>');
 };
