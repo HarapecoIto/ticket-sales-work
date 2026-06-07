@@ -1,4 +1,3 @@
-const { marked } = require('marked');
 import { type Tour, type TicketSales, Concert } from '@/app/types';
 import TOURS from '@/app/definitions/definitions';
 import { getTicketSales } from '@/app/utility/loadSales';
@@ -68,9 +67,18 @@ const buildStructuredSales = async (
 const buildMarkdown = async (campaigns: StructuredSalesData): Promise<string[]> => {
   const lines: string[] = [];
   campaigns.forEach((campaign) => {
-    lines.push(`- ${campaign.campaign_name}`);
+    lines.push(`\u{1F4E3} ${campaign.campaign_name}`);
     campaign.play_guides.forEach((pg) => {
-      lines.push(`    - ${pg.play_guide}`);
+      const names = {
+        eplus: 'イープラス',
+        pia: 'チケットぴあ',
+        lawson: 'ローソンチケット',
+        teket: 'teket',
+      };
+      const playGuide = names.hasOwnProperty(pg.play_guide)
+        ? names[pg.play_guide as keyof typeof names]
+        : pg.play_guide;
+      lines.push('　\u{1F6CD} ' + playGuide);
       pg.tickets.forEach((t) => {
         const disp: string[] = [];
         if (t.applied_number !== null) {
@@ -83,7 +91,7 @@ const buildMarkdown = async (campaigns: StructuredSalesData): Promise<string[]> 
           disp.push(`確定 ${t.confirmed_number}枚`);
         }
         if (disp.length > 0) {
-          lines.push(`        - ${t.ticket}: ${disp.join(', ')}`);
+          lines.push(`　　\u{1F3AB} ${t.ticket}: ${disp.join(', ')}`);
         }
       });
     });
@@ -96,13 +104,12 @@ const buildMessage = async (tour: Tour): Promise<string[]> => {
   if (tour.concerts.length === 1) {
     // 単発公演の場合
     lines.push('本日の販売状況をお知らせするぴょ');
-    lines.push('');
+    lines.push(tour.name);
     const data: TicketSales[] = await getTicketSales(tour, tour.concerts[0]);
     if (data.length === 0 || data[0].aggregated_at === null) {
-      lines.push(`【${tour.name}】`);
       lines.push('  まだ集計されてないぴょ');
     } else {
-      lines.push(`【${tour.name}】${format.format(data[0].aggregated_at)}`);
+      lines.push(format.format(data[0].aggregated_at));
       const structuredData = await buildStructuredSales(tour.concerts[0], data);
       const markdownLines = await buildMarkdown(structuredData);
       lines.push(...markdownLines);
@@ -110,6 +117,7 @@ const buildMessage = async (tour: Tour): Promise<string[]> => {
   } else {
     // ツアー公演の場合
     lines.push('本日の販売状況をお知らせするぴょ');
+    lines.push(tour.name);
     for (const c of tour.concerts) {
       const data: TicketSales[] = await getTicketSales(tour, c);
       if (data.length === 0 || data[0].aggregated_at === null) {
@@ -128,9 +136,9 @@ const buildMessage = async (tour: Tour): Promise<string[]> => {
   return lines;
 };
 
-export const createHTMLMessage = async (eventCode: string): Promise<string> => {
+export const createMessage = async (eventCode: string): Promise<string> => {
   const tour = TOURS.find((t) => t.event_code === eventCode);
-  if (!tour) return '<body>イベントが見つからないぴょ</body>';
+  if (!tour) return 'イベントが見つからないぴょ';
   const lines = await buildMessage(tour);
-  return marked.parse('<body>' + lines.join('\n') + '</body>');
+  return lines.join('\n');
 };

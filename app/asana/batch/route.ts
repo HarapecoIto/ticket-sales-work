@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import TOURS from '@/app/definitions/definitions';
-import { createHTMLMessage } from '@/app/asana/messages/Message';
+import { createMessage } from '@/app/asana/messages/Message';
 
 const isAuthorized = (request: NextRequest): boolean => {
-  const isGuarded = process.env.VERCEL_ENV === 'production' || process.env.VERCEL_ENV === undefined;
+  const isGuarded = process.env.VERCEL_ENV === 'production' || process.env.VERCEL_ENV === 'preview';
   if (!isGuarded) {
     return true;
   }
@@ -45,7 +45,8 @@ const execute = async (): Promise<string> => {
         return [];
       });
     if (taskIds.length > 0) {
-      const message: string = await createHTMLMessage(tour.event_code);
+      const message: string = await createMessage(tour.event_code);
+      console.log(`[cron] sending: ${message}`);
       for (const taskId of taskIds) {
         try {
           const url = `https://app.asana.com/api/1.0/tasks/${taskId}/stories`;
@@ -56,7 +57,7 @@ const execute = async (): Promise<string> => {
               Authorization: `Bearer ${process.env.ASANA_ACCESS_TOKEN}`,
             },
             body: JSON.stringify({
-              data: { html_text: message },
+              data: { text: message },
             }),
           });
           if (!response.ok) {
