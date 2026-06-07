@@ -1,5 +1,5 @@
 import prisma from '@/lib/prisma';
-import { type Tour, type Concert, type Campaign, type TicketSales } from '@/app/types';
+import { type Tour, type Concert, type TicketSales } from '@/app/types';
 
 export const getTicketSales = async (tour: Tour, c: Concert): Promise<TicketSales[]> => {
   // 24時間以内に集計されたレコードを取得する
