@@ -50,8 +50,11 @@ model conversation_states {
 }
 
 model spreadsheets {
-  url        String @id
+  ciel_id    String
+  url        String
   event_code String
+
+  @@id([ciel_id, url]) 
 }
 
 model asana_tasks {
