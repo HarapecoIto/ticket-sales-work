@@ -42,8 +42,14 @@ export const getTicketSales = async (tour: Tour, c: Concert): Promise<TicketSale
             ticket: d.ticket,
             aggregated_at: record.aggregated_at,
             applied_number: null,
-            reserved_number: Number(record[`reservation_${i}` as keyof typeof record]),
-            confirmed_number: Number(record[`sales_${i}` as keyof typeof record]),
+            reserved_number:
+              record[`reservation_${i}` as keyof typeof record] !== null
+                ? Number(record[`reservation_${i}` as keyof typeof record])
+                : null,
+            confirmed_number:
+              record[`sales_${i}` as keyof typeof record] !== null
+                ? Number(record[`sales_${i}` as keyof typeof record])
+                : null,
           };
         })
         .filter((sales) => sales !== null) as TicketSales[];
