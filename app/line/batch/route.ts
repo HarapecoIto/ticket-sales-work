@@ -9,7 +9,7 @@ const client = new messagingApi.MessagingApiClient({
 });
 
 const isAuthorized = (request: NextRequest): boolean => {
-  const isGuarded = process.env.VERCEL_ENV === 'production' || process.env.VERCEL_ENV === undefined;
+  const isGuarded = process.env.VERCEL_ENV === 'production' || process.env.VERCEL_ENV === 'preview';
   if (!isGuarded) {
     return true;
   }
