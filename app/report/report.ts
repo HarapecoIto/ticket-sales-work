@@ -96,6 +96,31 @@ const buildMarkdown = async (campaigns: StructuredSalesData): Promise<string[]> 
       });
     });
   });
+  const appliedTotal = campaigns
+    .flatMap((c) => c.play_guides)
+    .flatMap((pg) => pg.tickets)
+    .reduce((sum, t) => sum + (t.applied_number ?? 0), 0);
+  const reservedTotal = campaigns
+    .flatMap((c) => c.play_guides)
+    .flatMap((pg) => pg.tickets)
+    .reduce((sum, t) => sum + (t.reserved_number ?? 0), 0);
+  const confirmedTotal = campaigns
+    .flatMap((c) => c.play_guides)
+    .flatMap((pg) => pg.tickets)
+    .reduce((sum, t) => sum + (t.confirmed_number ?? 0), 0);
+  if (appliedTotal > 0 || reservedTotal > 0 || confirmedTotal > 0) {
+    const totalDisp: string[] = [];
+    if (appliedTotal > 0) {
+      totalDisp.push(`申込 ${appliedTotal}枚`);
+    }
+    if (reservedTotal > 0) {
+      totalDisp.push(`予約 ${reservedTotal}枚`);
+    }
+    if (confirmedTotal > 0) {
+      totalDisp.push(`確定 ${confirmedTotal}枚`);
+    }
+    lines.push(`\u{1F9AE} 合計: ${totalDisp.join(', ')}`);
+  }
   return lines;
 };
 
