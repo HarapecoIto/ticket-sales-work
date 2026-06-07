@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { messagingApi } from '@line/bot-sdk';
 import TOURS from '@/app/definitions/definitions';
-import { summaryMessage } from '@/app/line/messages/notificationMessage';
+import { createReport } from '@/app/report/report';
 
 const client = new messagingApi.MessagingApiClient({
   channelAccessToken: process.env.CHANNEL_ACCESS_TOKEN || '',
@@ -58,7 +58,7 @@ const execute = async (): Promise<string> => {
         return [];
       });
     if (sourceIds.length > 0) {
-      const message: string = await summaryMessage(tour.event_code);
+      const message: string = await createReport(tour.event_code);
       await Promise.allSettled(
         sourceIds.map((to) =>
           client.pushMessage({ to, messages: [{ type: 'text', text: message }] })

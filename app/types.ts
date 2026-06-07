@@ -46,16 +46,18 @@ export type Distribution = {
 };
 
 export type TicketSales = {
-  event_code: string;
-  concert_short_name: string;
-  campaign: string;
-  play_guide: 'eplus' | 'pia' | 'lawson' | 'teket';
-  ticket: string;
-  aggregated_at: Date;
-  applied_number: number | null;
-  reserved_number: number | null;
-  confirmed_number: number | null;
-};
+  campaign_name: string;
+  aggregated_at: Date | null;
+  play_guides: {
+    play_guide: string;
+    tickets: {
+      ticket: string;
+      applied_number: number | null;
+      reserved_number: number | null;
+      confirmed_number: number | null;
+    }[];
+  }[];
+}[];
 
 export enum ConversationState {
   WaitingForEventCodeForLinking = 'waiting_for_event_code_for_linking',
