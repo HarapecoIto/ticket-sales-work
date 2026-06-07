@@ -2,7 +2,7 @@ import prisma from '@/lib/prisma';
 import { NextRequest, NextResponse } from 'next/server';
 import { type Tour } from '@/app/types';
 import TOURS from '@/app/definitions/definitions';
-import { getTicketSales } from '@/app/utility/loadSales';
+import { getTicketSales } from '@/app/report/loadSales';
 
 const isAuthorized = (request: NextRequest): boolean => {
   const isGuarded = process.env.VERCEL_ENV === 'production' || process.env.VERCEL_ENV === 'preview';

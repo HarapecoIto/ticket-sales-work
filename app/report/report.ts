@@ -1,6 +1,6 @@
 import { type Tour, type TicketSales, Concert } from '@/app/types';
 import TOURS from '@/app/definitions/definitions';
-import { getTicketSales } from '@/app/utility/loadSales';
+import { getTicketSales } from '@/app/report/loadSales';
 
 type StructuredSalesData = {
   campaign_name: string;
