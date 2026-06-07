@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import TOURS from '@/app/definitions/definitions';
-import { summaryMessage } from '@/app/messages/notificationMessage';
+import { createMessage } from '@/app/asana/messages/Message';
 
 const isAuthorized = (request: NextRequest): boolean => {
-  const isGuarded = process.env.VERCEL_ENV === 'production' || process.env.VERCEL_ENV === undefined;
+  const isGuarded = process.env.VERCEL_ENV === 'production' || process.env.VERCEL_ENV === 'preview';
   if (!isGuarded) {
     return true;
   }
@@ -16,9 +16,27 @@ const isAuthorized = (request: NextRequest): boolean => {
   return authHeader === `Bearer ${cronSecret}`;
 };
 
+const isTarget = (dateAt: Date): boolean => {
+  // 日付を比較するのためにUTCの0:00:00に変換して比較する
+  const nextDay = new Date(dateAt);
+  nextDay.setDate(nextDay.getDate() + 1);
+  nextDay.setUTCHours(0, 0, 0, 0);
+  const today = new Date();
+  today.setUTCHours(0, 0, 0, 0);
+  return today <= nextDay;
+};
+
 const execute = async (): Promise<string> => {
   let messagesSent = 0;
   for (const tour of TOURS) {
+    // 過去の公演はスキップ
+    if (
+      !tour.concerts.some((concert): boolean => {
+        return isTarget(new Date(concert.date_at));
+      })
+    ) {
+      continue;
+    }
     const taskIds = await prisma.asana_tasks
       .findMany({ where: { ciel_id: process.env.CIEL_ID, event_code: tour.event_code } })
       .then((relations) => relations.map((r) => r.task_id))
@@ -27,7 +45,8 @@ const execute = async (): Promise<string> => {
         return [];
       });
     if (taskIds.length > 0) {
-      const message: string = await summaryMessage(tour.event_code);
+      const message: string = await createMessage(tour.event_code);
+      console.log(`[cron] sending: ${message}`);
       for (const taskId of taskIds) {
         try {
           const url = `https://app.asana.com/api/1.0/tasks/${taskId}/stories`;
