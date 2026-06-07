@@ -1,6 +1,19 @@
-import { type Tour, type TicketSales, Ticket, Concert } from '@/app/types';
+import { type Tour, type TicketSales, Concert } from '@/app/types';
 import TOURS from '@/app/definitions/definitions';
 import { getTicketSales } from '@/app/utility/loadSales';
+
+type StructuredSalesData = {
+  campaign_name: string;
+  play_guides: {
+    play_guide: string;
+    tickets: {
+      ticket: string;
+      applied_number: number | null;
+      reserved_number: number | null;
+      confirmed_number: number | null;
+    }[];
+  }[];
+}[];
 
 const format = new Intl.DateTimeFormat('ja-JP', {
   timeZone: 'Asia/Tokyo',
@@ -12,11 +25,76 @@ const format = new Intl.DateTimeFormat('ja-JP', {
   hour12: false,
 });
 
+const buildStructuredSales = async (
+  concert: Concert,
+  data: TicketSales[]
+): Promise<StructuredSalesData> => {
+  const campaigns: StructuredSalesData = [];
+  concert.distribution.forEach((d) => {
+    if (!campaigns.find((c) => c.campaign_name === d.campaign)) {
+      campaigns.push({ campaign_name: d.campaign, play_guides: [] });
+    }
+    if (
+      !campaigns
+        .find((c) => c.campaign_name === d.campaign)
+        ?.play_guides.find((p) => p.play_guide === d.play_guide)
+    ) {
+      campaigns
+        .find((c) => c.campaign_name === d.campaign)
+        ?.play_guides.push({
+          play_guide: d.play_guide,
+          tickets: [],
+        });
+    }
+    const ticketSales = data.find(
+      (ds) => ds.campaign === d.campaign && ds.play_guide === d.play_guide && ds.ticket === d.ticket
+    );
+    if (ticketSales) {
+      campaigns
+        .find((c) => c.campaign_name === d.campaign)
+        ?.play_guides.find((p) => p.play_guide === d.play_guide)
+        ?.tickets.push({
+          ticket: d.ticket,
+          applied_number: ticketSales.applied_number,
+          reserved_number: ticketSales.reserved_number,
+          confirmed_number: ticketSales.confirmed_number,
+        });
+    }
+  });
+  return campaigns;
+};
+
+const buildMarkdown = async (campaigns: StructuredSalesData): Promise<string[]> => {
+  const lines: string[] = [];
+  campaigns.forEach((campaign) => {
+    lines.push(`- ${campaign.campaign_name}`);
+    campaign.play_guides.forEach((pg) => {
+      lines.push(`    - ${pg.play_guide}`);
+      pg.tickets.forEach((t) => {
+        const disp: string[] = [];
+        if (t.applied_number !== null) {
+          disp.push(`申込 ${t.applied_number}枚`);
+        }
+        if (t.reserved_number !== null) {
+          disp.push(`予約 ${t.reserved_number}枚`);
+        }
+        if (t.confirmed_number !== null) {
+          disp.push(`確定 ${t.confirmed_number}枚`);
+        }
+        if (disp.length > 0) {
+          lines.push(`        - ${t.ticket}: ${disp.join(', ')}`);
+        }
+      });
+    });
+  });
+  return lines;
+};
+
 const buildMessage = async (tour: Tour): Promise<string[]> => {
   const lines: string[] = [];
   if (tour.concerts.length === 1) {
     // 単発公演の場合
-    lines.push('本日の販売状況を詳しくお知らせするぴょ');
+    lines.push('本日の販売状況をお知らせするぴょ');
     lines.push('');
     const data: TicketSales[] = await getTicketSales(tour, tour.concerts[0]);
     if (data.length === 0 || data[0].aggregated_at === null) {
@@ -24,26 +102,13 @@ const buildMessage = async (tour: Tour): Promise<string[]> => {
       lines.push('  まだ集計されてないぴょ');
     } else {
       lines.push(`【${tour.name}】${format.format(data[0].aggregated_at)}`);
-      data.forEach((d: TicketSales) => {
-        lines.push(`${d.campaign} (${d.play_guide})`);
-        const disp: string[] = [];
-        if (d.applied_number !== null) {
-          disp.push(`申込 ${d.applied_number}枚`);
-        }
-        if (d.reserved_number !== null) {
-          disp.push(`予約 ${d.reserved_number}枚`);
-        }
-        if (d.confirmed_number !== null) {
-          disp.push(`確定 ${d.confirmed_number}枚`);
-        }
-        if (disp.length > 0) {
-          lines.push(`  ${d.ticket}: ${disp.join(', ')}`);
-        }
-      });
+      const structuredData = await buildStructuredSales(tour.concerts[0], data);
+      const markdownLines = await buildMarkdown(structuredData);
+      lines.push(...markdownLines);
     }
   } else {
     // ツアー公演の場合
-    lines.push('本日の販売状況を詳しくお知らせするぴょ');
+    lines.push('本日の販売状況をお知らせするぴょ');
     for (const c of tour.concerts) {
       const data: TicketSales[] = await getTicketSales(tour, c);
       if (data.length === 0 || data[0].aggregated_at === null) {
@@ -53,22 +118,9 @@ const buildMessage = async (tour: Tour): Promise<string[]> => {
       } else {
         lines.push('');
         lines.push(`【${c.short_name}】${format.format(data[0].aggregated_at || new Date())}`);
-        data.forEach((d: TicketSales) => {
-          lines.push(`${d.campaign} (${d.play_guide})`);
-          const disp: string[] = [];
-          if (d.applied_number !== null) {
-            disp.push(`申込 ${d.applied_number}枚`);
-          }
-          if (d.reserved_number !== null) {
-            disp.push(`予約 ${d.reserved_number}枚`);
-          }
-          if (d.confirmed_number !== null) {
-            disp.push(`確定 ${d.confirmed_number}枚`);
-          }
-          if (disp.length > 0) {
-            lines.push(`  ${d.ticket}: ${disp.join(', ')}`);
-          }
-        });
+        const structuredData = await buildStructuredSales(c, data);
+        const markdownLines = await buildMarkdown(structuredData);
+        lines.push(...markdownLines);
       }
     }
   }
