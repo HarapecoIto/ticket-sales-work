@@ -1,3 +1,4 @@
+const { marked } = require('marked');
 import { type Tour, type TicketSales, Concert } from '@/app/types';
 import TOURS from '@/app/definitions/definitions';
 import { getTicketSales } from '@/app/utility/loadSales';
@@ -131,5 +132,5 @@ export const createMessage = async (eventCode: string): Promise<string> => {
   const tour = TOURS.find((t) => t.event_code === eventCode);
   if (!tour) return 'イベントが見つからないぴょ';
   const lines = await buildMessage(tour);
-  return lines.join('\n');
+  return marked.parse(lines.join('\n'));
 };

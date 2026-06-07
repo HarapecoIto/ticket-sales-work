@@ -17,6 +17,7 @@
     "@line/bot-sdk": "^11.0.0",
     "@neondatabase/serverless": "^1.0.2",
     "@prisma/client": "^6.19.0",
+    "marked": "^18.0.5",
     "next": "^16.0.3",
     "prisma": "^6.19.0",
     "react": "^19.0.0",
