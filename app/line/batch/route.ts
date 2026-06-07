@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { messagingApi } from '@line/bot-sdk';
 import TOURS from '@/app/definitions/definitions';
-import { summaryMessage } from '@/app/messages/notificationMessage';
+import { summaryMessage } from '@/app/line/messages/notificationMessage';
 
 const client = new messagingApi.MessagingApiClient({
   channelAccessToken: process.env.CHANNEL_ACCESS_TOKEN || '',

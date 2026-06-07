@@ -1,6 +1,6 @@
 import prisma from '@/lib/prisma';
 import { messagingApi, webhook } from '@line/bot-sdk';
-import { summaryMessage, detailMessage } from '@/app/messages/notificationMessage';
+import { summaryMessage, detailMessage } from '@/app/line/messages/notificationMessage';
 
 export const notificator = async (
   sourceId: string,

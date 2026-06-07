@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import TOURS from '@/app/definitions/definitions';
-import { summaryMessage } from '@/app/messages/notificationMessage';
+import { createMessage } from '@/app/asana/messages/Message';
 
 const isAuthorized = (request: NextRequest): boolean => {
   const isGuarded = process.env.VERCEL_ENV === 'production' || process.env.VERCEL_ENV === undefined;
@@ -27,7 +27,7 @@ const execute = async (): Promise<string> => {
         return [];
       });
     if (taskIds.length > 0) {
-      const message: string = await summaryMessage(tour.event_code);
+      const message: string = await createMessage(tour.event_code);
       for (const taskId of taskIds) {
         try {
           const url = `https://app.asana.com/api/1.0/tasks/${taskId}/stories`;
