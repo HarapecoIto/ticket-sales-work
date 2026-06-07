@@ -119,7 +119,7 @@ const buildMarkdown = async (campaigns: StructuredSalesData): Promise<string[]> 
     if (confirmedTotal > 0) {
       totalDisp.push(`確定 ${confirmedTotal}枚`);
     }
-    lines.push(`\u{1F9AE} 合計: ${totalDisp.join(', ')}`);
+    lines.push(`\u{1F4B5} 合計: ${totalDisp.join(', ')}`);
   }
   return lines;
 };
