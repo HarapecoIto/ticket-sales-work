@@ -6,6 +6,10 @@
   "framework": "nextjs",
   "crons": [
     {
+      "path": "/asana/batch",
+      "schedule": "55 8 * * *"
+    },
+    {
       "path": "/line/batch",
       "schedule": "0 9 * * *"
     }
