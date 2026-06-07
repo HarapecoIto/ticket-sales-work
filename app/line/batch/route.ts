@@ -32,7 +32,7 @@ const isAuthorized = (request: NextRequest): boolean => {
 const isTarget = (dateAt: Date): boolean => {
   // 日付を比較するのためにUTCの0:00:00に変換して比較する
   const nextDay = new Date(dateAt);
-  nextDay.setUTCDate(nextDay.getUTCDate() - 1);
+  nextDay.setDate(nextDay.getDate() + 1);
   nextDay.setUTCHours(0, 0, 0, 0);
   const today = new Date();
   today.setUTCHours(0, 0, 0, 0);
@@ -45,7 +45,7 @@ const execute = async (): Promise<string> => {
     // イベント翌日までを通知対象とする
     if (
       !tour.concerts.some((concert): boolean => {
-        return isTarget(concert.date_at);
+        return isTarget(new Date(concert.date_at));
       })
     ) {
       continue;

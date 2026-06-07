@@ -8,6 +8,7 @@ import SHIN_SUMMER from './20260719_shin_summer';
 import TABICLA from './20260825_tabicla';
 import FAFNER from './20260820_fafner';
 import OHARA_TAMAI from './20260824_ohara_tamai';
+import TEST from './test_data';
 
 const TOURS: Tour[] = [
   GATEWAY,
@@ -19,6 +20,7 @@ const TOURS: Tour[] = [
   TABICLA,
   FAFNER,
   OHARA_TAMAI,
+  TEST,
 ];
 
 export default TOURS;
