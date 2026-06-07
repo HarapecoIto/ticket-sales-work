@@ -15,26 +15,25 @@ const isAuthorized = (request: NextRequest): boolean => {
   return authHeader === `Bearer ${cronSecret}`;
 };
 
-const executeAll = async (): Promise<{ sent: number; failed: number }> => {
-  let totalSent = 0;
-  let totalFailed = 0;
-  for (const tour of TOURS) {
-    const { sent, failed } = await postSalesData(tour.event_code);
-    totalSent += sent;
-    totalFailed += failed;
-    console.log(`Tour ${tour.event_code}: ${sent} messages sent, ${failed} messages failed`);
-  }
-  console.log(`Total: ${totalSent} messages sent, ${totalFailed} messages failed`);
-  return { sent: totalSent, failed: totalFailed };
-};
-
-export async function GET(request: NextRequest) {
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ eventCode: string }> }
+) {
   if (!isAuthorized(request)) {
     return NextResponse.json({ ok: false, message: 'Unauthorized' }, { status: 401 });
   }
   console.log('[cron] copy-to-spreadsheet started');
   try {
-    const { sent, failed } = await executeAll();
+    const { eventCode: eventCodeFromPath } = await params;
+    const eventCode = eventCodeFromPath ?? request.nextUrl.searchParams.get('eventCode') ?? '';
+    if (!TOURS.some((t) => t.event_code === eventCode)) {
+      console.warn(`Invalid eventCode provided: ${eventCode}`);
+      return NextResponse.json(
+        { ok: false, message: 'Invalid eventCode parameter' },
+        { status: 400 }
+      );
+    }
+    const { sent, failed } = await postSalesData(eventCode);
     console.log('[cron] copy-to-spreadsheet finished');
     return NextResponse.json(
       { ok: true, job: 'copy-to-spreadsheet', sent, failed },
