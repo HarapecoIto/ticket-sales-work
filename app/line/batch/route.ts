@@ -29,9 +29,23 @@ const isAuthorized = (request: NextRequest): boolean => {
   return authorized;
 };
 
+const nextDate = (date: Date): Date => {
+  const next = new Date(date);
+  next.setDate(next.getDate() + 1);
+  next.setHours(23, 59, 59, 999);
+  return next;
+};
+
 const execute = async (): Promise<string> => {
   let messagesSent = 0;
   for (const tour of TOURS) {
+    // 通知対象とするかどうか判定
+    const isTarget = tour.concerts.some((concert) => {
+      return new Date() <= nextDate(new Date(concert.date_at));
+    });
+    if (!isTarget) {
+      continue;
+    }
     const sourceIds = await prisma.line_group_event_relations
       .findMany({ where: { ciel_id: process.env.CIEL_ID, event_code: tour.event_code } })
       .then((relations) => relations.map((r) => r.source_id))
