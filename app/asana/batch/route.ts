@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import TOURS from '@/app/definitions/definitions';
-import { createMessage } from '@/app/asana/messages/Message';
+import { createReport } from '@/app/report/report';
 
 const isAuthorized = (request: NextRequest): boolean => {
   const isGuarded = process.env.VERCEL_ENV === 'production' || process.env.VERCEL_ENV === 'preview';
@@ -45,7 +45,7 @@ const execute = async (): Promise<string> => {
         return [];
       });
     if (taskIds.length > 0) {
-      const message: string = await createMessage(tour.event_code);
+      const message: string = await createReport(tour.event_code);
       console.log(`[cron] sending: ${message}`);
       for (const taskId of taskIds) {
         try {
