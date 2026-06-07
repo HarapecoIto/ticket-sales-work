@@ -5,7 +5,7 @@ import TOURS from '@/app/definitions/definitions';
 import { getTicketSales } from '@/app/utility/loadSales';
 
 const isAuthorized = (request: NextRequest): boolean => {
-  const isGuarded = process.env.VERCEL_ENV === 'production' || process.env.VERCEL_ENV === undefined;
+  const isGuarded = process.env.VERCEL_ENV === 'production' || process.env.VERCEL_ENV === 'preview';
   if (!isGuarded) {
     return true;
   }
