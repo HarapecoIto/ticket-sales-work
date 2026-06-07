@@ -1,7 +1,19 @@
 import prisma from '@/lib/prisma';
 import { type Tour, type Concert, type TicketSales } from '@/app/types';
 
-export const getTicketSales = async (tour: Tour, c: Concert): Promise<TicketSales[]> => {
+type TicketSalesRecord = {
+  event_code: string;
+  concert_short_name: string;
+  campaign: string;
+  play_guide: string;
+  ticket: string;
+  aggregated_at: Date;
+  applied_number: number | null;
+  reserved_number: number | null;
+  confirmed_number: number | null;
+};
+
+const loadRecords = async (tour: Tour, c: Concert): Promise<TicketSalesRecord[]> => {
   // 24時間以内に集計されたレコードを取得する
   const records = await prisma.daily_sales_details.findMany({
     where: {
@@ -22,9 +34,10 @@ export const getTicketSales = async (tour: Tour, c: Concert): Promise<TicketSale
   });
 
   return Array.from(temp.values())
-    .map((record): TicketSales[] => {
+    .map((record): TicketSalesRecord[] => {
       return [1, 2, 3, 4, 5]
         .map((i) => {
+          // プレイガイドごとの表記の揺れを吸収する
           const d = c.distribution.find(
             (d) =>
               d.campaign_alias === record.campaign_name &&
@@ -52,12 +65,15 @@ export const getTicketSales = async (tour: Tour, c: Concert): Promise<TicketSale
                 : null,
           };
         })
-        .filter((sales) => sales !== null) as TicketSales[];
+        .filter((sales) => sales !== null) as TicketSalesRecord[];
     })
     .flat();
 };
 
-export const getTicketSalesCandidate = async (tour: Tour, c: Concert): Promise<TicketSales[]> => {
+export const loadRecordsCandidate = async (
+  tour: Tour,
+  c: Concert
+): Promise<TicketSalesRecord[]> => {
   // 24時間以内に集計されたレコードを取得する
   const records = await prisma.daily_ticket_sales.findMany({
     where: {
@@ -76,8 +92,10 @@ export const getTicketSalesCandidate = async (tour: Tour, c: Concert): Promise<T
       temp.set(key, record);
     }
   });
+
   return Array.from(temp.values())
-    .map((record): TicketSales | null => {
+    .map((record): TicketSalesRecord | null => {
+      // プレイガイドごとの表記の揺れを吸収する
       const d = c.distribution.find(
         (d) =>
           d.campaign_alias === record.campaign_name &&
@@ -99,5 +117,33 @@ export const getTicketSalesCandidate = async (tour: Tour, c: Concert): Promise<T
         confirmed_number: record.confirmed_number,
       };
     })
-    .filter((sales) => sales !== null) as TicketSales[];
+    .filter((sales) => sales !== null) as TicketSalesRecord[];
+};
+
+export const getTicketSales = async (tour: Tour, concert: Concert): Promise<TicketSales> => {
+  const data = await loadRecords(tour, concert);
+  return tour.campaigns.map((campaign) => {
+    {
+      const records = data.filter((d) => d.campaign === campaign.campaign_name);
+      const playGuides = Array.from(new Set(records.map((d) => d.play_guide)));
+      return {
+        campaign_name: campaign.campaign_name,
+        aggregated_at: data.length > 0 ? data[0].aggregated_at : null,
+        play_guides: playGuides.map((pg) => {
+          const tickets = records
+            .filter((d) => d.play_guide === pg)
+            .map((d) => ({
+              ticket: d.ticket,
+              applied_number: d.applied_number,
+              reserved_number: d.reserved_number,
+              confirmed_number: d.confirmed_number,
+            }));
+          return {
+            play_guide: pg,
+            tickets,
+          };
+        }),
+      };
+    }
+  });
 };

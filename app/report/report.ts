@@ -1,19 +1,6 @@
-import { type Tour, type TicketSales, Concert } from '@/app/types';
+import { type Tour, type TicketSales } from '@/app/types';
 import TOURS from '@/app/definitions/definitions';
 import { getTicketSales } from '@/app/report/loadSales';
-
-type StructuredSalesData = {
-  campaign_name: string;
-  play_guides: {
-    play_guide: string;
-    tickets: {
-      ticket: string;
-      applied_number: number | null;
-      reserved_number: number | null;
-      confirmed_number: number | null;
-    }[];
-  }[];
-}[];
 
 const format = new Intl.DateTimeFormat('ja-JP', {
   timeZone: 'Asia/Tokyo',
@@ -25,46 +12,7 @@ const format = new Intl.DateTimeFormat('ja-JP', {
   hour12: false,
 });
 
-const buildStructuredSales = async (
-  concert: Concert,
-  data: TicketSales[]
-): Promise<StructuredSalesData> => {
-  const campaigns: StructuredSalesData = [];
-  concert.distribution.forEach((d) => {
-    if (!campaigns.find((c) => c.campaign_name === d.campaign)) {
-      campaigns.push({ campaign_name: d.campaign, play_guides: [] });
-    }
-    if (
-      !campaigns
-        .find((c) => c.campaign_name === d.campaign)
-        ?.play_guides.find((p) => p.play_guide === d.play_guide)
-    ) {
-      campaigns
-        .find((c) => c.campaign_name === d.campaign)
-        ?.play_guides.push({
-          play_guide: d.play_guide,
-          tickets: [],
-        });
-    }
-    const ticketSales = data.find(
-      (ds) => ds.campaign === d.campaign && ds.play_guide === d.play_guide && ds.ticket === d.ticket
-    );
-    if (ticketSales) {
-      campaigns
-        .find((c) => c.campaign_name === d.campaign)
-        ?.play_guides.find((p) => p.play_guide === d.play_guide)
-        ?.tickets.push({
-          ticket: d.ticket,
-          applied_number: ticketSales.applied_number,
-          reserved_number: ticketSales.reserved_number,
-          confirmed_number: ticketSales.confirmed_number,
-        });
-    }
-  });
-  return campaigns;
-};
-
-const buildMarkdown = async (campaigns: StructuredSalesData): Promise<string[]> => {
+const buildMarkdown = async (campaigns: TicketSales): Promise<string[]> => {
   const lines: string[] = [];
   campaigns.forEach((campaign) => {
     lines.push(`\u{1F4E3} ${campaign.campaign_name}`);
@@ -130,13 +78,12 @@ const buildMessage = async (tour: Tour): Promise<string[]> => {
     // 単発公演の場合
     lines.push('本日の販売状況をお知らせするぴょ');
     lines.push(tour.name);
-    const data: TicketSales[] = await getTicketSales(tour, tour.concerts[0]);
+    const data: TicketSales = await getTicketSales(tour, tour.concerts[0]);
     if (data.length === 0 || data[0].aggregated_at === null) {
       lines.push('  まだ集計されてないぴょ');
     } else {
       lines.push(format.format(data[0].aggregated_at));
-      const structuredData = await buildStructuredSales(tour.concerts[0], data);
-      const markdownLines = await buildMarkdown(structuredData);
+      const markdownLines = await buildMarkdown(data);
       lines.push(...markdownLines);
     }
   } else {
@@ -144,7 +91,7 @@ const buildMessage = async (tour: Tour): Promise<string[]> => {
     lines.push('本日の販売状況をお知らせするぴょ');
     lines.push(tour.name);
     for (const c of tour.concerts) {
-      const data: TicketSales[] = await getTicketSales(tour, c);
+      const data: TicketSales = await getTicketSales(tour, c);
       if (data.length === 0 || data[0].aggregated_at === null) {
         lines.push('');
         lines.push(`【${c.short_name}】`);
@@ -152,8 +99,7 @@ const buildMessage = async (tour: Tour): Promise<string[]> => {
       } else {
         lines.push('');
         lines.push(`【${c.short_name}】${format.format(data[0].aggregated_at || new Date())}`);
-        const structuredData = await buildStructuredSales(c, data);
-        const markdownLines = await buildMarkdown(structuredData);
+        const markdownLines = await buildMarkdown(data);
         lines.push(...markdownLines);
       }
     }
