@@ -29,9 +29,27 @@ const isAuthorized = (request: NextRequest): boolean => {
   return authorized;
 };
 
+const isTarget = (dateAt: Date): boolean => {
+  // 日付を比較するのためにUTCの0:00:00に変換して比較する
+  const nextDay = new Date(dateAt);
+  nextDay.setDate(nextDay.getDate() + 1);
+  nextDay.setUTCHours(0, 0, 0, 0);
+  const today = new Date();
+  today.setUTCHours(0, 0, 0, 0);
+  return today <= nextDay;
+};
+
 const execute = async (): Promise<string> => {
   let messagesSent = 0;
   for (const tour of TOURS) {
+    // イベント翌日までを通知対象とする
+    if (
+      !tour.concerts.some((concert): boolean => {
+        return isTarget(new Date(concert.date_at));
+      })
+    ) {
+      continue;
+    }
     const sourceIds = await prisma.line_group_event_relations
       .findMany({ where: { ciel_id: process.env.CIEL_ID, event_code: tour.event_code } })
       .then((relations) => relations.map((r) => r.source_id))
