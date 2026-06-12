@@ -41,7 +41,7 @@ const TOUR: Tour = {
   short_name: '高輪ゲートウェイ',
   campaigns: CAMPAIGNS,
   concerts: CONCERTS,
-  line_link_key: 'ゆずみかん',
+  line_link_key: 'ゆずほうれんそう',
 };
 
 export default TOUR;
