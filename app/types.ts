@@ -5,6 +5,7 @@ export type Tour = {
   short_name: string; // 短縮表示（用途限定）LINEの制約により20文字以内
   concerts: Concert[];
   campaigns: Campaign[];
+  line_link_key: string; // LINE連携用のキー
 };
 
 // 公演

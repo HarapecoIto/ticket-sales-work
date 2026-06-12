@@ -51,6 +51,7 @@ const TOUR: Tour = {
   short_name: '千野哲太夏の大冒険ツアー神戸',
   campaigns: CAMPAIGNS,
   concerts: CONCERTS,
+  line_link_key: 'アボカドにんじん',
 };
 
 export default TOUR;
