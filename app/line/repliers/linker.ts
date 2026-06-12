@@ -18,10 +18,16 @@ export const linker = async (
   const state = await prisma.conversation_states.findUnique({
     where: { ciel_id_source_id: { ciel_id: process.env.CIEL_ID, source_id: sourceId } },
   });
-
   if (event.type === 'message' && event.message.type === 'text') {
     const text = event.message.text.trim();
     if (text === 'お願いシエル') {
+      // 件数チェック（LINEの制約により3件まで）
+      const relations = await prisma.line_group_event_relations.findMany({
+        where: { ciel_id: process.env.CIEL_ID, source_id: sourceId },
+      });
+      if (relations.length >= 3) {
+        return [{ type: 'text', text: 'これ以上報告するイベントを追加できないぴょ' }];
+      }
       // 会話ステートを更新する
       await prisma.conversation_states.upsert({
         where: { ciel_id_source_id: { ciel_id: process.env.CIEL_ID, source_id: sourceId } },
@@ -41,6 +47,13 @@ export const linker = async (
       await prisma.conversation_states.delete({
         where: { ciel_id_source_id: { ciel_id: process.env.CIEL_ID, source_id: sourceId } },
       });
+      // 件数チェック（LINEの制約により3件まで）
+      const relations = await prisma.line_group_event_relations.findMany({
+        where: { ciel_id: process.env.CIEL_ID, source_id: sourceId },
+      });
+      if (relations.length >= 3) {
+        return [{ type: 'text', text: 'これ以上報告するイベントを追加できないぴょ' }];
+      }
       // リンク対象のイベント
       const tour: Tour | undefined = TOURS.find((d) => d.event_code === text);
       if (!tour) {
