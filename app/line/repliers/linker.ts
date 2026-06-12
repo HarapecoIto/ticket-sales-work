@@ -39,9 +39,7 @@ export const linker = async (
           updated_at: new Date(),
         },
       });
-      return [
-        { type: 'text', text: 'チケッティングデスクから発行されたイベントコードを教えてぴょ' },
-      ];
+      return [{ type: 'text', text: 'チケッティングデスクから発行された合言葉を教えてぴょ' }];
     } else if (state?.state === ConversationState.WaitingForEventCodeForLinking) {
       // ここで会話を終了する
       await prisma.conversation_states.delete({
@@ -55,12 +53,12 @@ export const linker = async (
         return [{ type: 'text', text: 'これ以上報告するイベントを追加できないぴょ' }];
       }
       // リンク対象のイベント
-      const tour: Tour | undefined = TOURS.find((d) => d.event_code === text);
+      const tour: Tour | undefined = TOURS.find((d) => d.line_link_key === text);
       if (!tour) {
         return [
           {
             type: 'text',
-            text: `イベントコード「${text}」は見つからないぴょ。もう一度確認してぴょ`,
+            text: `「${text}」は合言葉ではないぴょ。もう一度確認してぴょ`,
           },
         ];
       }

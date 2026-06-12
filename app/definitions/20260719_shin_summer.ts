@@ -71,6 +71,7 @@ const TOUR: Tour = {
   short_name: 'シン・サマー',
   campaigns: CAMPAIGNS,
   concerts: CONCERTS,
+  line_link_key: 'サボテンみかん',
 };
 
 export default TOUR;
