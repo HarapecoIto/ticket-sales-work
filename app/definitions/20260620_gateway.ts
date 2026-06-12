@@ -38,7 +38,7 @@ const CAMPAIGNS: Campaign[] = [
 const TOUR: Tour = {
   event_code: '20260620_gateway',
   name: 'Festival Django Reinhardt JAPAN in TAKANAWA GATEWAY CITY',
-  short_name: 'Festival Django Reinhardt JAPAN',
+  short_name: '高輪ゲートウェイ',
   campaigns: CAMPAIGNS,
   concerts: CONCERTS,
 };
