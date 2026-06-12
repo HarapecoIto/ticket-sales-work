@@ -10,6 +10,7 @@ export const linker = async (
   // 1時間以上前の状態は削除してクリーンアップする
   await prisma.conversation_states.deleteMany({
     where: {
+      ciel_id: process.env.CIEL_ID,
       updated_at: { lt: new Date(Date.now() - 60 * 60 * 1000) },
     },
   });
