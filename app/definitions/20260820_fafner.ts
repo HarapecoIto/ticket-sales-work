@@ -148,6 +148,7 @@ const TOUR: Tour = {
   short_name: '蒼穹のファフナー',
   campaigns: CAMPAIGNS,
   concerts: CONCERTS,
+  line_link_key: 'なすびメロン',
 };
 
 export default TOUR;

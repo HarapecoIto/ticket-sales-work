@@ -61,6 +61,7 @@ const TOUR: Tour = {
   short_name: '旅するクラシック',
   campaigns: CAMPAIGNS,
   concerts: CONCERTS,
+  line_link_key: 'オレンジごぼう',
 };
 
 export default TOUR;

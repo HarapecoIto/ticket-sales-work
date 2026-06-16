@@ -15,66 +15,6 @@ type TicketSalesRecord = {
 
 const loadRecords = async (tour: Tour, c: Concert): Promise<TicketSalesRecord[]> => {
   // 24時間以内に集計されたレコードを取得する
-  const records = await prisma.daily_sales_details.findMany({
-    where: {
-      event_code: tour.event_code,
-      concert_short_name: c.short_name,
-      aggregated_at: { gte: new Date(Date.now() - 1000 * 60 * 60 * 24) },
-    },
-    orderBy: { aggregated_at: 'desc' },
-  });
-
-  // 重複がある場合は最新のもののみを採用する
-  const temp = new Map<string, (typeof records)[number]>();
-  records.forEach((record) => {
-    const key = `${record.campaign_name}::${record.play_guide}`;
-    if (!temp.has(key)) {
-      temp.set(key, record);
-    }
-  });
-
-  return Array.from(temp.values())
-    .map((record): TicketSalesRecord[] => {
-      return [1, 2, 3, 4, 5]
-        .map((i) => {
-          // プレイガイドごとの表記の揺れを吸収する
-          const d = c.distribution.find(
-            (d) =>
-              d.campaign_alias === record.campaign_name &&
-              d.play_guide === record.play_guide &&
-              d.ticket_alias === record[`ticket_${i}` as keyof typeof record]
-          );
-          if (!d) {
-            return null;
-          }
-          return {
-            event_code: tour.event_code,
-            concert_short_name: c.short_name,
-            campaign: d.campaign,
-            play_guide: d.play_guide,
-            ticket: d.ticket,
-            aggregated_at: record.aggregated_at,
-            applied_number: null,
-            reserved_number:
-              record[`reservation_${i}` as keyof typeof record] !== null
-                ? Number(record[`reservation_${i}` as keyof typeof record])
-                : null,
-            confirmed_number:
-              record[`sales_${i}` as keyof typeof record] !== null
-                ? Number(record[`sales_${i}` as keyof typeof record])
-                : null,
-          };
-        })
-        .filter((sales) => sales !== null) as TicketSalesRecord[];
-    })
-    .flat();
-};
-
-export const loadRecordsCandidate = async (
-  tour: Tour,
-  c: Concert
-): Promise<TicketSalesRecord[]> => {
-  // 24時間以内に集計されたレコードを取得する
   const records = await prisma.daily_ticket_sales.findMany({
     where: {
       event_code: tour.event_code,

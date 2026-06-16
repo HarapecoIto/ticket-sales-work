@@ -41,6 +41,7 @@ const TOUR: Tour = {
   short_name: 'テストイベント',
   campaigns: CAMPAIGNS,
   concerts: CONCERTS,
+  line_link_key: 'トマトびわ',
 };
 
 export default TOUR;

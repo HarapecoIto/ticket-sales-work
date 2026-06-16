@@ -11,6 +11,7 @@ export const unlinker = async (
   // 1時間以上前の状態は削除してクリーンアップする
   await prisma.conversation_states.deleteMany({
     where: {
+      ciel_id: process.env.CIEL_ID,
       updated_at: { lt: new Date(Date.now() - 60 * 60 * 1000) },
     },
   });
@@ -20,7 +21,7 @@ export const unlinker = async (
     if (text === 'シエルもういい' || text === 'もういいシエル') {
       const eventCodes = (
         await prisma.line_group_event_relations.findMany({
-          where: { source_id: sourceId },
+          where: { ciel_id: process.env.CIEL_ID, source_id: sourceId },
         })
       )
         .map((r) => r.event_code)

@@ -135,6 +135,7 @@ const TOUR: Tour = {
   short_name: '藤田麻衣子',
   campaigns: CAMPAIGNS,
   concerts: CONCERTS,
+  line_link_key: 'レモントマト',
 };
 
 export default TOUR;

@@ -1,16 +1,17 @@
 // 興行
 export type Tour = {
-  event_code: string; // 社内用
-  name: string;
-  short_name: string;
+  event_code: string; // 内部用
+  name: string; // 通常はこちらを使用する
+  short_name: string; // 短縮表示（用途限定）LINEの制約により20文字以内
   concerts: Concert[];
   campaigns: Campaign[];
+  line_link_key: string; // LINE連携用のキー
 };
 
 // 公演
 export type Concert = {
-  name: string;
-  short_name: string;
+  name: string; // 通常はこちらを使用する
+  short_name: string; // 内部使用コード
   date_at: Date;
   hall: string;
   tickets: Ticket[];
