@@ -8,6 +8,8 @@ import SHIN_SUMMER from './20260719_shin_summer';
 import TABICLA from './20260825_tabicla';
 import FAFNER from './20260820_fafner';
 import OHARA_TAMAI from './20260824_ohara_tamai';
+import SHIMATANI from './20260718_shimatani';
+import SUGAI from './20260719_sugai';
 import TEST from './test_data';
 
 const TOURS: Tour[] = [
@@ -20,6 +22,8 @@ const TOURS: Tour[] = [
   TABICLA,
   FAFNER,
   OHARA_TAMAI,
+  SHIMATANI,
+  SUGAI,
   TEST,
 ];
 
