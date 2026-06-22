@@ -25,15 +25,16 @@ const loadRecords = async (tour: Tour, c: Concert): Promise<TicketSalesRecord[]>
   });
 
   // 重複がある場合は最新のもののみを採用する
-  const temp = new Map<string, (typeof records)[number]>();
-  records.forEach((record) => {
-    const key = `${record.campaign_name}::${record.play_guide}::${record.ticket}`;
-    if (!temp.has(key)) {
-      temp.set(key, record);
-    }
-  });
-
-  return Array.from(temp.values())
+  const keys = new Set<string>();
+  return records
+    .filter((record) => {
+      const key = `${record.campaign_name}::${record.play_guide}::${record.ticket}`;
+      if (!keys.has(key)) {
+        keys.add(key);
+        return true;
+      }
+      return false;
+    })
     .map((record): TicketSalesRecord | null => {
       // プレイガイドごとの表記の揺れを吸収する
       const d = c.distribution.find(
@@ -70,14 +71,16 @@ export const getTicketSales = async (tour: Tour, concert: Concert): Promise<Tick
         campaign_name: campaign.campaign_name,
         aggregated_at: data.length > 0 ? data[0].aggregated_at : null,
         play_guides: playGuides.map((pg) => {
-          const tickets = records
-            .filter((d) => d.play_guide === pg)
-            .map((d) => ({
-              ticket: d.ticket,
-              applied_number: d.applied_number,
-              reserved_number: d.reserved_number,
-              confirmed_number: d.confirmed_number,
-            }));
+          // 定義ファイルへの登録順に表示
+          const tickets = concert.tickets.map((ticket) => {
+            const record = records.find((d) => d.play_guide === pg && d.ticket === ticket.name);
+            return {
+              ticket: ticket.name,
+              applied_number: record?.applied_number ?? null,
+              reserved_number: record?.reserved_number ?? null,
+              confirmed_number: record?.confirmed_number ?? null,
+            };
+          });
           return {
             play_guide: pg,
             tickets,
