@@ -8,14 +8,14 @@ const CONCERTS: Concert[] = [
     hall: '浜離宮朝日ホール',
     tickets: [
       {
-        name: '大人',
+        name: '自由席',
       },
     ],
     distribution: [
       {
         campaign: '一般販売',
         play_guide: 'teket',
-        ticket: '大人',
+        ticket: '自由席',
         campaign_alias: '一般販売',
         ticket_alias: '大人',
       },
