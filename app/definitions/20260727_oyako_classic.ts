@@ -2,22 +2,22 @@ import type { Tour, Concert, Campaign } from '../types';
 
 const CONCERTS: Concert[] = [
   {
-    name: 'Festival Django Reinhardt JAPAN in TAKANAWA GATEWAY CITY',
-    short_name: '高輪ゲートウェイ',
-    date_at: new Date('2026-06-20T12:00:00+09:00'),
-    hall: '高輪ゲートウェイシティ Gateway Park',
+    name: '夏休み 親子で楽しむクラシック音楽会',
+    short_name: '夏休み 親子で楽しむクラシック音楽会',
+    date_at: new Date('2026-07-27T15:00:00+09:00'),
+    hall: '浜離宮朝日ホール',
     tickets: [
       {
-        name: '応援席（前方観覧席）',
+        name: '自由席',
       },
     ],
     distribution: [
       {
         campaign: '一般販売',
         play_guide: 'teket',
-        ticket: '応援席（前方観覧席）',
+        ticket: '自由席',
         campaign_alias: '一般販売',
-        ticket_alias: '応援席（前方観覧席）',
+        ticket_alias: '自由席',
       },
     ],
   },
@@ -36,12 +36,12 @@ const CAMPAIGNS: Campaign[] = [
 ];
 
 const TOUR: Tour = {
-  event_code: '20260620_gateway',
-  name: 'Festival Django Reinhardt JAPAN in TAKANAWA GATEWAY CITY',
-  short_name: '高輪ゲートウェイ',
+  event_code: '20260727_oyako_classic',
+  name: '夏休み 親子で楽しむクラシック音楽会',
+  short_name: '夏休み 親子で楽しむクラシック音楽会',
   campaigns: CAMPAIGNS,
   concerts: CONCERTS,
-  line_link_key: 'ゆずほうれんそう',
+  line_link_key: 'メロンココナッツ',
 };
 
 export default TOUR;
