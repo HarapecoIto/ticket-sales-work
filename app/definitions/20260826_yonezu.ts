@@ -2,8 +2,8 @@ import type { Tour, Concert, Campaign } from '../types';
 
 const CONCERTS: Concert[] = [
   {
-    name: '米津真浩 ピアノリサイタルシリーズVol.1',
-    short_name: '米津真浩 ピアノリサイタルシリーズVol.1',
+    name: '米津真浩ピアノリサイタルシリーズVol.1',
+    short_name: '米津真浩ピアノリサイタルシリーズVol.1',
     date_at: new Date('2026-08-26T19:00:00+09:00'),
     hall: '浜離宮朝日ホール',
     tickets: [
@@ -57,7 +57,7 @@ const CAMPAIGNS: Campaign[] = [
 const TOUR: Tour = {
   event_code: '20260826_yonezu',
   name: '米津真浩 ピアノリサイタルシリーズVol.1',
-  short_name: '米津真浩 リサイタルVol.1',
+  short_name: '米津真浩 リサイタルVol.1', // 最大20文字まで
   campaigns: CAMPAIGNS,
   concerts: CONCERTS,
   line_link_key: 'キウイミント',
