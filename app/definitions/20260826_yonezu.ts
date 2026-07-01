@@ -57,7 +57,7 @@ const CAMPAIGNS: Campaign[] = [
 const TOUR: Tour = {
   event_code: '20260826_yonezu',
   name: '米津真浩 ピアノリサイタルシリーズVol.1',
-  short_name: '米津真浩 ピアノリサイタルシリーズVol.1',
+  short_name: '米津真浩 リサイタルVol.1',
   campaigns: CAMPAIGNS,
   concerts: CONCERTS,
   line_link_key: 'キウイミント',
