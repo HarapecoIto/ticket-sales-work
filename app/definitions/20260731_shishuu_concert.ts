@@ -56,7 +56,7 @@ const CAMPAIGNS: Campaign[] = [
 ];
 
 const TOUR: Tour = {
-  event_code: '20260731_shishuu_art',
+  event_code: '20260731_shishuu_concert',
   name: '糸と音を紡ぐ 刺繍アート展【演奏会】',
   short_name: '糸と音を紡ぐ 刺繍アート展【演奏会】',
   campaigns: CAMPAIGNS,
