@@ -2,8 +2,8 @@ import type { Tour, Concert, Campaign } from '../types';
 
 const CONCERTS: Concert[] = [
   {
-    name: '糸と音を紡ぐ 刺繍アート展【演奏会】2026/7/31 菊間倫也',
-    short_name: '【演奏会】2026/7/31 菊間倫也',
+    name: '演奏会 2026/7/31 菊間倫也',
+    short_name: '演奏会 2026/7/31 菊間倫也',
     date_at: new Date('2026-07-31T10:00:00+09:00'),
     hall: '浜離宮朝日ホール 小ホール',
     tickets: [
@@ -22,8 +22,8 @@ const CONCERTS: Concert[] = [
     ],
   },
   {
-    name: '糸と音を紡ぐ 刺繍アート展【演奏会】2026/8/1 大谷舞',
-    short_name: '【演奏会】2026/8/1 大谷舞',
+    name: '演奏会 2026/8/1 大谷舞',
+    short_name: '演奏会 2026/8/1 大谷舞',
     date_at: new Date('2026-08-01T10:00:00+09:00'),
     hall: '浜離宮朝日ホール 小ホール',
     tickets: [
