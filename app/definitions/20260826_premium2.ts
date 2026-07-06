@@ -13,6 +13,9 @@ const CONCERTS: Concert[] = [
       {
         name: '18歳以下',
       },
+      {
+        name: '保護者',
+      },
     ],
     distribution: [
       {
@@ -20,14 +23,23 @@ const CONCERTS: Concert[] = [
         play_guide: 'teket',
         ticket: '一般',
         campaign_alias: '一般販売',
-        ticket_alias: '一般',
+        ticket_alias: '8/26(水) 12:30::一般::指定席::通常料金',
       },
       {
         campaign: '補助金対象販売',
         play_guide: 'teket',
         ticket: '18歳以下',
         campaign_alias: '補助金対象販売',
-        ticket_alias: '【18歳以下】劇場・音楽堂等における子供芸術鑑賞体験支援事業',
+        ticket_alias:
+          '8/26(水) 12:30::【18歳以下】劇場・音楽堂等における子供芸術鑑賞体験支援事業::指定席::通常料金',
+      },
+      {
+        campaign: '補助金対象販売',
+        play_guide: 'teket',
+        ticket: '保護者',
+        campaign_alias: '補助金対象販売',
+        ticket_alias:
+          '8/26(水) 12:30::【18歳以下】劇場・音楽堂等における子供芸術鑑賞体験支援事業::指定席::【保護者】劇場・音楽堂等における子供芸術鑑賞体験支援事業',
       },
     ],
   },
