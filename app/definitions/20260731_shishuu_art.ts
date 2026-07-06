@@ -2,62 +2,72 @@ import type { Tour, Concert, Campaign } from '../types';
 
 const CONCERTS: Concert[] = [
   {
-    name: '糸と音を紡ぐ 刺繍アート展【展示会】2026/7/31',
-    short_name: '【展示会】2026/7/31',
+    name: '糸と音を紡ぐ 刺繍アート展【展示会】',
+    short_name: '糸と音を紡ぐ 刺繍アート展【展示会】',
     date_at: new Date('2026-07-31T10:00:00+09:00'),
     hall: '浜離宮朝日ホール 小ホール',
     tickets: [
       {
-        name: '一般',
+        name: '2026/7/31(金)',
+      },
+      {
+        name: '2026/8/1(土)',
+      },
+      {
+        name: '2026/8/2(日)',
       },
     ],
     distribution: [
       {
         campaign: '一般販売',
         play_guide: 'teket',
-        ticket: '一般',
+        ticket: '2026/7/31(金)',
         campaign_alias: '一般販売',
-        ticket_alias: '一般',
+        ticket_alias: '7/31(金) 10:00::一般::自由席::通常料金',
+      },
+      {
+        campaign: '一般販売',
+        play_guide: 'teket',
+        ticket: '2026/8/1(土)',
+        campaign_alias: '一般販売',
+        ticket_alias: '8/1(土) 10:00::一般::自由席::通常料金',
+      },
+      {
+        campaign: '一般販売',
+        play_guide: 'teket',
+        ticket: '2026/8/2(日)',
+        campaign_alias: '一般販売',
+        ticket_alias: '8/2(日) 10:00::一般::自由席::通常料金',
       },
     ],
   },
   {
-    name: '糸と音を紡ぐ 刺繍アート展【展示会】2026/8/1',
-    short_name: '【展示会】2026/8/1',
-    date_at: new Date('2026-08-01T10:00:00+09:00'),
+    name: '糸と音を紡ぐ 刺繍アート展【演奏会】',
+    short_name: '糸と音を紡ぐ 刺繍アート展【演奏会】',
+    date_at: new Date('2026-07-31T19:00:00+09:00'),
     hall: '浜離宮朝日ホール 小ホール',
     tickets: [
       {
-        name: '一般',
+        name: '菊間倫也 2026/7/31(金)',
+      },
+      {
+        name: '大谷舞 2026/8/1(土)',
       },
     ],
     distribution: [
       {
         campaign: '一般販売',
         play_guide: 'teket',
-        ticket: '一般',
+        ticket: '菊間倫也 2026/7/31(金)',
         campaign_alias: '一般販売',
-        ticket_alias: '一般',
+        ticket_alias: '7/31(金) 19:00::一般::自由席::通常料金',
       },
-    ],
-  },
-  {
-    name: '糸と音を紡ぐ 刺繍アート展【展示会】2026/8/2',
-    short_name: '【展示会】2026/8/2',
-    date_at: new Date('2026-08-02T10:00:00+09:00'),
-    hall: '浜離宮朝日ホール 小ホール',
-    tickets: [
-      {
-        name: '一般',
-      },
-    ],
-    distribution: [
       {
         campaign: '一般販売',
         play_guide: 'teket',
-        ticket: '一般',
+        ticket: '大谷舞 2026/8/1(土)',
         campaign_alias: '一般販売',
-        ticket_alias: '一般',
+        ticket_alias: '8/1(土) 19:00::一般::自由席::通常料金',
       },
     ],
   },
@@ -77,8 +87,8 @@ const CAMPAIGNS: Campaign[] = [
 
 const TOUR: Tour = {
   event_code: '20260731_shishuu_art',
-  name: '糸と音を紡ぐ 刺繍アート展【展示会】',
-  short_name: '糸と音を紡ぐ 刺繍アート展【展示会】',
+  name: '糸と音を紡ぐ 刺繍アート展',
+  short_name: '糸と音を紡ぐ 刺繍アート展',
   campaigns: CAMPAIGNS,
   concerts: CONCERTS,
   line_link_key: 'いちごトマト',
