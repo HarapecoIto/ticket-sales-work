@@ -8,16 +8,26 @@ const CONCERTS: Concert[] = [
     hall: '浜離宮朝日ホール',
     tickets: [
       {
-        name: '自由席',
+        name: '自由席（大人）',
+      },
+      {
+        name: '自由席（子ども）',
       },
     ],
     distribution: [
       {
         campaign: '一般販売',
         play_guide: 'teket',
-        ticket: '自由席',
+        ticket: '自由席（大人）',
         campaign_alias: '一般販売',
-        ticket_alias: '自由席',
+        ticket_alias: '7/27(月) 15:00::自由席::自由席::子ども（3歳から中学生） ※3歳未満入場不可',
+      },
+      {
+        campaign: '一般販売',
+        play_guide: 'teket',
+        ticket: '自由席（子ども）',
+        campaign_alias: '一般販売',
+        ticket_alias: '7/27(月) 15:00::自由席::自由席::通常料金',
       },
     ],
   },
