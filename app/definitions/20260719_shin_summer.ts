@@ -3,6 +3,7 @@ import type { Tour, Concert, Campaign } from '../types';
 const CONCERTS: Concert[] = [
   {
     name: 'シン・サマー・オーケストラコンサート Opera 編',
+    display_name: 'シン・サマー コンサート Opera編',
     short_name: 'シン・サマー',
     date_at: new Date('2026-07-19T18:30:00+09:00'),
     hall: '浜離宮朝日ホール',

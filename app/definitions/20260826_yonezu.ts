@@ -3,6 +3,7 @@ import type { Tour, Concert, Campaign } from '../types';
 const CONCERTS: Concert[] = [
   {
     name: '米津真浩ピアノリサイタルシリーズVol.1',
+    display_name: '米津真浩リサイタルVol.1',
     short_name: '米津真浩ピアノリサイタルシリーズVol.1',
     date_at: new Date('2026-08-26T19:00:00+09:00'),
     hall: '浜離宮朝日ホール',

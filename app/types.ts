@@ -10,8 +10,9 @@ export type Tour = {
 
 // 公演
 export type Concert = {
-  name: string; // 通常はこちらを使用する
-  short_name: string; // 内部使用コード
+  name: string; // 正式名称
+  display_name: string; // 表示最適化名（20文字以内推奨）
+  short_name: string; // データベース上で使用するコード
   date_at: Date;
   hall: string;
   tickets: Ticket[];

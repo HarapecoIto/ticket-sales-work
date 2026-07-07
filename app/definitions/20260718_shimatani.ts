@@ -3,6 +3,7 @@ import type { Tour, Concert, Campaign } from '../types';
 const CONCERTS: Concert[] = [
   {
     name: '島谷美賀子ヴァイオリンリサイタル',
+    display_name: '島谷美賀子ヴァイオリンリサイタル',
     short_name: '島谷美賀子',
     date_at: new Date('2026-07-18T18:30:00+09:00'),
     hall: '浜離宮朝日ホール',

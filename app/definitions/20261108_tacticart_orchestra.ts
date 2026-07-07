@@ -3,6 +3,7 @@ import type { Tour, Concert, Campaign } from '../types';
 const CONCERTS: Concert[] = [
   {
     name: '第4回タクティカートオーケストラ定期演奏会 マーラー5.0',
+    display_name: 'タクティオケ マーラー5.0',
     short_name: 'タクティオケ マーラー5.0',
     date_at: new Date('2026-11-08T18:00:00+09:00'),
     hall: 'みなとみらいホール 大ホール',

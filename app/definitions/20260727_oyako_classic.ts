@@ -3,6 +3,7 @@ import type { Tour, Concert, Campaign } from '../types';
 const CONCERTS: Concert[] = [
   {
     name: '夏休み 親子で楽しむクラシック音楽会',
+    display_name: '夏休み 親子で楽しむクラシック音楽会',
     short_name: '夏休み 親子で楽しむクラシック音楽会',
     date_at: new Date('2026-07-27T15:00:00+09:00'),
     hall: '浜離宮朝日ホール',

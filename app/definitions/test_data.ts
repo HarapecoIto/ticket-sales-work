@@ -3,6 +3,7 @@ import type { Tour, Concert, Campaign } from '../types';
 const CONCERTS: Concert[] = [
   {
     name: 'テストイベント in テスト会場',
+    display_name: 'テストイベント',
     short_name: 'テストイベント',
     date_at: new Date('2026-06-06T19:00:00+09:00'),
     hall: 'テスト会場',

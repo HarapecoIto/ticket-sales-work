@@ -3,6 +3,7 @@ import type { Tour, Concert, Campaign } from '../types';
 const CONCERTS: Concert[] = [
   {
     name: '千野哲太 Sax in the Opera City',
+    display_name: '千野哲太 Sax in the Opera City',
     short_name: 'オペラシティ',
     date_at: new Date('2026-09-10T19:00:00+09:00'),
     hall: '東京オペラシティ コンサートホール',
