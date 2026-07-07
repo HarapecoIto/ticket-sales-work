@@ -11,7 +11,10 @@ const CONCERTS: Concert[] = [
         name: 'リハーサル観覧付き席',
       },
       {
-        name: '一般席',
+        name: '一般席（通常料金）',
+      },
+      {
+        name: '一般席（U-25）',
       },
     ],
     distribution: [
@@ -20,14 +23,21 @@ const CONCERTS: Concert[] = [
         play_guide: 'teket',
         ticket: 'リハーサル観覧付き席',
         campaign_alias: '一般販売',
-        ticket_alias: 'リハーサル観覧付き(17:30～18:00)',
+        ticket_alias: '7/24(金) 19:30::リハーサル観覧付き(17:30～18:00)::指定席::通常料金',
       },
       {
         campaign: '一般販売',
         play_guide: 'teket',
-        ticket: '一般席',
+        ticket: '一般席（通常料金）',
         campaign_alias: '一般販売',
-        ticket_alias: '一般席',
+        ticket_alias: '7/24(金) 19:30::一般席::指定席::通常料金',
+      },
+      {
+        campaign: '一般販売',
+        play_guide: 'teket',
+        ticket: '一般席（U-25）',
+        campaign_alias: '一般販売',
+        ticket_alias: '7/24(金) 19:30::一般席::指定席::U-25',
       },
     ],
   },
