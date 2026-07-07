@@ -115,7 +115,7 @@ const CAMPAIGNS: Campaign[] = [
 const TOUR: Tour = {
   event_code: '20261108_tacticart_orchestra',
   name: '第4回タクティカートオーケストラ定期演奏会 マーラー5.0',
-  short_name: 'タクティオケ マーラー5.0',
+  display_name: 'タクティオケ マーラー5.0',
   campaigns: CAMPAIGNS,
   concerts: CONCERTS,
   line_link_key: 'いちごとうもころし',

@@ -38,7 +38,7 @@ const CAMPAIGNS: Campaign[] = [
 const TOUR: Tour = {
   event_code: '20260606_test',
   name: 'テストイベント in テスト会場',
-  short_name: 'テストイベント',
+  display_name: 'テストイベント',
   campaigns: CAMPAIGNS,
   concerts: CONCERTS,
   line_link_key: 'トマトびわ',

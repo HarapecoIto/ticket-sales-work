@@ -314,7 +314,7 @@ const CAMPAIGNS: Campaign[] = [
 const TOUR: Tour = {
   event_code: '20260820_fafner',
   name: '蒼穹のファフナー Symphony Orchestra Concert 2026',
-  short_name: '蒼穹のファフナー',
+  display_name: '蒼穹のファフナー',
   campaigns: CAMPAIGNS,
   concerts: CONCERTS,
   line_link_key: 'なすびメロン',

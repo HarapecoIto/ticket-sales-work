@@ -62,7 +62,7 @@ const CAMPAIGNS: Campaign[] = [
 const TOUR: Tour = {
   event_code: '20260719_sugai',
   name: '菅井瑛斗チェロリサイタル',
-  short_name: '菅井瑛斗',
+  display_name: '菅井瑛斗',
   campaigns: CAMPAIGNS,
   concerts: CONCERTS,
   line_link_key: 'レーズンチョコ',

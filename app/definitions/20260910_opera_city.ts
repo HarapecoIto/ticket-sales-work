@@ -78,7 +78,7 @@ const CAMPAIGNS: Campaign[] = [
 const TOUR: Tour = {
   event_code: '20260910_opera_city',
   name: '千野哲太 Sax in the Opera City',
-  short_name: 'オペラシティ',
+  display_name: 'オペラシティ',
   campaigns: CAMPAIGNS,
   concerts: CONCERTS,
   line_link_key: 'ピーナッツバナナ',

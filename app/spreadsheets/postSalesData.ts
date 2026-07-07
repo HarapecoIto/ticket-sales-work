@@ -44,7 +44,7 @@ export const postSalesData = async (
   const contents = {
     api_key: process.env.SPREADSHEETS_API_KEY,
     date: new Date().toISOString(),
-    data: { tour_name: tour.short_name, concerts: data },
+    data: { tour_name: tour.display_name, concerts: data },
   };
   let sent = 0;
   let failed = 0;

@@ -103,7 +103,7 @@ const CAMPAIGNS: Campaign[] = [
 const TOUR: Tour = {
   event_code: '20260824_ohara_tamai',
   name: '大原櫻子×玉井詩織 Orchestra Concert Summer Memories',
-  short_name: '大原櫻子×玉井詩織',
+  display_name: '大原櫻子×玉井詩織',
   campaigns: CAMPAIGNS,
   concerts: CONCERTS,
   line_link_key: 'きゅうりグレープ',

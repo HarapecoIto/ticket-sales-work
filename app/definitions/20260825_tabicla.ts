@@ -58,7 +58,7 @@ const CAMPAIGNS: Campaign[] = [
 const TOUR: Tour = {
   event_code: '20260825_tabicla',
   name: '旅するクラシック プレミアム・ステージ 2026',
-  short_name: '旅するクラシック',
+  display_name: '旅するクラシック',
   campaigns: CAMPAIGNS,
   concerts: CONCERTS,
   line_link_key: 'オレンジごぼう',

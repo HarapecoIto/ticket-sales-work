@@ -72,7 +72,7 @@ const CAMPAIGNS: Campaign[] = [
 const TOUR: Tour = {
   event_code: '20260718_shimatani',
   name: '島谷美賀子ヴァイオリンリサイタル',
-  short_name: '島谷美賀子',
+  display_name: '島谷美賀子',
   campaigns: CAMPAIGNS,
   concerts: CONCERTS,
   line_link_key: 'はちみつセロリ',
