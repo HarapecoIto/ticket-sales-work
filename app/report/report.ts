@@ -94,11 +94,11 @@ const buildMessage = async (tour: Tour): Promise<string[]> => {
       const data: TicketSales = await getTicketSales(tour, c);
       if (data.length === 0 || data[0].aggregated_at === null) {
         lines.push('');
-        lines.push(`【${c.short_name}】`);
+        lines.push(`【${c.display_name}】`);
         lines.push('  まだ集計されてないぴょ');
       } else {
         lines.push('');
-        lines.push(`【${c.short_name}】${format.format(data[0].aggregated_at || new Date())}`);
+        lines.push(`【${c.display_name}】${format.format(data[0].aggregated_at || new Date())}`);
         const markdownLines = await buildMarkdown(data);
         lines.push(...markdownLines);
       }

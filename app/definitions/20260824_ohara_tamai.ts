@@ -3,7 +3,8 @@ import type { Tour, Concert, Campaign } from '../types';
 const CONCERTS: Concert[] = [
   {
     name: '大原櫻子×玉井詩織 Orchestra Concert Summer Memories',
-    short_name: 'Day 1',
+    display_name: '大原櫻子×玉井詩織',
+    short_name: '大原櫻子×玉井詩織',
     date_at: new Date('2026-08-24T19:00:00+09:00'),
     hall: 'すみだトリフォニーホール 大ホール',
     tickets: [
@@ -103,7 +104,7 @@ const CAMPAIGNS: Campaign[] = [
 const TOUR: Tour = {
   event_code: '20260824_ohara_tamai',
   name: '大原櫻子×玉井詩織 Orchestra Concert Summer Memories',
-  short_name: '大原櫻子×玉井詩織',
+  display_name: '大原櫻子×玉井詩織',
   campaigns: CAMPAIGNS,
   concerts: CONCERTS,
   line_link_key: 'きゅうりグレープ',

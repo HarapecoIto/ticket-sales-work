@@ -3,6 +3,7 @@ import type { Tour, Concert, Campaign } from '../types';
 const CONCERTS: Concert[] = [
   {
     name: '旅するクラシック プレミアム・ステージ 2026',
+    display_name: '旅するクラシック',
     short_name: '旅するクラシック',
     date_at: new Date('2026-08-25T18:19:00+09:00'),
     hall: 'すみだトリフォニーホール 大ホール',
@@ -58,7 +59,7 @@ const CAMPAIGNS: Campaign[] = [
 const TOUR: Tour = {
   event_code: '20260825_tabicla',
   name: '旅するクラシック プレミアム・ステージ 2026',
-  short_name: '旅するクラシック',
+  display_name: '旅するクラシック',
   campaigns: CAMPAIGNS,
   concerts: CONCERTS,
   line_link_key: 'オレンジごぼう',

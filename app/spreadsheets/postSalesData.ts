@@ -37,14 +37,14 @@ export const postSalesData = async (
   }
   const data = await Promise.all(
     tour.concerts.map(async (concert) => ({
-      concert_name: concert.short_name,
+      concert_name: concert.display_name,
       sales: await getTicketSales(tour, concert),
     }))
   );
   const contents = {
     api_key: process.env.SPREADSHEETS_API_KEY,
     date: new Date().toISOString(),
-    data: { tour_name: tour.short_name, concerts: data },
+    data: { tour_name: tour.display_name, concerts: data },
   };
   let sent = 0;
   let failed = 0;
