@@ -37,7 +37,7 @@ export const postSalesData = async (
   }
   const data = await Promise.all(
     tour.concerts.map(async (concert) => ({
-      concert_name: concert.short_name,
+      concert_name: concert.display_name,
       sales: await getTicketSales(tour, concert),
     }))
   );
