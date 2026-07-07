@@ -3,6 +3,7 @@ import type { Tour, Concert, Campaign } from '../types';
 const CONCERTS: Concert[] = [
   {
     name: '糸と音を紡ぐ 刺繍アート展【展示会】',
+    display_name: '展示会',
     short_name: '展示会',
     date_at: new Date('2026-07-31T10:00:00+09:00'),
     hall: '浜離宮朝日ホール 小ホール',
@@ -43,6 +44,7 @@ const CONCERTS: Concert[] = [
   },
   {
     name: '糸と音を紡ぐ 刺繍アート展【演奏会】',
+    display_name: '演奏会',
     short_name: '演奏会',
     date_at: new Date('2026-07-31T19:00:00+09:00'),
     hall: '浜離宮朝日ホール 小ホール',
@@ -88,7 +90,7 @@ const CAMPAIGNS: Campaign[] = [
 const TOUR: Tour = {
   event_code: '20260731_shishuu_art',
   name: '糸と音を紡ぐ 刺繍アート展',
-  short_name: '糸と音を紡ぐ 刺繍アート展',
+  display_name: '糸と音を紡ぐ 刺繍アート展',
   campaigns: CAMPAIGNS,
   concerts: CONCERTS,
   line_link_key: 'いちごトマト',

@@ -82,7 +82,7 @@ export const unlinker = async (
       },
     });
     const tour: Tour | undefined = TOURS.find((d) => d.event_code === eventCode);
-    const eventName = tour ? tour.short_name : eventCode;
+    const eventName = tour ? tour.display_name : eventCode;
     return [{ type: 'text', text: `「${eventName}」のお知らせを終了するぴょ` }];
   }
 
