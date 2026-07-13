@@ -13,6 +13,7 @@ import YONEZU from './20260826_yonezu';
 import TACTICART_ORCHESTRA from './20261108_tacticart_orchestra';
 import PREMIUM2 from './20260826_premium2';
 import SHISHUU_ART from './20260731_shishuu_art';
+import HAKKUTSU_VOL2 from './20260903_hakkutsu_vol2';
 import TEST from './test_data';
 
 const TOURS: Tour[] = [
@@ -29,6 +30,7 @@ const TOURS: Tour[] = [
   YONEZU,
   PREMIUM2,
   TACTICART_ORCHESTRA,
+  HAKKUTSU_VOL2,
   SHISHUU_ART,
   TEST,
 ];
