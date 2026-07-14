@@ -136,7 +136,7 @@ const TOUR: Tour = {
   name: '藤田麻衣子 20th Anniversary Live Tour 2026',
   display_name: '藤田麻衣子',
   campaigns: CAMPAIGNS,
-  concerts: CONCERTS,
+  concerts: [CONCERTS[1]],
   line_link_key: 'レモントマト',
 };
 
