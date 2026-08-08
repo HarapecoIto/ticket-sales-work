@@ -27,6 +27,7 @@ export async function POST(request: NextRequest) {
         meta_info: JSON.stringify(data),
       },
     });
+    console.log('Scraping trigger created:', created);
     return NextResponse.json({ ok: true, data: data }, { status: 200 });
   } catch (error) {
     console.error('Error in trigger route:', error);
