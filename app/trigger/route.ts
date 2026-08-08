@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
   }
   try {
     const data = await request.json();
-    await prisma.scraping_triggered.create({
+    const created = await prisma.scraping_triggered.create({
       data: {
         project_code: data.project_code,
         triggered_at: new Date(),
