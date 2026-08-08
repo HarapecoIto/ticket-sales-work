@@ -1,16 +1,16 @@
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  compilerBuild = "small"
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 model line_group_event_relations {
-  ciel_id    String
   source_id  String
   event_code String
+  ciel_id    String
 
   @@id([ciel_id, source_id, event_code])
 }
@@ -24,18 +24,10 @@ model conversation_states {
   @@id([ciel_id, source_id])
 }
 
-model spreadsheets {
-  ciel_id    String
-  url        String
-  event_code String
-
-  @@id([ciel_id, url]) 
-}
-
 model asana_tasks {
-  ciel_id    String
   task_id    String
   event_code String
+  ciel_id    String
 
   @@id([ciel_id, task_id])
 }
