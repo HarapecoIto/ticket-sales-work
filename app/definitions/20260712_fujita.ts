@@ -2,7 +2,8 @@ import type { Tour, Concert, Campaign } from '../types';
 
 const CONCERTS: Concert[] = [
   {
-    name: '新潟公演',
+    name: '藤田麻衣子 20th Anniversary Live Tour 2026 新潟公演',
+    display_name: '新潟公演',
     short_name: '新潟公演',
     date_at: new Date('2026-07-12T15:30:00+09:00'),
     hall: 'ジョイア・ミーア',
@@ -50,7 +51,8 @@ const CONCERTS: Concert[] = [
     ],
   },
   {
-    name: '山梨公演',
+    name: '藤田麻衣子 20th Anniversary Live Tour 2026 山梨公演',
+    display_name: '山梨公演',
     short_name: '山梨公演',
     date_at: new Date('2026-07-24T15:00:00+09:00'),
     hall: '桜座',
@@ -132,9 +134,9 @@ const CAMPAIGNS: Campaign[] = [
 const TOUR: Tour = {
   event_code: '20260712_fujita',
   name: '藤田麻衣子 20th Anniversary Live Tour 2026',
-  short_name: '藤田麻衣子',
+  display_name: '藤田麻衣子',
   campaigns: CAMPAIGNS,
-  concerts: CONCERTS,
+  concerts: [CONCERTS[1]],
   line_link_key: 'レモントマト',
 };
 

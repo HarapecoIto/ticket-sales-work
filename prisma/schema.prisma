@@ -1,41 +1,16 @@
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  compilerBuild = "small"
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
-}
-
-model daily_sales_details {
-  event_code         String
-  concert_short_name String
-  aggregated_at      DateTime @default(now()) @db.Timestamptz(6)
-  campaign_name      String
-  play_guide         String
-  ticket_1           String?
-  reservation_1      BigInt?
-  sales_1            BigInt?
-  ticket_2           String?
-  reservation_2      BigInt?
-  sales_2            BigInt?
-  ticket_3           String?
-  reservation_3      BigInt?
-  sales_3            BigInt?
-  ticket_4           String?
-  reservation_4      BigInt?
-  sales_4            BigInt?
-  ticket_5           String?
-  reservation_5      BigInt?
-  sales_5            BigInt?
-
-  @@id([event_code, concert_short_name, aggregated_at, campaign_name, play_guide])
 }
 
 model line_group_event_relations {
-  ciel_id    String
   source_id  String
   event_code String
+  ciel_id    String
 
   @@id([ciel_id, source_id, event_code])
 }
@@ -49,18 +24,10 @@ model conversation_states {
   @@id([ciel_id, source_id])
 }
 
-model spreadsheets {
-  ciel_id    String
-  url        String
-  event_code String
-
-  @@id([ciel_id, url]) 
-}
-
 model asana_tasks {
-  ciel_id    String
   task_id    String
   event_code String
+  ciel_id    String
 
   @@id([ciel_id, task_id])
 }
@@ -77,4 +44,25 @@ model daily_ticket_sales {
   confirmed_number   Int?
 
   @@id([event_code, concert_short_name, campaign_name, play_guide, ticket, aggregated_at])
+}
+
+model daily_ticket_sales_v2 {
+  project_code         String
+  event_page_code      String
+  reception            String
+  internal_ticket_name String
+  aggregated_at        DateTime @db.Timestamptz(6)
+  applied_number       Int?
+  reserved_number      Int?
+  confirmed_number     Int?
+
+  @@id([project_code, event_page_code, reception, internal_ticket_name, aggregated_at], map: "daily_ticket_sales_v2_pkey")
+}
+
+model scraping_triggered {
+  project_code String
+  triggered_at DateTime @db.Timestamptz(6)  
+  meta_info    String
+
+  @@id([triggered_at, project_code])
 }

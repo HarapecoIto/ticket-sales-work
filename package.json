@@ -16,9 +16,9 @@
   "dependencies": {
     "@line/bot-sdk": "^11.0.0",
     "@neondatabase/serverless": "^1.0.2",
-    "@prisma/client": "^6.19.0",
+    "@prisma/adapter-neon": "^7.9.1",
+    "@prisma/client": "^7.9.1",
     "next": "^16.2.7",
-    "prisma": "^6.19.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
@@ -28,14 +28,22 @@
     "@types/react": "^19.2.14",
     "@typescript-eslint/eslint-plugin": "^8.59.2",
     "@typescript-eslint/parser": "^8.59.2",
-    "@vercel/node": "^5.8.12",
-    "dotenv-cli": "^11.0.0",
+    "@vercel/node": "^5.9.7",
     "eslint": "^9",
     "eslint-config-next": "16.0.3",
     "eslint-config-prettier": "^10.1.8",
     "prettier": "^3.6.2",
+    "prisma": "^7.9.1",
     "tsx": "^4.21.0",
     "typescript": "^5",
     "typescript-eslint": "^8.59.2"
+  },
+  "allowScripts": {
+    "@prisma/client@6.19.3": true,
+    "@prisma/engines@7.9.1": true,
+    "prisma@7.9.1": true,
+    "esbuild@0.28.1": true,
+    "esbuild@0.27.0": true,
+    "unrs-resolver@1.12.2": true
   }
 }

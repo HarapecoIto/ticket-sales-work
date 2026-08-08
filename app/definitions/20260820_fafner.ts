@@ -3,7 +3,8 @@ import type { Tour, Concert, Campaign } from '../types';
 const CONCERTS: Concert[] = [
   {
     name: '蒼穹のファフナー Symphony Orchestra Concert 2026',
-    short_name: 'Day 1',
+    display_name: 'Day 1',
+    short_name: '蒼穹のファフナー Day 1',
     date_at: new Date('2026-08-20T19:00:00+09:00'),
     hall: 'すみだトリフォニーホール　大ホール',
     tickets: [
@@ -137,7 +138,8 @@ const CONCERTS: Concert[] = [
   },
   {
     name: '蒼穹のファフナー Symphony Orchestra Concert 2026',
-    short_name: 'Day 2',
+    display_name: 'Day 2',
+    short_name: '蒼穹のファフナー Day 2',
     date_at: new Date('2026-08-21T19:00:00+09:00'),
     hall: 'すみだトリフォニーホール　大ホール',
     tickets: [
@@ -314,7 +316,7 @@ const CAMPAIGNS: Campaign[] = [
 const TOUR: Tour = {
   event_code: '20260820_fafner',
   name: '蒼穹のファフナー Symphony Orchestra Concert 2026',
-  short_name: '蒼穹のファフナー',
+  display_name: '蒼穹のファフナー',
   campaigns: CAMPAIGNS,
   concerts: CONCERTS,
   line_link_key: 'なすびメロン',
