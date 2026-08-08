@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
         meta_info: JSON.stringify(json),
       },
     });
-    return NextResponse.json({ ok: true }, { status: 200 });
+    return NextResponse.json({ ok: true, data: json }, { status: 200 });
   } catch (error) {
     console.error('Error in trigger route:', error);
     return NextResponse.json({ ok: false, message: 'Internal Server Error' }, { status: 500 });
