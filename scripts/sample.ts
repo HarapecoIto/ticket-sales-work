@@ -1,7 +1,72 @@
 import prisma from '../lib/prisma.js';
+import {
+  Project,
+  Concert,
+  Ticket,
+  EventPage,
+  Reception,
+  Campaign,
+  Assignment,
+} from '../app/types.v2.js';
 
-const loadSalesData = async (projectCode: string) => {
-  const dailyTicketSales = await prisma.daily_ticket_sales_v2.findMany({
+interface DailyTicketSales {
+  project_code: string;
+  event_page_code: string;
+  reception: string;
+  internal_ticket_name: string;
+  aggregated_at: Date;
+  applied_number: number | null;
+  reserved_number: number | null;
+  confirmed_number: number | null;
+}
+
+interface ExtendedDailyTicketSales extends DailyTicketSales {
+  project_name: string;
+  concert_code: string;
+  campaign_code: string;
+  event_page_name: string;
+  ticket_code: string;
+  ticket_name: string;
+  concert_name: string;
+  campaign_name: string;
+  aggregated_at_jp: string;
+}
+
+const getProjectInformation = async (projectCode: string): Promise<Project | undefined> => {
+  const data = await prisma.scraping_triggered.findMany({
+    where: {
+      project_code: projectCode,
+    },
+    orderBy: {
+      triggered_at: 'desc',
+    },
+    take: 1,
+  });
+  try {
+    return JSON.parse(data && data.length > 0 ? data[0].meta_info : '{}') as Project;
+  } catch (error) {
+    console.error('Error parsing meta_info:', error);
+    return undefined;
+  }
+};
+
+const getLatestTriggeredRecord = async (): Promise<Project | undefined> => {
+  const data = await prisma.scraping_triggered.findMany({
+    orderBy: {
+      triggered_at: 'desc',
+    },
+    take: 1,
+  });
+  try {
+    return JSON.parse(data && data.length > 0 ? data[0].meta_info : '{}') as Project;
+  } catch (error) {
+    console.error('Error parsing meta_info:', error);
+    return undefined;
+  }
+};
+
+const loadSalesData = async (projectCode: string): Promise<DailyTicketSales[]> => {
+  const dailyTicketSales: DailyTicketSales[] = await prisma.daily_ticket_sales_v2.findMany({
     where: {
       project_code: projectCode,
       aggregated_at: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) },
@@ -12,7 +77,7 @@ const loadSalesData = async (projectCode: string) => {
   });
 
   const keys: string[] = [];
-  const uniqueSales = [];
+  const uniqueSales: DailyTicketSales[] = [];
   for (const data of dailyTicketSales) {
     const key = [data.event_page_code, data.reception, data.internal_ticket_name].join('::');
     if (!keys.includes(key)) {
@@ -24,72 +89,74 @@ const loadSalesData = async (projectCode: string) => {
   return uniqueSales;
 };
 
-const arrangeSalesData = (uniqueSales: any[], metaInfo: any) => {
-  const getProjectName = () => metaInfo.project_name || 'Unknown Project';
-  const getConcertCode = (ticketCode: string) =>
-    metaInfo.tickets?.find((t: any) => t.ticket_code === ticketCode)?.concert_code ||
-    'Unknown Concert Code';
-  const getTicketCode = (eventPageCode: string, internalTicketName: string) => {
-    const eventPage = metaInfo.event_pages?.find((ep: any) => ep.event_page_code === eventPageCode);
-    const assignment = eventPage?.assignments?.find(
-      (a: any) => a.internal_ticket_name === internalTicketName
+const arrangeSalesData = (dailyTicketSales: DailyTicketSales[], project: Project) => {
+  const getEventPage = (
+    project: Project,
+    eventPageCode: string | undefined
+  ): EventPage | undefined =>
+    project.event_pages.find((eventPage: EventPage) => eventPage.event_page_code === eventPageCode);
+  const getTicket = (
+    eventPage: EventPage | undefined,
+    internalTicketName: string
+  ): Ticket | undefined => {
+    const assignment: Assignment | undefined = eventPage?.assignments?.find(
+      (a: Assignment) => a.internal_ticket_name === internalTicketName
     );
-    return assignment?.ticket_code || 'Unknown Ticket Code';
+    return project.tickets.find((t: Ticket) => t.ticket_code === assignment?.ticket_code);
   };
-  const getConcertName = (ticketCode: string) => {
-    const concertCode = getConcertCode(ticketCode);
-    return (
-      metaInfo.concerts?.find((c: any) => c.concert_code === concertCode)?.concert_name ||
-      'Unknown Concert'
+  const getConcert = (ticketCode: string | undefined): Concert | undefined => {
+    const ticket: Ticket | undefined = project.tickets.find(
+      (t: Ticket) => t.ticket_code === ticketCode
     );
+    return project.concerts.find((c: Concert) => c.concert_code === ticket?.concert_code);
   };
-  const getCampaignCode = (eventPageCode: string, reception: string) => {
-    const eventPage = metaInfo.event_pages?.find((ep: any) => ep.event_page_code === eventPageCode);
-    if (!eventPage) return 'Unknown Campaign Code';
-    const campaignCode = eventPage.receptions?.find(
-      (r: any) => r.reception === reception
+  const getCampaign = (
+    eventPage: EventPage | undefined,
+    reception: string
+  ): Campaign | undefined => {
+    const campaignCode = eventPage?.receptions?.find(
+      (r: Reception) => r.reception === reception
     )?.campaign_code;
-    if (!campaignCode) return 'Unknown Campaign Code';
-    return campaignCode;
+    if (!campaignCode) return undefined;
+    return project.campaigns.find((c: Campaign) => c.campaign_code === campaignCode);
   };
-  const getCampaignName = (eventPageCode: string, reception: string) => {
-    const campaignCode = getCampaignCode(eventPageCode, reception);
-    return (
-      metaInfo.campaigns?.find((c: any) => c.campaign_code === campaignCode)?.campaign_name ||
-      'Unknown Campaign'
-    );
-  };
-  const getEventPageName = (eventPageCode: string) =>
-    metaInfo.event_pages?.find((ep: any) => ep.event_page_code === eventPageCode)
-      ?.event_page_name || 'Unknown Event Page';
-  const getTicketName = (ticketCode: string) =>
-    metaInfo.tickets?.find((t: any) => t.ticket_code === ticketCode)?.ticket_name ||
-    'Unknown Ticket';
-  const getAggregatedAt = (aggregatedAt: string) =>
-    new Date(aggregatedAt).toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' });
+  const formatDate = (date: Date) => date.toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' });
 
-  const records = uniqueSales.map((data) => {
-    const ticketCode = getTicketCode(data.event_page_code, data.internal_ticket_name);
-    return {
-      project_code: data.project_code,
-      concert_code: metaInfo.tickets.find((t: any) => t.ticket_code === ticketCode)?.concert_code,
-      campaign_code: getCampaignCode(data.event_page_code, data.reception),
-      event_page_code: data.event_page_code,
-      reception: data.reception,
-      internal_ticket_name: data.internal_ticket_name,
-      aggregated_at: data.aggregated_at,
-      project_name: getProjectName(),
-      concert_name: getConcertName(ticketCode),
-      campaign_name: getCampaignName(data.event_page_code, data.reception),
-      event_page_name: getEventPageName(data.event_page_code),
-      ticket_code: ticketCode,
-      ticket_name: getTicketName(ticketCode),
-      aggregated_at_jp: getAggregatedAt(data.aggregated_at),
-      applied_number: data.applied_number,
-      reserved_number: data.reserved_number,
-      confirmed_number: data.confirmed_number,
-    };
-  });
+  const records = dailyTicketSales.map(
+    (record: DailyTicketSales): ExtendedDailyTicketSales | undefined => {
+      const eventPage: EventPage | undefined = getEventPage(project, record.event_page_code);
+      const ticket: Ticket | undefined = getTicket(eventPage, record.internal_ticket_name);
+      const concert: Concert | undefined = getConcert(ticket?.ticket_code);
+      const campaign: Campaign | undefined = getCampaign(eventPage, record.reception);
+      if (
+        eventPage === undefined ||
+        ticket === undefined ||
+        concert === undefined ||
+        campaign === undefined
+      ) {
+        return undefined; // Skip this record if any of the required data is missing
+      }
+      return {
+        project_code: project.project_code,
+        concert_code: concert.concert_code,
+        campaign_code: campaign.campaign_code,
+        event_page_code: eventPage.event_page_code,
+        reception: record.reception,
+        internal_ticket_name: record.internal_ticket_name,
+        aggregated_at: record.aggregated_at,
+        project_name: project.project_name,
+        concert_name: concert.concert_name,
+        campaign_name: campaign.campaign_name,
+        event_page_name: eventPage.event_page_name,
+        ticket_code: ticket.ticket_code,
+        ticket_name: ticket.ticket_name,
+        aggregated_at_jp: formatDate(record.aggregated_at),
+        applied_number: record.applied_number,
+        reserved_number: record.reserved_number,
+        confirmed_number: record.confirmed_number,
+      };
+    }
+  );
   return records;
 };
 
