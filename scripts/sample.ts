@@ -7,6 +7,7 @@ import {
   Reception,
   Campaign,
   Assignment,
+  DealtTicket,
 } from '../app/types.v2.js';
 
 interface DailyTicketSales {
@@ -30,6 +31,13 @@ interface ExtendedDailyTicketSales extends DailyTicketSales {
   concert_name: string;
   campaign_name: string;
   aggregated_at_jp: string;
+}
+
+interface ExtendedDealtTicket {
+  concert_code: string | undefined;
+  campaign_code: string | undefined;
+  event_page_code: string;
+  ticket_code: string;
 }
 
 const getProjectInformation = async (projectCode: string): Promise<Project | undefined> => {
@@ -89,7 +97,10 @@ const loadSalesData = async (projectCode: string): Promise<DailyTicketSales[]> =
   return uniqueSales;
 };
 
-const arrangeSalesData = (dailyTicketSales: DailyTicketSales[], project: Project) => {
+const arrangeSalesData = (
+  dailyTicketSales: DailyTicketSales[],
+  project: Project
+): ExtendedDailyTicketSales[] => {
   const getEventPage = (
     project: Project,
     eventPageCode: string | undefined
@@ -122,8 +133,8 @@ const arrangeSalesData = (dailyTicketSales: DailyTicketSales[], project: Project
   };
   const formatDate = (date: Date) => date.toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' });
 
-  const records = dailyTicketSales.map(
-    (record: DailyTicketSales): ExtendedDailyTicketSales | undefined => {
+  return dailyTicketSales
+    .map((record: DailyTicketSales): ExtendedDailyTicketSales | undefined => {
       const eventPage: EventPage | undefined = getEventPage(project, record.event_page_code);
       const ticket: Ticket | undefined = getTicket(eventPage, record.internal_ticket_name);
       const concert: Concert | undefined = getConcert(ticket?.ticket_code);
@@ -155,20 +166,19 @@ const arrangeSalesData = (dailyTicketSales: DailyTicketSales[], project: Project
         reserved_number: record.reserved_number,
         confirmed_number: record.confirmed_number,
       };
-    }
-  );
-  return records;
+    })
+    .filter((record): record is ExtendedDailyTicketSales => record !== undefined); // Filter out undefined records
 };
 
-const getDealtTickets = (metaInfo: any) => {
+const getDealtTickets = (project: Project): ExtendedDealtTicket[] => {
   const dealtTickets =
-    metaInfo.event_pages
-      ?.map((ep: any) => {
+    project.event_pages
+      ?.map((ep: EventPage) => {
         return (
-          ep.dealt_tickets?.map((dt: any) => ({
-            concert_code: metaInfo.tickets.find((t: any) => t.ticket_code === dt.ticket_code)
+          ep.dealt_tickets?.map((dt: DealtTicket) => ({
+            concert_code: project.tickets.find((t: Ticket) => t.ticket_code === dt.ticket_code)
               ?.concert_code,
-            campaign_code: ep.receptions?.find((r: any) => r.reception === dt.reception)
+            campaign_code: ep.receptions?.find((r: Reception) => r.reception === dt.reception)
               ?.campaign_code,
             event_page_code: ep.event_page_code,
             ticket_code: dt.ticket_code,
@@ -181,68 +191,102 @@ const getDealtTickets = (metaInfo: any) => {
   // 2. キャンペーン
   // 3. プレイガイド（イベントページ）
   // 4. チケット
-  dealtTickets.sort((a: any, b: any) => {
-    const concertCodeA = metaInfo.tickets.find(
-      (t: any) => t.ticket_code === a.ticket_code
+  dealtTickets.sort((a: ExtendedDealtTicket, b: ExtendedDealtTicket) => {
+    const concertCodeA = project.tickets.find(
+      (t: Ticket) => t.ticket_code === a.ticket_code
     )?.concert_code;
-    const concertCodeB = metaInfo.tickets.find(
-      (t: any) => t.ticket_code === b.ticket_code
+    const concertCodeB = project.tickets.find(
+      (t: Ticket) => t.ticket_code === b.ticket_code
     )?.concert_code;
-    const concertA = metaInfo.concerts.findIndex((c: any) => c.concert_code === concertCodeA);
-    const concertB = metaInfo.concerts.findIndex((c: any) => c.concert_code === concertCodeB);
+    const concertA = project.concerts.findIndex((c: Concert) => c.concert_code === concertCodeA);
+    const concertB = project.concerts.findIndex((c: Concert) => c.concert_code === concertCodeB);
     if (concertA !== concertB) return concertA - concertB;
-    const campaignA = metaInfo.campaigns.findIndex((c: any) => c.campaign_code === a.campaign_code);
-    const campaignB = metaInfo.campaigns.findIndex((c: any) => c.campaign_code === b.campaign_code);
-    if (campaignA !== campaignB) return campaignA - campaignB;
-    const pageA = metaInfo.event_pages.findIndex(
-      (ep: any) => ep.event_page_code === a.event_page_code
+    const campaignA = project.campaigns.findIndex(
+      (c: Campaign) => c.campaign_code === a.campaign_code
     );
-    const pageB = metaInfo.event_pages.findIndex(
-      (ep: any) => ep.event_page_code === b.event_page_code
+    const campaignB = project.campaigns.findIndex(
+      (c: Campaign) => c.campaign_code === b.campaign_code
+    );
+    if (campaignA !== campaignB) return campaignA - campaignB;
+    const pageA = project.event_pages.findIndex(
+      (ep: EventPage) => ep.event_page_code === a.event_page_code
+    );
+    const pageB = project.event_pages.findIndex(
+      (ep: EventPage) => ep.event_page_code === b.event_page_code
     );
     if (pageA !== pageB) return pageA - pageB;
-    const ticketA = metaInfo.tickets.findIndex((t: any) => t.ticket_code === a.ticket_code);
-    const ticketB = metaInfo.tickets.findIndex((t: any) => t.ticket_code === b.ticket_code);
+    const ticketA = project.tickets.findIndex((t: Ticket) => t.ticket_code === a.ticket_code);
+    const ticketB = project.tickets.findIndex((t: Ticket) => t.ticket_code === b.ticket_code);
     if (ticketA !== ticketB) return ticketA - ticketB;
     return 0;
   });
   return dealtTickets;
 };
 
-const createReport = (dealtTickets: any[], dailySales: any[], metaInfo: any) => {
+const createReport = (
+  project: Project,
+  triggeredAt: Date,
+  dealtTickets: ExtendedDealtTicket[],
+  records: ExtendedDailyTicketSales[]
+) => {
   const buildLine = (
     icon: string,
     ticket: string,
     applied: number | null,
     reserved: number | null,
     confirmed: number | null
-  ) => {
+  ): string | undefined => {
     const numbers = [];
     if (applied !== null) numbers.push(`申込${applied}`);
     if (reserved !== null) numbers.push(`予約${reserved}`);
     if (confirmed !== null) numbers.push(`確定${confirmed}`);
     return numbers.length > 0 ? icon + ' ' + ticket + ': ' + numbers.join(', ') : undefined;
   };
-  const unique = (data: any[]) => Array.from(new Set(data));
+  const buildTotalLine = (records: ExtendedDailyTicketSales[]): string | undefined => {
+    const totalAppliedNumber = records.reduce(
+      (acc: number | null, record: ExtendedDailyTicketSales) => {
+        if (record.applied_number !== null) {
+          return (acc || 0) + record.applied_number;
+        }
+        return acc;
+      },
+      null
+    );
+    const totalReservedNumber = records.reduce(
+      (acc: number | null, record: ExtendedDailyTicketSales) => {
+        if (record.reserved_number !== null) {
+          return (acc || 0) + record.reserved_number;
+        }
+        return acc;
+      },
+      null
+    );
+    const totalConfirmedNumber = records.reduce(
+      (acc: number | null, record: ExtendedDailyTicketSales) => {
+        if (record.confirmed_number !== null) {
+          return (acc || 0) + record.confirmed_number;
+        }
+        return acc;
+      },
+      null
+    );
+    return buildLine('💵', '合計', totalAppliedNumber, totalReservedNumber, totalConfirmedNumber);
+  };
+  const unique = (data: (string | undefined)[]): string[] =>
+    Array.from(new Set(data.filter((d): d is string => d !== undefined)));
 
-  const concertCodes = Array.from(new Set(dealtTickets.map((dt) => dt.concert_code)));
+  const concertCodes = unique(dealtTickets.map((dt) => dt.concert_code));
   const lines = concertCodes
     .map((concertCode) => {
-      const campaignCodes = Array.from(
-        new Set(
-          dealtTickets.filter((dt) => dt.concert_code === concertCode).map((dt) => dt.campaign_code)
-        )
+      const campaignCodes = unique(
+        dealtTickets.filter((dt) => dt.concert_code === concertCode).map((dt) => dt.campaign_code)
       );
       const lines = campaignCodes
         .map((campaignCode) => {
-          const eventPageCodes = Array.from(
-            new Set(
-              dealtTickets
-                .filter(
-                  (dt) => dt.concert_code === concertCode && dt.campaign_code === campaignCode
-                )
-                .map((dt) => dt.event_page_code)
-            )
+          const eventPageCodes = unique(
+            dealtTickets
+              .filter((dt) => dt.concert_code === concertCode && dt.campaign_code === campaignCode)
+              .map((dt) => dt.event_page_code)
           );
           const lines = eventPageCodes
             .map((eventPageCode) => {
@@ -254,7 +298,7 @@ const createReport = (dealtTickets: any[], dailySales: any[], metaInfo: any) => 
                     dt.event_page_code === eventPageCode
                 )
                 .map((dt) => {
-                  const record = dailySales.find(
+                  const record = records.find(
                     (r) =>
                       r.concert_code === concertCode &&
                       r.campaign_code === campaignCode &&
@@ -272,7 +316,7 @@ const createReport = (dealtTickets: any[], dailySales: any[], metaInfo: any) => 
                     : undefined;
                 })
                 .filter((line) => line !== undefined);
-              const eventPageName = metaInfo.event_pages.find(
+              const eventPageName = project.event_pages.find(
                 (ep: any) => ep.event_page_code === eventPageCode
               )?.event_page_name;
               if (eventPageName !== 'デフォルト') {
@@ -281,7 +325,7 @@ const createReport = (dealtTickets: any[], dailySales: any[], metaInfo: any) => 
               return lines;
             })
             .flat();
-          const campaignName = metaInfo.campaigns.find(
+          const campaignName = project.campaigns.find(
             (c: any) => c.campaign_code === campaignCode
           )?.campaign_name;
           if (campaignName !== 'デフォルト') {
@@ -290,7 +334,7 @@ const createReport = (dealtTickets: any[], dailySales: any[], metaInfo: any) => 
           return lines;
         })
         .flat();
-      const concertName = metaInfo.concerts.find(
+      const concertName = project.concerts.find(
         (c: any) => c.concert_code === concertCode
       )?.concert_name;
       if (concertName !== 'デフォルト') {
@@ -299,37 +343,16 @@ const createReport = (dealtTickets: any[], dailySales: any[], metaInfo: any) => 
       return lines;
     })
     .flat();
-  const totalAppliedNumber = dailySales.reduce((acc, record) => {
-    if (record.confirmed_number !== null) {
-      return (acc || 0) + record.applied_number;
-    }
-    return acc;
-  }, null);
-  const totalReservedNumber = dailySales.reduce((acc, record) => {
-    if (record.confirmed_number !== null) {
-      return (acc || 0) + record.reserved_number;
-    }
-    return acc;
-  }, null);
-  const totalConfirmedNumber = dailySales.reduce((acc, record) => {
-    if (record.confirmed_number !== null) {
-      return (acc || 0) + record.confirmed_number;
-    }
-    return acc;
-  }, null);
-  const totalLine = buildLine(
-    '💵',
-    '合計',
-    totalAppliedNumber,
-    totalReservedNumber,
-    totalConfirmedNumber
-  );
+  const totalLine = buildTotalLine(records);
   if (totalLine !== undefined) {
     lines.push(totalLine);
   }
-  const triggeredAt = new Date().toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' });
-  lines.unshift(triggeredAt.substring(0, triggeredAt.length - 3) + '時点');
-  lines.unshift(metaInfo.project_name);
+  const formatDate = (date: Date) => {
+    const dateString = date.toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' });
+    return dateString.substring(0, dateString.length - 3); // 秒を削除
+  };
+  lines.unshift(formatDate(triggeredAt) + '時点');
+  lines.unshift(project.project_name);
   return lines;
 };
 
@@ -347,25 +370,18 @@ const main = async () => {
   }
   const projectCode = triggered[0].project_code;
   const triggeredAt = triggered[0].triggered_at;
-  const metaInfo = JSON.parse(triggered[0].meta_info);
-
-  console.log('Latest triggered record:');
-  console.log('Project Code:', projectCode);
-  console.log('Triggered At:', triggeredAt);
-  console.log('Meta Info:', metaInfo);
-  console.log('Latest triggered project code:', projectCode);
+  const project = JSON.parse(triggered[0].meta_info) as Project;
 
   // 各イベントページにおける取扱いチケットの情報を取得
-  const dealtTickets = getDealtTickets(metaInfo);
+  const dealtTickets = getDealtTickets(project);
   console.log('Dealt Tickets:', dealtTickets);
 
   // 直近24時間のユニークな日別チケット販売数を取得
-  const dailySales = arrangeSalesData(await loadSalesData(projectCode), metaInfo);
+  const dailySales = arrangeSalesData(await loadSalesData(projectCode), project);
   console.log('Unique Daily Ticket Sales:', dailySales);
 
-  const concertCodes = Array.from(new Set(dealtTickets.map((dt: any) => dt.concert_code)));
-
-  const lines = createReport(dealtTickets, dailySales, metaInfo);
+  // レポートの作成
+  const lines = createReport(project, triggeredAt, dealtTickets, dailySales);
 
   console.log('Dealt Tickets Report:\n' + lines.join('\n'));
 };
