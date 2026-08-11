@@ -1,30 +1,6 @@
 import prisma from '../lib/prisma.js';
 
-const main = async () => {
-  console.log('Hello, World!');
-
-  const triggered = await prisma.scraping_triggered.findMany({
-    orderBy: {
-      triggered_at: 'desc',
-    },
-    take: 1,
-  });
-
-  if (triggered.length === 0) {
-    console.log('No triggered records found.');
-    return;
-  }
-
-  const projectCode = triggered[0].project_code;
-  const triggeredAt = triggered[0].triggered_at;
-  const metaInfo = JSON.parse(triggered[0].meta_info);
-
-  console.log('Latest triggered record:');
-  console.log('Project Code:', projectCode);
-  console.log('Triggered At:', triggeredAt);
-  console.log('Meta Info:', metaInfo);
-  console.log('Latest triggered project code:', projectCode);
-
+const loadSalesData = async (projectCode) => {
   const dailyTicketSales = await prisma.daily_ticket_sales_v2.findMany({
     where: {
       project_code: projectCode,
@@ -45,7 +21,10 @@ const main = async () => {
       uniqueSales.push(data);
     }
   }
+  return uniqueSales;
+};
 
+const arrangeSalesData = (uniqueSales, metaInfo) => {
   const getProjectName = () => metaInfo.project_name || 'Unknown Project';
   const getConcertCode = (ticketCode) =>
     metaInfo.tickets?.find((t) => t.ticket_code === ticketCode)?.concert_code ||
@@ -110,9 +89,10 @@ const main = async () => {
       confirmed_number: data.confirmed_number,
     };
   });
+  return records;
+};
 
-  console.log('Unique Daily Ticket Sales:', records);
-
+const getDealtTickets = (metaInfo) => {
   const dealtTickets =
     metaInfo.event_pages
       ?.map((ep) => {
@@ -127,9 +107,6 @@ const main = async () => {
         );
       })
       .flat() || [];
-
-  console.log('Dealt Tickets:', dealtTickets);
-
   // 表示用に並び替える
   // 1. 公演
   // 2. キャンペーン
@@ -156,10 +133,20 @@ const main = async () => {
     if (ticketA !== ticketB) return ticketA - ticketB;
     return 0;
   });
-  console.log('Dealt Tickets:', dealtTickets);
+  return dealtTickets;
+};
+
+const createReport = (dealtTickets, dailySales, metaInfo) => {
+  const buildLine = (icon, ticket, applied, reserved, confirmed) => {
+    const numbers = [];
+    if (applied !== null) numbers.push(`申込${applied}`);
+    if (reserved !== null) numbers.push(`予約${reserved}`);
+    if (confirmed !== null) numbers.push(`確定${confirmed}`);
+    return numbers.length > 0 ? icon + ' ' + ticket + ': ' + numbers.join(', ') : undefined;
+  };
+  const unique = (data) => Array.from(new Set(data));
 
   const concertCodes = Array.from(new Set(dealtTickets.map((dt) => dt.concert_code)));
-
   const lines = concertCodes
     .map((concertCode) => {
       const campaignCodes = Array.from(
@@ -188,30 +175,29 @@ const main = async () => {
                     dt.event_page_code === eventPageCode
                 )
                 .map((dt) => {
-                  const record = records.find(
+                  const record = dailySales.find(
                     (r) =>
                       r.concert_code === concertCode &&
                       r.campaign_code === campaignCode &&
                       r.event_page_code === eventPageCode &&
                       r.ticket_code === dt.ticket_code
                   );
-                  if (!record) {
-                    return undefined;
-                  }
-                  const numbers = [];
-                  if (record.applied_number !== null) numbers.push(`申込${record.applied_number}`);
-                  if (record.reserved_number !== null)
-                    numbers.push(`予約${record.reserved_number}`);
-                  if (record.confirmed_number !== null)
-                    numbers.push(`確定${record.confirmed_number}`);
-                  return '🎫' + record.ticket_name + ': ' + numbers.join(', ');
+                  return record !== undefined
+                    ? buildLine(
+                        '🎫',
+                        record.ticket_name,
+                        record.applied_number,
+                        record.reserved_number,
+                        record.confirmed_number
+                      )
+                    : undefined;
                 })
                 .filter((line) => line !== undefined);
               const eventPageName = metaInfo.event_pages.find(
                 (ep) => ep.event_page_code === eventPageCode
               )?.event_page_name;
               if (eventPageName !== 'デフォルト') {
-                return ['🛍️' + eventPageName].concat(lines.map((line) => '  ' + line));
+                return ['🛍️ ' + eventPageName].concat(lines.map((line) => '  ' + line));
               }
               return lines;
             })
@@ -220,7 +206,7 @@ const main = async () => {
             (c) => c.campaign_code === campaignCode
           )?.campaign_name;
           if (campaignName !== 'デフォルト') {
-            return ['📣' + campaignName].concat(lines.map((line) => '  ' + line));
+            return ['📣 ' + campaignName].concat(lines.map((line) => '  ' + line));
           }
           return lines;
         })
@@ -229,12 +215,78 @@ const main = async () => {
         (c) => c.concert_code === concertCode
       )?.concert_name;
       if (concertName !== 'デフォルト') {
-        return ['🎻' + concertName].concat(lines.map((line) => '  ' + line));
+        return ['🎻 ' + concertName].concat(lines.map((line) => '  ' + line));
       }
       return lines;
     })
     .flat();
-  lines.unshift(getProjectName());
+  const totalAppliedNumber = dailySales.reduce((acc, record) => {
+    if (record.confirmed_number !== null) {
+      return (acc || 0) + record.applied_number;
+    }
+    return acc;
+  }, null);
+  const totalReservedNumber = dailySales.reduce((acc, record) => {
+    if (record.confirmed_number !== null) {
+      return (acc || 0) + record.reserved_number;
+    }
+    return acc;
+  }, null);
+  const totalConfirmedNumber = dailySales.reduce((acc, record) => {
+    if (record.confirmed_number !== null) {
+      return (acc || 0) + record.confirmed_number;
+    }
+    return acc;
+  }, null);
+  const totalLine = buildLine(
+    '💵',
+    '合計',
+    totalAppliedNumber,
+    totalReservedNumber,
+    totalConfirmedNumber
+  );
+  if (totalLine !== undefined) {
+    lines.push(totalLine);
+  }
+  const triggeredAt = new Date().toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' });
+  lines.unshift(triggeredAt.substring(0, triggeredAt.length - 3) + '時点');
+  lines.unshift(metaInfo.project_name);
+  return lines;
+};
+
+const main = async () => {
+  // 案件情報の取得
+  const triggered = await prisma.scraping_triggered.findMany({
+    orderBy: {
+      triggered_at: 'desc',
+    },
+    take: 1,
+  });
+  if (triggered.length === 0) {
+    console.log('No triggered records found.');
+    return;
+  }
+  const projectCode = triggered[0].project_code;
+  const triggeredAt = triggered[0].triggered_at;
+  const metaInfo = JSON.parse(triggered[0].meta_info);
+
+  console.log('Latest triggered record:');
+  console.log('Project Code:', projectCode);
+  console.log('Triggered At:', triggeredAt);
+  console.log('Meta Info:', metaInfo);
+  console.log('Latest triggered project code:', projectCode);
+
+  // 各イベントページにおける取扱いチケットの情報を取得
+  const dealtTickets = getDealtTickets(metaInfo);
+  console.log('Dealt Tickets:', dealtTickets);
+
+  // 直近24時間のユニークな日別チケット販売数を取得
+  const dailySales = arrangeSalesData(await loadSalesData(projectCode), metaInfo);
+  console.log('Unique Daily Ticket Sales:', dailySales);
+
+  const concertCodes = Array.from(new Set(dealtTickets.map((dt) => dt.concert_code)));
+
+  const lines = createReport(dealtTickets, dailySales, metaInfo);
 
   console.log('Dealt Tickets Report:\n' + lines.join('\n'));
 };
