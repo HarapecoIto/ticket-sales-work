@@ -1,6 +1,6 @@
 import prisma from '../lib/prisma.js';
 
-const loadSalesData = async (projectCode) => {
+const loadSalesData = async (projectCode: string) => {
   const dailyTicketSales = await prisma.daily_ticket_sales_v2.findMany({
     where: {
       project_code: projectCode,
@@ -11,7 +11,7 @@ const loadSalesData = async (projectCode) => {
     },
   });
 
-  const keys = [];
+  const keys: string[] = [];
   const uniqueSales = [];
   for (const data of dailyTicketSales) {
     const key = [data.event_page_code, data.reception, data.internal_ticket_name].join('::');
@@ -24,54 +24,55 @@ const loadSalesData = async (projectCode) => {
   return uniqueSales;
 };
 
-const arrangeSalesData = (uniqueSales, metaInfo) => {
+const arrangeSalesData = (uniqueSales: any[], metaInfo: any) => {
   const getProjectName = () => metaInfo.project_name || 'Unknown Project';
-  const getConcertCode = (ticketCode) =>
-    metaInfo.tickets?.find((t) => t.ticket_code === ticketCode)?.concert_code ||
+  const getConcertCode = (ticketCode: string) =>
+    metaInfo.tickets?.find((t: any) => t.ticket_code === ticketCode)?.concert_code ||
     'Unknown Concert Code';
-  const getTicketCode = (eventPageCode, internalTicketName) => {
-    const eventPage = metaInfo.event_pages?.find((ep) => ep.event_page_code === eventPageCode);
+  const getTicketCode = (eventPageCode: string, internalTicketName: string) => {
+    const eventPage = metaInfo.event_pages?.find((ep: any) => ep.event_page_code === eventPageCode);
     const assignment = eventPage?.assignments?.find(
-      (a) => a.internal_ticket_name === internalTicketName
+      (a: any) => a.internal_ticket_name === internalTicketName
     );
     return assignment?.ticket_code || 'Unknown Ticket Code';
   };
-  const getConcertName = (ticketCode) => {
+  const getConcertName = (ticketCode: string) => {
     const concertCode = getConcertCode(ticketCode);
     return (
-      metaInfo.concerts?.find((c) => c.concert_code === concertCode)?.concert_name ||
+      metaInfo.concerts?.find((c: any) => c.concert_code === concertCode)?.concert_name ||
       'Unknown Concert'
     );
   };
-  const getCampaignCode = (eventPageCode, reception) => {
-    const eventPage = metaInfo.event_pages?.find((ep) => ep.event_page_code === eventPageCode);
+  const getCampaignCode = (eventPageCode: string, reception: string) => {
+    const eventPage = metaInfo.event_pages?.find((ep: any) => ep.event_page_code === eventPageCode);
     if (!eventPage) return 'Unknown Campaign Code';
     const campaignCode = eventPage.receptions?.find(
-      (r) => r.reception === reception
+      (r: any) => r.reception === reception
     )?.campaign_code;
     if (!campaignCode) return 'Unknown Campaign Code';
     return campaignCode;
   };
-  const getCampaignName = (eventPageCode, reception) => {
+  const getCampaignName = (eventPageCode: string, reception: string) => {
     const campaignCode = getCampaignCode(eventPageCode, reception);
     return (
-      metaInfo.campaigns?.find((c) => c.campaign_code === campaignCode)?.campaign_name ||
+      metaInfo.campaigns?.find((c: any) => c.campaign_code === campaignCode)?.campaign_name ||
       'Unknown Campaign'
     );
   };
-  const getEventPageName = (eventPageCode) =>
-    metaInfo.event_pages?.find((ep) => ep.event_page_code === eventPageCode)?.event_page_name ||
-    'Unknown Event Page';
-  const getTicketName = (ticketCode) =>
-    metaInfo.tickets?.find((t) => t.ticket_code === ticketCode)?.ticket_name || 'Unknown Ticket';
-  const getAggregatedAt = (aggregatedAt) =>
+  const getEventPageName = (eventPageCode: string) =>
+    metaInfo.event_pages?.find((ep: any) => ep.event_page_code === eventPageCode)
+      ?.event_page_name || 'Unknown Event Page';
+  const getTicketName = (ticketCode: string) =>
+    metaInfo.tickets?.find((t: any) => t.ticket_code === ticketCode)?.ticket_name ||
+    'Unknown Ticket';
+  const getAggregatedAt = (aggregatedAt: string) =>
     new Date(aggregatedAt).toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' });
 
   const records = uniqueSales.map((data) => {
     const ticketCode = getTicketCode(data.event_page_code, data.internal_ticket_name);
     return {
       project_code: data.project_code,
-      concert_code: metaInfo.tickets.find((t) => t.ticket_code === ticketCode)?.concert_code,
+      concert_code: metaInfo.tickets.find((t: any) => t.ticket_code === ticketCode)?.concert_code,
       campaign_code: getCampaignCode(data.event_page_code, data.reception),
       event_page_code: data.event_page_code,
       reception: data.reception,
@@ -92,15 +93,16 @@ const arrangeSalesData = (uniqueSales, metaInfo) => {
   return records;
 };
 
-const getDealtTickets = (metaInfo) => {
+const getDealtTickets = (metaInfo: any) => {
   const dealtTickets =
     metaInfo.event_pages
-      ?.map((ep) => {
+      ?.map((ep: any) => {
         return (
-          ep.dealt_tickets?.map((dt) => ({
-            concert_code: metaInfo.tickets.find((t) => t.ticket_code === dt.ticket_code)
+          ep.dealt_tickets?.map((dt: any) => ({
+            concert_code: metaInfo.tickets.find((t: any) => t.ticket_code === dt.ticket_code)
               ?.concert_code,
-            campaign_code: ep.receptions?.find((r) => r.reception === dt.reception)?.campaign_code,
+            campaign_code: ep.receptions?.find((r: any) => r.reception === dt.reception)
+              ?.campaign_code,
             event_page_code: ep.event_page_code,
             ticket_code: dt.ticket_code,
           })) || []
@@ -112,39 +114,49 @@ const getDealtTickets = (metaInfo) => {
   // 2. キャンペーン
   // 3. プレイガイド（イベントページ）
   // 4. チケット
-  dealtTickets.sort((a, b) => {
+  dealtTickets.sort((a: any, b: any) => {
     const concertCodeA = metaInfo.tickets.find(
-      (t) => t.ticket_code === a.ticket_code
+      (t: any) => t.ticket_code === a.ticket_code
     )?.concert_code;
     const concertCodeB = metaInfo.tickets.find(
-      (t) => t.ticket_code === b.ticket_code
+      (t: any) => t.ticket_code === b.ticket_code
     )?.concert_code;
-    const concertA = metaInfo.concerts.findIndex((c) => c.concert_code === concertCodeA);
-    const concertB = metaInfo.concerts.findIndex((c) => c.concert_code === concertCodeB);
+    const concertA = metaInfo.concerts.findIndex((c: any) => c.concert_code === concertCodeA);
+    const concertB = metaInfo.concerts.findIndex((c: any) => c.concert_code === concertCodeB);
     if (concertA !== concertB) return concertA - concertB;
-    const campaignA = metaInfo.campaigns.findIndex((c) => c.campaign_code === a.campaign_code);
-    const campaignB = metaInfo.campaigns.findIndex((c) => c.campaign_code === b.campaign_code);
+    const campaignA = metaInfo.campaigns.findIndex((c: any) => c.campaign_code === a.campaign_code);
+    const campaignB = metaInfo.campaigns.findIndex((c: any) => c.campaign_code === b.campaign_code);
     if (campaignA !== campaignB) return campaignA - campaignB;
-    const pageA = metaInfo.event_pages.findIndex((ep) => ep.event_page_code === a.event_page_code);
-    const pageB = metaInfo.event_pages.findIndex((ep) => ep.event_page_code === b.event_page_code);
+    const pageA = metaInfo.event_pages.findIndex(
+      (ep: any) => ep.event_page_code === a.event_page_code
+    );
+    const pageB = metaInfo.event_pages.findIndex(
+      (ep: any) => ep.event_page_code === b.event_page_code
+    );
     if (pageA !== pageB) return pageA - pageB;
-    const ticketA = metaInfo.tickets.findIndex((t) => t.ticket_code === a.ticket_code);
-    const ticketB = metaInfo.tickets.findIndex((t) => t.ticket_code === b.ticket_code);
+    const ticketA = metaInfo.tickets.findIndex((t: any) => t.ticket_code === a.ticket_code);
+    const ticketB = metaInfo.tickets.findIndex((t: any) => t.ticket_code === b.ticket_code);
     if (ticketA !== ticketB) return ticketA - ticketB;
     return 0;
   });
   return dealtTickets;
 };
 
-const createReport = (dealtTickets, dailySales, metaInfo) => {
-  const buildLine = (icon, ticket, applied, reserved, confirmed) => {
+const createReport = (dealtTickets: any[], dailySales: any[], metaInfo: any) => {
+  const buildLine = (
+    icon: string,
+    ticket: string,
+    applied: number | null,
+    reserved: number | null,
+    confirmed: number | null
+  ) => {
     const numbers = [];
     if (applied !== null) numbers.push(`申込${applied}`);
     if (reserved !== null) numbers.push(`予約${reserved}`);
     if (confirmed !== null) numbers.push(`確定${confirmed}`);
     return numbers.length > 0 ? icon + ' ' + ticket + ': ' + numbers.join(', ') : undefined;
   };
-  const unique = (data) => Array.from(new Set(data));
+  const unique = (data: any[]) => Array.from(new Set(data));
 
   const concertCodes = Array.from(new Set(dealtTickets.map((dt) => dt.concert_code)));
   const lines = concertCodes
@@ -194,7 +206,7 @@ const createReport = (dealtTickets, dailySales, metaInfo) => {
                 })
                 .filter((line) => line !== undefined);
               const eventPageName = metaInfo.event_pages.find(
-                (ep) => ep.event_page_code === eventPageCode
+                (ep: any) => ep.event_page_code === eventPageCode
               )?.event_page_name;
               if (eventPageName !== 'デフォルト') {
                 return ['🛍️ ' + eventPageName].concat(lines.map((line) => '  ' + line));
@@ -203,7 +215,7 @@ const createReport = (dealtTickets, dailySales, metaInfo) => {
             })
             .flat();
           const campaignName = metaInfo.campaigns.find(
-            (c) => c.campaign_code === campaignCode
+            (c: any) => c.campaign_code === campaignCode
           )?.campaign_name;
           if (campaignName !== 'デフォルト') {
             return ['📣 ' + campaignName].concat(lines.map((line) => '  ' + line));
@@ -212,7 +224,7 @@ const createReport = (dealtTickets, dailySales, metaInfo) => {
         })
         .flat();
       const concertName = metaInfo.concerts.find(
-        (c) => c.concert_code === concertCode
+        (c: any) => c.concert_code === concertCode
       )?.concert_name;
       if (concertName !== 'デフォルト') {
         return ['🎻 ' + concertName].concat(lines.map((line) => '  ' + line));
@@ -284,7 +296,7 @@ const main = async () => {
   const dailySales = arrangeSalesData(await loadSalesData(projectCode), metaInfo);
   console.log('Unique Daily Ticket Sales:', dailySales);
 
-  const concertCodes = Array.from(new Set(dealtTickets.map((dt) => dt.concert_code)));
+  const concertCodes = Array.from(new Set(dealtTickets.map((dt: any) => dt.concert_code)));
 
   const lines = createReport(dealtTickets, dailySales, metaInfo);
 
