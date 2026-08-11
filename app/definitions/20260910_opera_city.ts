@@ -51,6 +51,13 @@ const CONCERTS: Concert[] = [
         campaign_alias: '一般販売',
         ticket_alias: '一般席',
       },
+      {
+        campaign: '一般販売',
+        play_guide: 'teket',
+        ticket: '一般席',
+        campaign_alias: '一般発売',
+        ticket_alias: '9/10(木) 19:00::一般席::指定席::通常料金',
+      },
     ],
   },
 ];
