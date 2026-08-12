@@ -26,8 +26,9 @@ export type Reception = {
   campaign_code: string;
   reception_type: '抽選販売' | '先着販売';
   application_deadline: Date | null;
-  lottary_date: Date | null;
+  lottery_date: Date | null;
   payment_deadline: Date | null;
+  confirmed_date: Date | null;
 };
 
 export type DealtTicket = {
@@ -52,4 +53,5 @@ export type Project = {
   campaigns: Campaign[];
   tickets: Ticket[];
   event_pages: EventPage[];
+  line_keyword: string;
 };
