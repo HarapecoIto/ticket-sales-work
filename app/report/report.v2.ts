@@ -223,6 +223,126 @@ const getDealtTickets = (project: Project): ExtendedDealtTicket[] => {
   return dealtTickets;
 };
 
+const getSalesDataMain = (
+  project: Project,
+  dealtTickets: ExtendedDealtTicket[],
+  records: ExtendedDailyTicketSales[]
+): {
+  concert_code: string;
+  concert_name: string;
+  event_pages: {
+    event_page_code: string;
+    event_page_name: string;
+    campaigns: {
+      campaign_code: string;
+      campaign_name: string;
+      sales: {
+        ticket_code: string;
+        ticket_name: string;
+        applied_number: number | null;
+        reserved_number: number | null;
+        confirmed_number: number | null;
+      }[];
+    }[];
+  }[];
+}[] => {
+  const unique = (data: (string | undefined)[]): string[] =>
+    Array.from(new Set(data.filter((d): d is string => d !== undefined)));
+  const getConcertName = (concertCode: string): string => {
+    return (
+      project.concerts.find((c: Concert) => c.concert_code === concertCode)?.concert_name || ''
+    );
+  };
+  const getEventPageName = (eventPageCode: string): string => {
+    return (
+      project.event_pages.find((ep: EventPage) => ep.event_page_code === eventPageCode)
+        ?.event_page_name || ''
+    );
+  };
+  const getCampaignName = (campaignCode: string): string => {
+    return (
+      project.campaigns.find((c: Campaign) => c.campaign_code === campaignCode)?.campaign_name || ''
+    );
+  };
+  const getTicketName = (ticketCode: string): string => {
+    return project.tickets.find((t: Ticket) => t.ticket_code === ticketCode)?.ticket_name || '';
+  };
+  const concertCodes = unique(dealtTickets.map((dt) => dt.concert_code));
+  return concertCodes.map((concertCode) => {
+    const eventPageCodes = unique(
+      dealtTickets.filter((dt) => dt.concert_code === concertCode).map((dt) => dt.event_page_code)
+    );
+    return {
+      concert_code: concertCode,
+      concert_name: getConcertName(concertCode),
+      event_pages: eventPageCodes.map((eventPageCode) => {
+        const campaignCodes = unique(
+          dealtTickets
+            .filter((dt) => dt.concert_code === concertCode && dt.event_page_code === eventPageCode)
+            .map((dt) => dt.campaign_code)
+        );
+        return {
+          event_page_code: eventPageCode,
+          event_page_name: getEventPageName(eventPageCode),
+          campaigns: campaignCodes.map((campaignCode) => {
+            return {
+              campaign_code: campaignCode,
+              campaign_name: getCampaignName(campaignCode),
+              sales: dealtTickets
+                .filter(
+                  (dt) =>
+                    dt.concert_code === concertCode &&
+                    dt.event_page_code === eventPageCode &&
+                    dt.campaign_code === campaignCode
+                )
+                .map((dt) => {
+                  const record = records.find(
+                    (r) =>
+                      r.concert_code === concertCode &&
+                      r.event_page_code === eventPageCode &&
+                      r.campaign_code === campaignCode &&
+                      r.ticket_code === dt.ticket_code
+                  );
+                  return {
+                    ticket_code: dt.ticket_code,
+                    ticket_name: getTicketName(dt.ticket_code),
+                    applied_number: record?.applied_number || null,
+                    reserved_number: record?.reserved_number || null,
+                    confirmed_number: record?.confirmed_number || null,
+                  };
+                }),
+            };
+          }),
+        };
+      }),
+    };
+  });
+};
+
+export const getSalesData = async (
+  projectCode: string
+): Promise<ReturnType<typeof getSalesDataMain>> => {
+  // 案件情報の取得
+  const project = await getProjectInformation(projectCode);
+  if (!project) {
+    console.error('Project not found for projectCode:', projectCode);
+    return [];
+  }
+
+  // 各イベントページにおける取扱いチケットの情報を取得
+  const dealtTickets: ExtendedDealtTicket[] = getDealtTickets(project);
+  console.log('Dealt Tickets:', dealtTickets);
+
+  // 直近24時間のユニークな日別チケット販売数を取得
+  const dailySales: ExtendedDailyTicketSales[] = arrangeSalesData(
+    await loadSalesData(projectCode),
+    project
+  );
+  console.log('Unique Daily Ticket Sales:', dailySales);
+
+  return getSalesDataMain(project, dealtTickets, dailySales);
+};
+
 const createReportMain = (
   project: Project,
   dealtTickets: ExtendedDealtTicket[],

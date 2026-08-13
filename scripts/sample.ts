@@ -1,5 +1,5 @@
 import prisma from '../lib/prisma.js';
-import { createReport } from '@/app/report/report.v2.js';
+import { getSalesData, createReport } from '@/app/report/report.v2.js';
 
 const main = async () => {
   // 案件情報の取得
@@ -15,10 +15,13 @@ const main = async () => {
   }
   const projectCode = triggered[0].project_code;
 
+  // 売上データの取得
+  const salesData = await getSalesData(projectCode);
+  console.log('Sales Data:', JSON.stringify(salesData, null, 2));
+
   // レポートの作成
   const lines: string[] = await createReport(projectCode);
-
-  console.log('Dealt Tickets Report:\n' + lines.join('\n'));
+  console.log('Sales Report:\n' + lines.join('\n'));
 };
 
 main().catch((e) => {
