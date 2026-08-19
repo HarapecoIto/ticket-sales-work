@@ -12,7 +12,10 @@ const CONCERTS: Concert[] = [
         name: '一般',
       },
       {
-        name: '学生',
+        name: '学生招待券（公演のみ）',
+      },
+      {
+        name: '学生招待券（公演＋交流会）',
       },
     ],
     distribution: [
@@ -26,9 +29,16 @@ const CONCERTS: Concert[] = [
       {
         campaign: '一般販売',
         play_guide: 'teket',
-        ticket: '学生',
+        ticket: '学生招待券（公演のみ）',
         campaign_alias: '一般販売',
-        ticket_alias: '9/3(木) 18:00::学生::自由席::通常料金',
+        ticket_alias: '9/3(木) 18:00::学生招待券（公演のみ）::自由席::通常料金',
+      },
+      {
+        campaign: '一般販売',
+        play_guide: 'teket',
+        ticket: '学生招待券（公演＋交流会）',
+        campaign_alias: '一般販売',
+        ticket_alias: '9/3(木) 18:00::学生招待券（公演＋交流会）::自由席::通常料金',
       },
     ],
   },
