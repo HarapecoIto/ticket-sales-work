@@ -37,7 +37,7 @@ model asana_tasks {
   task_id    String
   event_code String
 
-  @@id([ciel_id, task_id])
+  @@id([ciel_id, task_id, event_code])
 }
 
 model daily_ticket_sales {
