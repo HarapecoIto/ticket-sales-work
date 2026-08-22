@@ -1,7 +1,6 @@
 import type { Tour } from '@/app/types';
 import OPERA_CITY from './20260910_opera_city';
 import TABICLA from './20260825_tabicla';
-import FAFNER from './20260820_fafner';
 import OHARA_TAMAI from './20260824_ohara_tamai';
 import YONEZU from './20260826_yonezu';
 import TACTICART_ORCHESTRA from './20261108_tacticart_orchestra';
@@ -15,7 +14,6 @@ import TEST from './test_data';
 const TOURS: Tour[] = [
   OPERA_CITY,
   TABICLA,
-  FAFNER,
   OHARA_TAMAI,
   YONEZU,
   PREMIUM2,
