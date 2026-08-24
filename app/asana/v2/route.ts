@@ -47,7 +47,7 @@ const execute = async (project: Project): Promise<string> => {
   return lines.join('\n');
 };
 
-export async function GET(request: NextRequest) {
+export async function POST(request: NextRequest) {
   if (!isAuthorized(request)) {
     //    return NextResponse.json({ ok: false, message: 'Unauthorized' }, { status: 401 });
   }
