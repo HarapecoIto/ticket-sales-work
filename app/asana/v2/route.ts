@@ -30,7 +30,39 @@ const upsertProject = async (project: Project): Promise<void> => {
   });
 };
 
-const execute = async (project: Project): Promise<string> => {
+const sendReport = async (report: string, projectCode: string): Promise<any> => {
+  const taskIds = await prisma.asana_tasks
+    .findMany({ where: { ciel_id: process.env.CIEL_ID, event_code: projectCode } })
+    .then((relations) => relations.map((r) => r.task_id));
+  let messagesSent = 0;
+  let messagesFailed = 0;
+  for (const taskId of taskIds) {
+    try {
+      const url = `https://app.asana.com/api/1.0/tasks/${taskId}/stories`;
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${process.env.ASANA_ACCESS_TOKEN}`,
+        },
+        body: JSON.stringify({
+          data: { text: report },
+        }),
+      });
+      if (!response.ok) {
+        console.error(`Failed to post comment to Asana task ${taskId}:`, await response.text());
+        messagesFailed++;
+      } else {
+        messagesSent++;
+      }
+    } catch (error) {
+      console.error(`Error pushing report for task ID ${taskId}:`, error);
+    }
+  }
+  return { messagesSent, messagesFailed };
+};
+
+const execute = async (project: Project): Promise<any> => {
   const targetConcerts = project.concerts.filter((concert) => isTarget(concert.start_datetime));
   if (targetConcerts.length === 0) {
     return 'No target concerts';
@@ -42,14 +74,16 @@ const execute = async (project: Project): Promise<string> => {
 
   // レポートの作成
   const lines: string[] = await createReport(project);
-  console.log('Sales Report:\n' + lines.join('\n'));
+  const report = lines.join('\n');
+  console.log('Sales Report:\n' + report);
 
-  return lines.join('\n');
+  const result = await sendReport(report, project.project_code);
+  return { report, result };
 };
 
 export async function POST(request: NextRequest) {
   if (!isAuthorized(request)) {
-    //    return NextResponse.json({ ok: false, message: 'Unauthorized' }, { status: 401 });
+    return NextResponse.json({ ok: false, message: 'Unauthorized' }, { status: 401 });
   }
   console.log('[asana] post-asana started');
   try {
