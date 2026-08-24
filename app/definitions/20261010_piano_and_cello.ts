@@ -4,7 +4,7 @@ const CONCERTS: Concert[] = [
   {
     name: 'ピアノとチェロのオーケストラコンサート 山本貴志を迎えて',
     display_name: 'ピアノとチェロ 山本貴志を迎えて',
-    short_name: 'デフォルト',
+    short_name: 'ピアノとチェロ 山本貴志を迎えて',
     date_at: new Date('2026-10-26T19:00:00+09:00'),
     hall: '浜離宮朝日ホール',
     tickets: [
