@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
   }
   console.log('[asana] post-asana started');
   try {
-    const project: Project = request.json() as unknown as Project;
+    const project: Project = (await request.json()) as unknown as Project;
     await upsertProject(project);
     const result = await execute(project);
     console.log('[asana] post-asana finished');
