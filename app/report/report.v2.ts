@@ -1,4 +1,4 @@
-import prisma from '@/lib/prisma.js';
+import prisma from '@/lib/prisma';
 import {
   Project,
   Concert,
@@ -39,39 +39,6 @@ interface ExtendedDealtTicket {
   event_page_code: string;
   ticket_code: string;
 }
-
-const getProjectInformation = async (projectCode: string): Promise<Project | undefined> => {
-  const data = await prisma.scraping_triggered.findMany({
-    where: {
-      project_code: projectCode,
-    },
-    orderBy: {
-      triggered_at: 'desc',
-    },
-    take: 1,
-  });
-  try {
-    return JSON.parse(data && data.length > 0 ? data[0].meta_info : '{}') as Project;
-  } catch (error) {
-    console.error('Error parsing meta_info:', error);
-    return undefined;
-  }
-};
-
-const getLatestTriggeredRecord = async (): Promise<Project | undefined> => {
-  const data = await prisma.scraping_triggered.findMany({
-    orderBy: {
-      triggered_at: 'desc',
-    },
-    take: 1,
-  });
-  try {
-    return JSON.parse(data && data.length > 0 ? data[0].meta_info : '{}') as Project;
-  } catch (error) {
-    console.error('Error parsing meta_info:', error);
-    return undefined;
-  }
-};
 
 const loadSalesData = async (projectCode: string): Promise<DailyTicketSales[]> => {
   const dailyTicketSales: DailyTicketSales[] = await prisma.daily_ticket_sales_v2.findMany({
@@ -320,22 +287,15 @@ const getSalesDataMain = (
 };
 
 export const getSalesData = async (
-  projectCode: string
+  project: Project
 ): Promise<ReturnType<typeof getSalesDataMain>> => {
-  // 案件情報の取得
-  const project = await getProjectInformation(projectCode);
-  if (!project) {
-    console.error('Project not found for projectCode:', projectCode);
-    return [];
-  }
-
   // 各イベントページにおける取扱いチケットの情報を取得
   const dealtTickets: ExtendedDealtTicket[] = getDealtTickets(project);
   console.log('Dealt Tickets:', dealtTickets);
 
   // 直近24時間のユニークな日別チケット販売数を取得
   const dailySales: ExtendedDailyTicketSales[] = arrangeSalesData(
-    await loadSalesData(projectCode),
+    await loadSalesData(project.project_code),
     project
   );
   console.log('Unique Daily Ticket Sales:', dailySales);
@@ -485,21 +445,14 @@ const createReportMain = (
   return lines;
 };
 
-export const createReport = async (projectCode: string): Promise<string[]> => {
-  // 案件情報の取得
-  const project = await getProjectInformation(projectCode);
-  if (!project) {
-    console.error('Project not found for projectCode:', projectCode);
-    return ['案件情報が見つからないぴょ'];
-  }
-
+export const createReport = async (project: Project): Promise<string[]> => {
   // 各イベントページにおける取扱いチケットの情報を取得
   const dealtTickets: ExtendedDealtTicket[] = getDealtTickets(project);
   console.log('Dealt Tickets:', dealtTickets);
 
   // 直近24時間のユニークな日別チケット販売数を取得
   const dailySales: ExtendedDailyTicketSales[] = arrangeSalesData(
-    await loadSalesData(projectCode),
+    await loadSalesData(project.project_code),
     project
   );
   console.log('Unique Daily Ticket Sales:', dailySales);
