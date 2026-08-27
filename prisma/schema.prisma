@@ -70,4 +70,5 @@ model scraping_triggered {
 model projects {
   project_code String @id
   line_keyword String
+  meta_info    String
 }

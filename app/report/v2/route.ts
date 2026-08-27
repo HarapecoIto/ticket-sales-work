@@ -27,10 +27,12 @@ const upsertProject = async (project: Project): Promise<void> => {
     where: { project_code: project.project_code },
     update: {
       line_keyword: project.line_keyword,
+      meta_info: JSON.stringify(project),
     },
     create: {
       project_code: project.project_code,
       line_keyword: project.line_keyword,
+      meta_info: JSON.stringify(project),
     },
   });
 };
