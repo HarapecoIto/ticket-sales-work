@@ -88,6 +88,20 @@ const CONCERTS: Concert[] = [
         campaign_alias: '一般販売', // ぴあは「一般販売」
         ticket_alias: '学生席',
       },
+      {
+        campaign: '一般販売',
+        play_guide: 'teket',
+        ticket: '応援席',
+        campaign_alias: '一般販売',
+        ticket_alias: '11/8(日) 18:00::応援席::指定席::通常料金',
+      },
+      {
+        campaign: '一般販売',
+        play_guide: 'teket',
+        ticket: '投げ銭席',
+        campaign_alias: '一般販売',
+        ticket_alias: '11/8(日) 18:00::投げ銭席::指定席::通常料金',
+      },
     ],
   },
 ];
