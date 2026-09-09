@@ -66,7 +66,7 @@ const CONCERTS: Concert[] = [
         play_guide: 'teket',
         ticket: 'Ａ席',
         campaign_alias: '一般販売',
-        ticket_alias: 'Ａ席',
+        ticket_alias: '10/11(日) 14:00::A席::指定席::通常料金',
       },
     ],
   },
