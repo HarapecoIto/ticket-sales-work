@@ -22,7 +22,7 @@ const CONCERTS: Concert[] = [
       {
         campaign: '先行販売',
         play_guide: 'eplus',
-        ticket: '',
+        ticket: 'Ｓ席',
         campaign_alias: '座席選択先行受付',
         ticket_alias: 'Ｓ席（特典付き）',
       },
