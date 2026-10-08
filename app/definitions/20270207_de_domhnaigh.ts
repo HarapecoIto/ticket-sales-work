@@ -2,9 +2,9 @@ import type { Tour, Concert, Campaign } from '../types';
 
 const CONCERTS: Concert[] = [
   {
-    name: 'ジェドゥーナ Special LIVE ～Solas～',
-    display_name: 'ジェドゥーナ Special LIVE ～Solas～',
-    short_name: 'ジェドゥーナ Special LIVE ～Solas～',
+    name: 'ジェドゥーナ TOKYO NODE HALL',
+    display_name: 'ジェドゥーナ TOKYO NODE HALL',
+    short_name: 'ジェドゥーナ TOKYO NODE HALL',
     date_at: new Date('2027-02-07T12:00:00+09:00'),
     hall: 'TOKYO NODE HALL',
     tickets: [
@@ -94,8 +94,8 @@ const CAMPAIGNS: Campaign[] = [
 
 const TOUR: Tour = {
   event_code: '20270207_de_domhnaigh',
-  name: 'ジェドゥーナ Special LIVE ～Solas～',
-  display_name: 'ジェドゥーナ Special LIVE ～Solas～',
+  name: 'ジェドゥーナ TOKYO NODE HALL',
+  display_name: 'ジェドゥーナ TOKYO NODE HALL',
   campaigns: CAMPAIGNS,
   concerts: CONCERTS,
   line_link_key: 'パクチーセロリ',
