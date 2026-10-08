@@ -7,6 +7,7 @@ import COUNTRY_KOBE from './20261031_country_kobe';
 import EDRE_QUARTET_TOKYO from './20261222_edre_quartet_tokyo';
 import EDRE_QUARTET_SAPPORO from './20270105_edre_quartet_sapporo';
 import INAZUMI_FUKUOKA from './20261017_inazumi_fukuoka';
+import DE_DOMHNAIGH from './20270207_de_domhnaigh';
 import TEST from './test_data';
 
 const TOURS: Tour[] = [
@@ -18,6 +19,7 @@ const TOURS: Tour[] = [
   EDRE_QUARTET_TOKYO,
   EDRE_QUARTET_SAPPORO,
   INAZUMI_FUKUOKA,
+  DE_DOMHNAIGH,
   TEST,
 ];
 
