@@ -2,9 +2,9 @@ import type { Tour, Concert, Campaign } from '../types';
 
 const CONCERTS: Concert[] = [
   {
-    name: '千野哲太 TOKYO NODE HALL',
-    display_name: '千野哲太 TOKYO NODE HALL',
-    short_name: '千野哲太 TOKYO NODE HALL',
+    name: '千野哲太 THE SOUND OF LIGHT',
+    display_name: 'THE SOUND OF LIGHT',
+    short_name: 'THE SOUND OF LIGHT',
     date_at: new Date('2027-02-11T12:00:00+09:00'),
     hall: 'TOKYO NODE HALL',
     tickets: [
@@ -94,8 +94,8 @@ const CAMPAIGNS: Campaign[] = [
 
 const TOUR: Tour = {
   event_code: '20270211_chino',
-  name: '千野哲太 TOKYO NODE HALL',
-  display_name: '千野哲太 TOKYO NODE HALL',
+  name: '千野哲太 THE SOUND OF LIGHT',
+  display_name: 'THE SOUND OF LIGHT',
   campaigns: CAMPAIGNS,
   concerts: CONCERTS,
   line_link_key: 'メロン金平糖',
