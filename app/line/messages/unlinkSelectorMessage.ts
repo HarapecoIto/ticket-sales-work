@@ -5,7 +5,8 @@ import TOURS from '@/app/definitions/definitions';
 export const unlinkSelectorMessage = (eventCodes: string[]): messagingApi.Message => {
   const actions: messagingApi.PostbackAction[] = eventCodes.map((eventCode) => {
     const tour: Tour | undefined = TOURS.find((d) => d.event_code === eventCode);
-    const label = tour ? tour.display_name : '';
+    const displayName = tour?.display_name || eventCode;
+    const label = displayName.length > 20 ? displayName.slice(0, 17) + '...' : displayName;
     return {
       type: 'postback',
       label,
