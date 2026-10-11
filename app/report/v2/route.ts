@@ -37,6 +37,7 @@ const upsertProject = async (project: Project): Promise<void> => {
   });
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const sendAsana = async (report: string, projectCode: string): Promise<any> => {
   const taskIds = await prisma.asana_tasks
     .findMany({ where: { ciel_id: process.env.CIEL_ID, event_code: projectCode } })
@@ -69,6 +70,7 @@ const sendAsana = async (report: string, projectCode: string): Promise<any> => {
   return { sent, failed };
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const sendLine = async (report: string, projectCode: string): Promise<any> => {
   const sourceIds = await prisma.line_group_event_relations
     .findMany({ where: { ciel_id: process.env.CIEL_ID, event_code: projectCode } })
@@ -87,6 +89,7 @@ const sendLine = async (report: string, projectCode: string): Promise<any> => {
   return { sent, failed };
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const execute = async (project: Project): Promise<any> => {
   const targetConcerts = project.concerts.filter((concert) => isTarget(concert.start_datetime));
   if (targetConcerts.length === 0) {
@@ -114,7 +117,7 @@ export async function POST(request: NextRequest) {
   }
   console.log('[report] post-report started');
   try {
-    const project: Project = (await request.json()) as unknown as Project;
+    const project: Project = (await request.json()) as Project;
     await upsertProject(project);
     const result = await execute(project);
     console.log('[report] post-report finished');
