@@ -5,7 +5,7 @@ import { Project } from '@/app/types.v2.js';
 import { getSalesData, createReport } from '@/app/report/report.v2';
 
 const client = new messagingApi.MessagingApiClient({
-  channelAccessToken: process.env.CHANNEL_ACCESS_TOKEN || '',
+  channelAccessToken: process.env.CHANNEL_ACCESS_TOKEN_V2 || '',
 });
 
 const isAuthorized = (request: NextRequest): boolean => {

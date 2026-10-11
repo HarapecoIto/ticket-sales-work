@@ -9,7 +9,7 @@ export const runtime = 'nodejs';
 
 const checkLineSignature = async (body: string, signature: string) => {
   try {
-    const hmac = crypto.createHmac('sha256', process.env.CHANNEL_SECRET);
+    const hmac = crypto.createHmac('sha256', process.env.CHANNEL_SECRET_V2);
     hmac.update(body);
     return hmac.digest('base64') === signature;
   } catch (err) {
@@ -19,7 +19,7 @@ const checkLineSignature = async (body: string, signature: string) => {
 };
 
 const getMessagingClient = (): messagingApi.MessagingApiClient | null => {
-  const channelAccessToken = process.env.CHANNEL_ACCESS_TOKEN;
+  const channelAccessToken = process.env.CHANNEL_ACCESS_TOKEN_V2;
   if (!channelAccessToken) {
     return null;
   }
