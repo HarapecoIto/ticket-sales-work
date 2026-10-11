@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { Project } from '@/app/types.v2.js';
 
 const isAuthorized = (request: NextRequest): boolean => {
   const isGuarded = process.env.VERCEL_ENV === 'production' || process.env.VERCEL_ENV === 'preview';
@@ -20,11 +21,23 @@ export async function POST(request: NextRequest) {
   }
   try {
     const data = await request.json();
+    const project: Project = data as Project;
     const created = await prisma.scraping_triggered.create({
       data: {
-        project_code: data.project_code,
+        project_code: project.project_code,
         triggered_at: new Date(),
-        meta_info: JSON.stringify(data),
+        meta_info: data,
+      },
+    });
+    await prisma.projects.upsert({
+      where: { project_code: project.project_code },
+      update: {
+        meta_info: data,
+      },
+      create: {
+        project_code: project.project_code,
+        line_keyword: project.line_keyword,
+        meta_info: data,
       },
     });
     console.log('Scraping trigger created:', created);
