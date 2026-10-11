@@ -72,8 +72,8 @@ const sendAsana = async (report: string, projectCode: string): Promise<any> => {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const sendLine = async (report: string, projectCode: string): Promise<any> => {
-  const sourceIds = await prisma.line_group_event_relations
-    .findMany({ where: { ciel_id: process.env.CIEL_ID, event_code: projectCode } })
+  const sourceIds = await prisma.line_project_relations_v2
+    .findMany({ where: { ciel_id: process.env.CIEL_ID, project_code: projectCode } })
     .then((relations) => relations.map((r) => r.source_id));
   let sent = 0;
   let failed = 0;
@@ -82,7 +82,7 @@ const sendLine = async (report: string, projectCode: string): Promise<any> => {
       await client.pushMessage({ to: sourceId, messages: [{ type: 'text', text: report }] });
       sent++;
     } catch (error) {
-      console.error(`Error pushing message for event code ${projectCode}:`, error);
+      console.error(`Error pushing message for project code ${projectCode}:`, error);
       failed++;
     }
   }
