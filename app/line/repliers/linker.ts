@@ -1,7 +1,7 @@
 import prisma from '@/lib/prisma';
 import { messagingApi, webhook } from '@line/bot-sdk';
-import { type Tour, ConversationState } from '@/app/types';
-import TOURS from '@/app/definitions/definitions';
+import { ConversationState } from '@/app/types';
+import { type Project } from '@/app/types.v2';
 
 export const linker = async (
   sourceId: string,
@@ -46,35 +46,41 @@ export const linker = async (
         where: { ciel_id_source_id: { ciel_id: process.env.CIEL_ID, source_id: sourceId } },
       });
       // 件数チェック（LINEの制約により3件まで）
-      const relations = await prisma.line_group_event_relations.findMany({
+      const relations = await prisma.line_project_relations_v2.findMany({
         where: { ciel_id: process.env.CIEL_ID, source_id: sourceId },
       });
       if (relations.length >= 3) {
         return [{ type: 'text', text: 'これ以上報告するイベントを追加できないぴょ' }];
       }
-      // リンク対象のイベント
-      const tour: Tour | undefined = TOURS.find((d) => d.line_link_key === text);
-      if (!tour) {
+      const projects = await prisma.projects.findMany({
+        where: { line_keyword: text },
+      });
+      if (projects.length === 0) {
+        return [{ type: 'text', text: '該当する案件が見つからないぴょ' }];
+      } else if (projects.length > 1) {
         return [
-          {
-            type: 'text',
-            text: `「${text}」は合言葉ではないぴょ。もう一度確認してぴょ`,
-          },
+          { type: 'text', text: '該当する案件が複数見つかったぴょ。キーワードの再発行が必要ぴょ' },
         ];
       }
       // リンクする（未リンクの場合）
-      await prisma.line_group_event_relations.createMany({
-        data: [{ ciel_id: process.env.CIEL_ID, source_id: sourceId, event_code: tour.event_code }],
+      await prisma.line_project_relations_v2.createMany({
+        data: [
+          {
+            ciel_id: process.env.CIEL_ID,
+            source_id: sourceId,
+            project_code: projects[0].project_code,
+          },
+        ],
         skipDuplicates: true,
       });
+      const project: Project = JSON.parse(projects[0].meta_info) as Project;
       return [
         {
           type: 'text',
-          text: `毎日18時過ぎに「${tour.name}」のチケット販売状況を知らせるぴょ`,
+          text: `毎日18時過ぎに「${project.project_name}」のチケット販売状況を知らせるぴょ`,
         },
       ];
     }
   }
-
   return null;
 };

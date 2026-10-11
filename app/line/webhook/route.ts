@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { messagingApi, webhook } from '@line/bot-sdk';
 import crypto from 'crypto';
 import { notificator } from '@/app/line/repliers/notificator';
-import { linker } from '../repliers/linker';
+import { linker } from '@/app/line/repliers/linker';
 import { unlinker } from '@/app/line/repliers/unlinker';
 
 export const runtime = 'nodejs';
