@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
       },
     });
     console.log('Scraping trigger created:', created);
-    return NextResponse.json({ ok: true, data: project }, { status: 200 });
+    return NextResponse.json({ ok: true, data: dataString }, { status: 200 });
   } catch (error) {
     console.error('Error in trigger route:', error);
     return NextResponse.json({ ok: false, message: 'Internal Server Error' }, { status: 500 });
