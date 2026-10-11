@@ -15,7 +15,7 @@ model line_group_event_relations {
   @@id([ciel_id, source_id, event_code])
 }
 
-model line_project_relations {
+model line_project_relations_v2 {
   source_id    String
   project_code String
   ciel_id      String
