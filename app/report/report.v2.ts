@@ -396,7 +396,7 @@ const createReportMain = (
                 })
                 .filter((line) => line !== undefined);
               const eventPageName = project.event_pages.find(
-                (ep: any) => ep.event_page_code === eventPageCode
+                (ep: EventPage) => ep.event_page_code === eventPageCode
               )?.event_page_name;
               if (eventPageName !== 'デフォルト') {
                 return ['🛍️ ' + eventPageName].concat(lines.map((line) => '  ' + line));
@@ -405,7 +405,7 @@ const createReportMain = (
             })
             .flat();
           const campaignName = project.campaigns.find(
-            (c: any) => c.campaign_code === campaignCode
+            (c: Campaign) => c.campaign_code === campaignCode
           )?.campaign_name;
           if (campaignName !== 'デフォルト') {
             return ['📣 ' + campaignName].concat(lines.map((line) => '  ' + line));
@@ -414,7 +414,7 @@ const createReportMain = (
         })
         .flat();
       const concertName = project.concerts.find(
-        (c: any) => c.concert_code === concertCode
+        (c: Concert) => c.concert_code === concertCode
       )?.concert_name;
       if (concertName !== 'デフォルト') {
         return ['🎻 ' + concertName].concat(lines.map((line) => '  ' + line));
