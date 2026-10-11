@@ -32,6 +32,7 @@ export async function POST(request: NextRequest) {
     await prisma.projects.upsert({
       where: { project_code: project.project_code },
       update: {
+        line_keyword: project.line_keyword,
         meta_info: data,
       },
       create: {
