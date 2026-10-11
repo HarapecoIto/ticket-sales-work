@@ -39,9 +39,9 @@ const upsertProject = async (project: Project): Promise<void> => {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const sendAsana = async (report: string, projectCode: string): Promise<any> => {
-  const taskIds = await prisma.asana_tasks
+  const taskIds = await prisma.asana_tasks_v2
     .findMany({ where: { ciel_id: process.env.CIEL_ID, event_code: projectCode } })
-    .then((relations) => relations.map((r) => r.task_id));
+    .then((tasks) => tasks.map((t) => t.task_id));
   let sent = 0;
   let failed = 0;
   for (const taskId of taskIds) {
