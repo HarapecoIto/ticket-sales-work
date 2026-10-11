@@ -2,33 +2,33 @@ import type { Tour, Concert, Campaign } from '../types';
 
 const CONCERTS: Concert[] = [
   {
-    name: '未来の音楽家発掘コンサートvol.2',
-    display_name: '未来の音楽家発掘コンサートvol.2',
-    short_name: '未来の音楽家発掘コンサートvol.2',
-    date_at: new Date('2026-09-03T18:00:00+09:00'),
-    hall: '浜離宮朝日ホール 小ホール',
+    name: 'Erde Quartet Concert Vol.5 札幌',
+    display_name: 'Erde Quartet Concert Vol.5 札幌',
+    short_name: 'Erde Quartet Concert Vol.5 札幌',
+    date_at: new Date('2027-01-05T19:00:00+09:00'),
+    hall: '豊平館',
     tickets: [
       {
-        name: '一般',
+        name: '一般席',
       },
       {
-        name: '学生',
+        name: '学生席',
       },
     ],
     distribution: [
       {
         campaign: '一般販売',
         play_guide: 'teket',
-        ticket: '一般',
+        ticket: '一般席',
         campaign_alias: '一般販売',
-        ticket_alias: '9/3(木) 18:00::一般::自由席::通常料金',
+        ticket_alias: '1/5(木) 19:00::一般席::自由席::通常料金',
       },
       {
         campaign: '一般販売',
         play_guide: 'teket',
-        ticket: '学生',
+        ticket: '学生席',
         campaign_alias: '一般販売',
-        ticket_alias: '9/3(木) 18:00::学生::自由席::通常料金',
+        ticket_alias: '1/5(木) 19:00::一般席::自由席::学生席',
       },
     ],
   },
@@ -47,12 +47,12 @@ const CAMPAIGNS: Campaign[] = [
 ];
 
 const TOUR: Tour = {
-  event_code: '20260903_hakkutsu_vol2',
-  name: '未来の音楽家発掘コンサートvol.2',
-  display_name: '未来の音楽家発掘コンサートvol.2',
+  event_code: '20270105_edre_quartet_sapporo',
+  name: 'Erde Quartet Concert Vol.5 札幌',
+  display_name: 'Erde Quartet Concert Vol.5 札幌', // 最大20文字まで
   campaigns: CAMPAIGNS,
   concerts: CONCERTS,
-  line_link_key: 'チョコピスタチオ',
+  line_link_key: 'ブルーベリーミント',
 };
 
 export default TOUR;
