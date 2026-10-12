@@ -56,7 +56,6 @@ const loadSalesData = async (projectCode: string): Promise<DailyTicketSales[]> =
   for (const data of dailyTicketSales) {
     const key = [data.event_page_code, data.reception, data.internal_ticket_name].join('::');
     if (!keys.includes(key)) {
-      console.log('Unique Key:', key);
       keys.push(key);
       uniqueSales.push(data);
     }
@@ -291,14 +290,12 @@ export const getSalesData = async (
 ): Promise<ReturnType<typeof getSalesDataMain>> => {
   // 各イベントページにおける取扱いチケットの情報を取得
   const dealtTickets: ExtendedDealtTicket[] = getDealtTickets(project);
-  console.log('Dealt Tickets:', dealtTickets);
 
   // 直近24時間のユニークな日別チケット販売数を取得
   const dailySales: ExtendedDailyTicketSales[] = arrangeSalesData(
     await loadSalesData(project.project_code),
     project
   );
-  console.log('Unique Daily Ticket Sales:', dailySales);
 
   return getSalesDataMain(project, dealtTickets, dailySales);
 };
@@ -448,14 +445,12 @@ const createReportMain = (
 export const createReport = async (project: Project): Promise<string[]> => {
   // 各イベントページにおける取扱いチケットの情報を取得
   const dealtTickets: ExtendedDealtTicket[] = getDealtTickets(project);
-  console.log('Dealt Tickets:', dealtTickets);
 
   // 直近24時間のユニークな日別チケット販売数を取得
   const dailySales: ExtendedDailyTicketSales[] = arrangeSalesData(
     await loadSalesData(project.project_code),
     project
   );
-  console.log('Unique Daily Ticket Sales:', dailySales);
 
   // レポートの作成
   return createReportMain(project, dealtTickets, dailySales);
