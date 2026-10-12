@@ -24,13 +24,6 @@ export async function POST(request: NextRequest) {
     const json = await request.json();
     const project: Project = json as Project;
     const dataString = JSON.stringify(project);
-    const created = await prisma.scraping_triggered.create({
-      data: {
-        project_code: project.project_code,
-        triggered_at: new Date(),
-        meta_info: dataString,
-      },
-    });
     await prisma.projects.upsert({
       where: { project_code: project.project_code },
       update: {
