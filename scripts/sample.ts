@@ -3,26 +3,31 @@ import { Project } from '@/app/types.v2.js';
 import { getSalesData, createReport } from '@/app/report/report.v2.js';
 
 const main = async () => {
-  // 案件情報の取得
-  const triggered = await prisma.scraping_triggered.findMany({
-    orderBy: {
-      triggered_at: 'desc',
-    },
-    take: 1,
+  const records = await prisma.projects.findMany({
+    select: { meta_info: true },
   });
-  if (triggered.length === 0) {
-    console.log('No triggered records found.');
+  if (records.length === 0) {
+    console.log('No project found.');
     return;
   }
-  const project: Project = JSON.parse(triggered[0].meta_info) as Project;
+  const projects: Project[] = records.map((record) => JSON.parse(record.meta_info) as Project);
+  projects.sort((a: Project, b: Project) => {
+    const lastConcertA = a.concerts[a.concerts.length - 1];
+    const lastConcertB = b.concerts[b.concerts.length - 1];
+    if (lastConcertA.start_datetime == lastConcertB.start_datetime) {
+      return 0;
+    }
+    return lastConcertA.start_datetime > lastConcertB.start_datetime ? 1 : -1;
+  });
 
-  // 売上データの取得
-  const salesData = await getSalesData(project);
-  console.log('Sales Data:', JSON.stringify(salesData, null, 2));
-
-  // レポートの作成
-  const lines: string[] = await createReport(project);
-  console.log('Sales Report:\n' + lines.join('\n'));
+  for (const project of projects) {
+    const lastConcert = project.concerts[project.concerts.length - 1];
+    if (lastConcert.start_datetime < new Date()) {
+      continue;
+    }
+    const lines: string[] = await createReport(project);
+    console.log(lines.join('\n') + '\n');
+  }
 };
 
 main().catch((e) => {

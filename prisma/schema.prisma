@@ -40,6 +40,14 @@ model asana_tasks {
   @@id([ciel_id, task_id, event_code])
 }
 
+model asana_tasks_v2 {
+  task_id    String
+  event_code String
+  ciel_id    String
+
+  @@id([ciel_id, task_id, event_code])
+}
+
 model daily_ticket_sales {
   event_code         String
   concert_short_name String

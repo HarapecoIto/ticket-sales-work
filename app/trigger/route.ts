@@ -20,7 +20,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ ok: false, message: 'Unauthorized' }, { status: 401 });
   }
   try {
-    const project: Project = (await request.json()) as Project;
+    const json = await request.json();
+    const project: Project = json as Project;
     const dataString = JSON.stringify(project);
     const created = await prisma.scraping_triggered.create({
       data: {
@@ -42,7 +43,7 @@ export async function POST(request: NextRequest) {
       },
     });
     console.log('Scraping trigger created:', created);
-    return NextResponse.json({ ok: true, data: dataString }, { status: 200 });
+    return NextResponse.json({ ok: true, data: json }, { status: 200 });
   } catch (error) {
     console.error('Error in trigger route:', error);
     return NextResponse.json({ ok: false, message: 'Internal Server Error' }, { status: 500 });
