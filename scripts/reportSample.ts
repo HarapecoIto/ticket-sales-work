@@ -1,6 +1,6 @@
 import prisma from '../lib/prisma.js';
-import { Project } from '@/app/types.v2.js';
-import { createReport } from '@/app/report/report.v2.js';
+import { Project } from '../app/types.v2.js';
+import { createReport } from '../app/report/report.v2.js';
 
 const main = async () => {
   const records = await prisma.projects.findMany({
