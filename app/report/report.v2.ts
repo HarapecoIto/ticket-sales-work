@@ -238,8 +238,17 @@ const getSalesDataMain = (
     const eventPageCodes = unique(
       dealtTickets.filter((dt) => dt.concert_code === concertCode).map((dt) => dt.event_page_code)
     );
+    const salesForConcert = records.filter((r) => r.concert_code === concertCode);
+    salesForConcert.sort((a, b) =>
+      a.aggregated_at < b.aggregated_at ? -1 : a.aggregated_at > b.aggregated_at ? 1 : 0
+    );
+    const aggregatedAt =
+      salesForConcert.length > 0
+        ? salesForConcert[salesForConcert.length - 1].aggregated_at
+        : new Date();
     return {
       concert_code: concertCode,
+      aggregated_at: aggregatedAt.toISOString(),
       concert_name: getConcertName(concertCode),
       event_pages: eventPageCodes.map((eventPageCode) => {
         const campaignCodes = unique(
