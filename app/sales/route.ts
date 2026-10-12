@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { Project } from '@/app/types.v2.js';
-import { getSalesData } from '@/app/report/report.v2.js';
+import { getSalesData } from '@/app/report/report.v2';
 
 const isAuthorized = (request: NextRequest): boolean => {
   const isGuarded = process.env.VERCEL_ENV === 'production' || process.env.VERCEL_ENV === 'preview';
