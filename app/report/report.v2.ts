@@ -433,20 +433,18 @@ const createReportMain = (
       // 手売り情報の追加
       if (Object.keys(project).includes('manual_sales')) {
         const manualSalesForConcert = project.manual_sales[concertCode] ?? {};
-        const hasValues = Object.values(manualSalesForConcert).filter((tickets) =>
-          Object.values(tickets).some((number) => number !== null)
-        );
-        if (hasValues.length > 0) {
-          Object.entries(manualSalesForConcert).forEach(([category, tickets]) => {
-            lines.push('📝 ' + category);
-            Object.entries(tickets).forEach(([ticketName, num]) => {
-              if (num !== null) {
-                manualSales = (manualSales ?? 0) + num;
-                lines.push(`  🎫 ${ticketName}: 確定${num}`);
-              }
-            });
+        Object.entries(manualSalesForConcert).forEach(([category, tickets]) => {
+          if (Object.values(tickets).every((num) => num === null)) {
+            return;
+          }
+          lines.push('📝 ' + category);
+          Object.entries(tickets).forEach(([ticketName, num]) => {
+            if (num !== null) {
+              manualSales = (manualSales ?? 0) + num;
+              lines.push(`  🎫 ${ticketName}: 確定${num}`);
+            }
           });
-        }
+        });
       }
       if (concertName !== 'デフォルト') {
         return ['🎻 ' + concertName].concat(lines.map((line) => '  ' + line));
