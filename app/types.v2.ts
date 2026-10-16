@@ -46,6 +46,14 @@ export type EventPage = {
   dealt_tickets: DealtTicket[];
 };
 
+export type ManualSales = {
+  [key: string]: {
+    [key: string]: {
+      [key: string]: number | null;
+    };
+  };
+};
+
 export type Project = {
   project_code: string;
   project_name: string;
@@ -53,5 +61,6 @@ export type Project = {
   campaigns: Campaign[];
   tickets: Ticket[];
   event_pages: EventPage[];
+  manual_sales: ManualSales;
   line_keyword: string;
 };
