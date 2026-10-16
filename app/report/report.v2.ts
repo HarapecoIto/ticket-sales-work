@@ -361,7 +361,7 @@ const createReportMain = (
     const sumWithManualSales =
       totalConfirmedNumber !== null && manualSales !== null
         ? totalConfirmedNumber + manualSales
-        : null;
+        : totalConfirmedNumber;
     return buildLine('💵', '合計', totalAppliedNumber, totalReservedNumber, sumWithManualSales);
   };
   const unique = (data: (string | undefined)[]): string[] =>
@@ -433,15 +433,20 @@ const createReportMain = (
       // 手売り情報の追加
       if (Object.keys(project).includes('manual_sales')) {
         const manualSalesForConcert = project.manual_sales[concertCode] ?? {};
-        Object.entries(manualSalesForConcert).forEach(([category, tickets]) => {
-          lines.push('📝 ' + category);
-          Object.entries(tickets).forEach(([ticketName, number]) => {
-            if (number !== null) {
-              manualSales = (manualSales ?? 0) + number;
-              lines.push(`  🎫 ${ticketName}: 確定${number}`);
-            }
+        const hasValues = Object.values(manualSalesForConcert).filter((tickets) =>
+          Object.values(tickets).some((number) => number !== null)
+        );
+        if (hasValues.length > 0) {
+          Object.entries(manualSalesForConcert).forEach(([category, tickets]) => {
+            lines.push('📝 ' + category);
+            Object.entries(tickets).forEach(([ticketName, num]) => {
+              if (num !== null) {
+                manualSales = (manualSales ?? 0) + num;
+                lines.push(`  🎫 ${ticketName}: 確定${num}`);
+              }
+            });
           });
-        });
+        }
       }
       if (concertName !== 'デフォルト') {
         return ['🎻 ' + concertName].concat(lines.map((line) => '  ' + line));
