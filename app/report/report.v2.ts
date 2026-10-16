@@ -361,7 +361,7 @@ const createReportMain = (
     const sumWithManualSales =
       totalConfirmedNumber !== null && manualSales !== null
         ? totalConfirmedNumber + manualSales
-        : null;
+        : totalConfirmedNumber;
     return buildLine('💵', '合計', totalAppliedNumber, totalReservedNumber, sumWithManualSales);
   };
   const unique = (data: (string | undefined)[]): string[] =>
@@ -434,11 +434,14 @@ const createReportMain = (
       if (Object.keys(project).includes('manual_sales')) {
         const manualSalesForConcert = project.manual_sales[concertCode] ?? {};
         Object.entries(manualSalesForConcert).forEach(([category, tickets]) => {
+          if (Object.values(tickets).every((num) => num === null)) {
+            return;
+          }
           lines.push('📝 ' + category);
-          Object.entries(tickets).forEach(([ticketName, number]) => {
-            if (number !== null) {
-              manualSales = (manualSales ?? 0) + number;
-              lines.push(`  🎫 ${ticketName}: 確定${number}`);
+          Object.entries(tickets).forEach(([ticketName, num]) => {
+            if (num !== null) {
+              manualSales = (manualSales ?? 0) + num;
+              lines.push(`  🎫 ${ticketName}: 確定${num}`);
             }
           });
         });
