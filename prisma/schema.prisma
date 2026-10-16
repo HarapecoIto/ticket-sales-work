@@ -11,6 +11,7 @@ model line_group_event_relations {
   source_id  String
   event_code String
   ciel_id    String
+  memo       String?
 
   @@id([ciel_id, source_id, event_code])
 }
@@ -19,6 +20,7 @@ model line_project_relations_v2 {
   source_id    String
   project_code String
   ciel_id      String
+  memo         String?
 
   @@id([ciel_id, source_id, project_code])
 }
@@ -36,6 +38,7 @@ model asana_tasks {
   task_id    String
   event_code String
   ciel_id    String
+  memo       String?
 
   @@id([ciel_id, task_id, event_code])
 }
@@ -44,6 +47,7 @@ model asana_tasks_v2 {
   task_id    String
   event_code String
   ciel_id    String
+  memo       String?
 
   @@id([ciel_id, task_id, event_code])
 }

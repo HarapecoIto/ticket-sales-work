@@ -327,7 +327,10 @@ const createReportMain = (
     if (confirmed !== null) numbers.push(`確定${confirmed}`);
     return numbers.length > 0 ? icon + ' ' + ticket + ': ' + numbers.join(', ') : undefined;
   };
-  const buildTotalLine = (records: ExtendedDailyTicketSales[]): string | undefined => {
+  const buildTotalLine = (
+    records: ExtendedDailyTicketSales[],
+    manualSales: number | null
+  ): string | undefined => {
     const totalAppliedNumber = records.reduce(
       (acc: number | null, record: ExtendedDailyTicketSales) => {
         if (record.applied_number !== null) {
@@ -355,12 +358,17 @@ const createReportMain = (
       },
       null
     );
-    return buildLine('💵', '合計', totalAppliedNumber, totalReservedNumber, totalConfirmedNumber);
+    const sumWithManualSales =
+      totalConfirmedNumber !== null && manualSales !== null
+        ? totalConfirmedNumber + manualSales
+        : null;
+    return buildLine('💵', '合計', totalAppliedNumber, totalReservedNumber, sumWithManualSales);
   };
   const unique = (data: (string | undefined)[]): string[] =>
     Array.from(new Set(data.filter((d): d is string => d !== undefined)));
 
   const concertCodes = unique(dealtTickets.map((dt) => dt.concert_code));
+  let manualSales: number | null = null;
   const lines = concertCodes
     .map((concertCode) => {
       const campaignCodes = unique(
@@ -422,6 +430,19 @@ const createReportMain = (
       const concertName = project.concerts.find(
         (c: Concert) => c.concert_code === concertCode
       )?.concert_name;
+      // 手売り情報の追加
+      if (Object.keys(project).includes('manual_sales')) {
+        const manualSalesForConcert = project.manual_sales[concertCode] ?? {};
+        Object.entries(manualSalesForConcert).forEach(([category, tickets]) => {
+          lines.push('📝 ' + category);
+          Object.entries(tickets).forEach(([ticketName, number]) => {
+            if (number !== null) {
+              manualSales = (manualSales ?? 0) + number;
+              lines.push(`  🎫 ${ticketName}: 確定${number}`);
+            }
+          });
+        });
+      }
       if (concertName !== 'デフォルト') {
         return ['🎻 ' + concertName].concat(lines.map((line) => '  ' + line));
       }
@@ -430,7 +451,7 @@ const createReportMain = (
     .flat();
 
   // 合計販売数
-  const totalLine = buildTotalLine(records);
+  const totalLine = buildTotalLine(records, manualSales);
   if (totalLine !== undefined) {
     lines.push(totalLine);
   }
