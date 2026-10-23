@@ -375,8 +375,7 @@ const createReportMain = (
         !omitPastDays ||
         concert.start_datetime.getTime() >= new Date().getTime() - 24 * 60 * 60 * 1000
     )
-    .map((concert) => concert.concert_code)
-    .filter((concertCode) => dealtTickets.some((dt) => dt.concert_code === concertCode));
+    .map((concert) => concert.concert_code);
 
   // すべての公演が終了したプロジェクト
   if (concertCodes.length === 0) {
