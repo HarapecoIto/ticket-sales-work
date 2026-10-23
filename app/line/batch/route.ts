@@ -54,8 +54,9 @@ const execute = async (): Promise<string> => {
     console.log(`[cron] Fetched project codes for task ${sourceId}: ${projectCodes.join(', ')}`);
     const reports: string[] = await createReports(projects, true);
     console.log(reports.join('\n'));
-
-    await sendMessage(sourceId, reports.join('\n'));
+    if (reports.length > 0) {
+      await sendMessage(sourceId, reports.join('\n'));
+    }
     console.log(`[cron] Created reports for task ${sourceId}`);
   }
   console.log(`[cron] Fetched LINE source IDs: ${sourceIds.join(', ')}`);

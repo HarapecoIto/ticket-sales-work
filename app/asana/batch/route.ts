@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { parseProject } from '@/app/types.v2';
 import { createReports } from '@/app/report/report.v2';
+import { report } from 'process';
 
 const isAuthorized = (request: NextRequest): boolean => {
   const isGuarded = process.env.VERCEL_ENV === 'production' || process.env.VERCEL_ENV === 'preview';
@@ -63,7 +64,9 @@ const execute = async (): Promise<string> => {
     const reports: string[] = await createReports(projects, true);
     console.log(reports.join('\n'));
 
-    await sendMessage(task.task_id, reports.join('\n'));
+    if (reports.length > 0) {
+      await sendMessage(task.task_id, reports.join('\n'));
+    }
     console.log(`[cron] Created reports for task ${task.task_id}`);
   }
   console.log(`[cron] Fetched Asana tasks: ${asanaTasks.map((t) => t.task_id).join(', ')}`);
