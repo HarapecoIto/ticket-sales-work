@@ -85,7 +85,7 @@ export const parseProject = (data: string): Project | undefined => {
           'confirmed_date',
         ];
         if (dateKeys.includes(key)) {
-          return new Date(value);
+          return value ? new Date(value) : null;
         }
         return value;
       })
