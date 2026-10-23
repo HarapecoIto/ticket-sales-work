@@ -10,7 +10,9 @@ const main = async () => {
     console.log('No project found.');
     return;
   }
-  const projects: Project[] = records.map((record) => parseProject(record.meta_info));
+  const projects: Project[] = records
+    .map((record) => parseProject(record.meta_info))
+    .filter((p): p is Project => !!p);
   projects.sort((a: Project, b: Project) => {
     const lastConcertA = a.concerts[a.concerts.length - 1];
     const lastConcertB = b.concerts[b.concerts.length - 1];
