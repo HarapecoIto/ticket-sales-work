@@ -378,6 +378,11 @@ const createReportMain = (
     .map((concert) => concert.concert_code)
     .filter((concertCode) => dealtTickets.some((dt) => dt.concert_code === concertCode));
 
+  // すべての公演が終了したプロジェクト
+  if (concertCodes.length === 0) {
+    return [];
+  }
+
   let manualSales: number | null = null;
   const lines = concertCodes
     .map((concertCode) => {
@@ -530,8 +535,14 @@ export const createReports = async (
     }
   });
 
-  const reports: string[] = await Promise.all(
-    projects.map(async (project) => (await createReport(project, omitPastDays)).concat(['']))
-  ).then((reports) => reports.flat());
-  return reports.length > 0 && reports[reports.length - 1] == '' ? reports.slice(0, -1) : reports;
+  const reports: string[] = await (
+    await Promise.all(projects.map(async (project) => await createReport(project, omitPastDays)))
+  )
+    .filter((report: string[]): boolean => report.length > 0)
+    .map((report: string[]) => report.concat(['']))
+    .flat();
+  if (reports.length > 0) {
+    reports.pop();
+  }
+  return reports;
 };
