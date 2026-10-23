@@ -73,10 +73,25 @@ const Project = z.object({
 });
 export type Project = z.infer<typeof Project>;
 
-export const parseProject = (data: string | object): Project | undefined => {
+export const parseProject = (data: string): Project | undefined => {
   try {
-    return Project.parse(typeof data === 'string' ? JSON.parse(data) : data);
-  } catch {
+    return Project.parse(
+      JSON.parse(data, (key, value) => {
+        const dateKeys = [
+          'start_datetime',
+          'application_deadline',
+          'lottery_date',
+          'payment_deadline',
+          'confirmed_date',
+        ];
+        if (dateKeys.includes(key)) {
+          return new Date(value);
+        }
+        return value;
+      })
+    );
+  } catch (e) {
+    console.error('Failed to parse project data:', data, e);
     return undefined;
   }
 };
