@@ -20,9 +20,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ ok: false, message: 'Unauthorized' }, { status: 401 });
   }
   try {
-    const json = await request.json();
-    const dataString = JSON.stringify(json);
-    const project: Project | undefined = parseProject(json);
+    const dataString = await request.text();
+    const project: Project | undefined = parseProject(dataString);
     if (!project) {
       return NextResponse.json({ ok: false, message: 'Invalid project data' }, { status: 400 });
     }
@@ -47,7 +46,7 @@ export async function POST(request: NextRequest) {
       },
     });
     console.log('Scraping trigger created:', created);
-    return NextResponse.json({ ok: true, data: json }, { status: 200 });
+    return NextResponse.json({ ok: true, data: project }, { status: 200 });
   } catch (error) {
     console.error('Error in trigger route:', error);
     return NextResponse.json({ ok: false, message: 'Internal Server Error' }, { status: 500 });
