@@ -1,17 +1,15 @@
 import { messagingApi } from '@line/bot-sdk';
-import { type Tour } from '@/app/types';
-import TOURS from '@/app/definitions/definitions';
+import { type Project } from '@/app/types.v2';
 
-export const unlinkSelectorMessage = (eventCodes: string[]): messagingApi.Message => {
-  const actions: messagingApi.PostbackAction[] = eventCodes.map((eventCode) => {
-    const tour: Tour | undefined = TOURS.find((d) => d.event_code === eventCode);
-    const displayName = tour?.display_name || eventCode;
+export const unlinkSelectorMessage = (projects: Project[]): messagingApi.Message => {
+  const actions: messagingApi.PostbackAction[] = projects.map((project) => {
+    const displayName = project.project_name;
     const label = displayName.length > 20 ? displayName.slice(0, 17) + '...' : displayName;
     return {
       type: 'postback',
       label,
       displayText: label,
-      data: `action=unlink&event_code=${encodeURIComponent(eventCode || '')}`,
+      data: `action=unlink&event_code=${encodeURIComponent(project.project_code)}`,
     };
   });
   const columns: messagingApi.CarouselColumn[] = [];
