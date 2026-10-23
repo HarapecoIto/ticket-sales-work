@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { Project } from '@/app/types.v2.js';
+import { type Project, parseProject } from '@/app/types.v2';
 
 const isAuthorized = (request: NextRequest): boolean => {
   const isGuarded = process.env.VERCEL_ENV === 'production' || process.env.VERCEL_ENV === 'preview';
@@ -21,8 +21,12 @@ export async function POST(request: NextRequest) {
   }
   try {
     const json = await request.json();
-    const project: Project = json as Project;
-    const dataString = JSON.stringify(project);
+    const dataString = JSON.stringify(json);
+    const project: Project | undefined = parseProject(json);
+    if (!project) {
+      return NextResponse.json({ ok: false, message: 'Invalid project data' }, { status: 400 });
+    }
+
     const created = await prisma.scraping_triggered.create({
       data: {
         project_code: project.project_code,

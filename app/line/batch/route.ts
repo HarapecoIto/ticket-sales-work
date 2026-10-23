@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { parseProject } from '@/app/types.v2';
+import { parseProject, Project } from '@/app/types.v2';
 import { createReports } from '@/app/report/report.v2';
 import { messagingApi } from '@line/bot-sdk';
 
@@ -46,11 +46,13 @@ const execute = async (): Promise<string> => {
         distinct: ['project_code'],
       })
     ).map((p) => p.project_code);
-    const projects = (
+    const projects: Project[] = (
       await prisma.projects.findMany({
         where: { project_code: { in: projectCodes } },
       })
-    ).map((p) => parseProject(p.meta_info));
+    )
+      .map((p) => parseProject(p.meta_info))
+      .filter((p): p is Project => !!p);
     console.log(`[cron] Fetched project codes for task ${sourceId}: ${projectCodes.join(', ')}`);
     const reports: string[] = await createReports(projects, true);
     console.log(reports.join('\n'));

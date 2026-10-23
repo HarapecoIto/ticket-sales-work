@@ -1,75 +1,82 @@
-export type Concert = {
-  concert_code: string;
-  concert_name: string;
-  start_datetime: Date;
-};
+import { z } from 'zod';
 
-export type Campaign = {
-  campaign_code: string;
-  campaign_name: string;
-};
+const Concert = z.object({
+  concert_code: z.string(),
+  concert_name: z.string(),
+  start_datetime: z.date(),
+});
+export type Concert = z.infer<typeof Concert>;
 
-export type Ticket = {
-  ticket_code: string;
-  concert_code: string;
-  ticket_name: string;
-};
+const Campaign = z.object({
+  campaign_code: z.string(),
+  campaign_name: z.string(),
+});
+export type Campaign = z.infer<typeof Campaign>;
 
-export type Assignment = {
-  ticket_code: string;
-  assigned_number: number;
-  internal_ticket_name: string;
-};
+const Ticket = z.object({
+  ticket_code: z.string(),
+  concert_code: z.string(),
+  ticket_name: z.string(),
+});
+export type Ticket = z.infer<typeof Ticket>;
 
-export type Reception = {
-  reception: string;
-  campaign_code: string;
-  reception_type: '抽選販売' | '先着販売';
-  application_deadline: Date | null;
-  lottery_date: Date | null;
-  payment_deadline: Date | null;
-  confirmed_date: Date | null;
-};
+const Assignment = z.object({
+  ticket_code: z.string(),
+  assigned_number: z.number(),
+  internal_ticket_name: z.string(),
+});
+export type Assignment = z.infer<typeof Assignment>;
 
-export type DealtTicket = {
-  reception: string;
-  ticket_code: string;
-};
+const Reception = z.object({
+  reception: z.string(),
+  campaign_code: z.string(),
+  reception_type: z.enum(['抽選販売', '先着販売']),
+  application_deadline: z.date().nullable(),
+  lottery_date: z.date().nullable(),
+  payment_deadline: z.date().nullable(),
+  confirmed_date: z.date().nullable(),
+});
+export type Reception = z.infer<typeof Reception>;
 
-export type EventPage = {
-  event_page_code: string;
-  event_page_name: string;
-  playguide: 'イープラス' | 'ぴあ' | 'ローソンチケット' | 'teket';
-  playguide_meta_info: string;
-  assignments: Assignment[];
-  receptions: Reception[];
-  dealt_tickets: DealtTicket[];
-};
+const DealtTicket = z.object({
+  reception: z.string(),
+  ticket_code: z.string(),
+});
+export type DealtTicket = z.infer<typeof DealtTicket>;
 
-export type ManualSales = {
-  [key: string]: {
-    [key: string]: {
-      [key: string]: number | null;
-    };
-  };
-};
+const EventPage = z.object({
+  event_page_code: z.string(),
+  event_page_name: z.string(),
+  playguide: z.enum(['イープラス', 'ぴあ', 'ローソンチケット', 'teket']),
+  playguide_meta_info: z.string(),
+  assignments: z.array(Assignment),
+  receptions: z.array(Reception),
+  dealt_tickets: z.array(DealtTicket),
+});
+export type EventPage = z.infer<typeof EventPage>;
 
-export type Project = {
-  project_code: string;
-  project_name: string;
-  concerts: Concert[];
-  campaigns: Campaign[];
-  tickets: Ticket[];
-  event_pages: EventPage[];
-  manual_sales: ManualSales;
-  line_keyword: string;
-};
+const ManualSales = z.record(
+  z.string(),
+  z.record(z.string(), z.record(z.string(), z.number().nullable()))
+);
+export type ManualSales = z.infer<typeof ManualSales>;
 
-export const parseProject = (data: string): Project =>
-  JSON.parse(data, (key, value) => {
-    const dateKeys = ['start_datetime', 'lottery_date', 'payment_deadline', 'confirmed_date'];
-    if (dateKeys.includes(key)) {
-      return new Date(value);
-    }
-    return value;
-  }) as Project;
+const Project = z.object({
+  project_code: z.string(),
+  project_name: z.string(),
+  concerts: z.array(Concert),
+  campaigns: z.array(Campaign),
+  tickets: z.array(Ticket),
+  event_pages: z.array(EventPage),
+  manual_sales: ManualSales,
+  line_keyword: z.string(),
+});
+export type Project = z.infer<typeof Project>;
+
+export const parseProject = (data: string | object): Project | undefined => {
+  try {
+    return Project.parse(typeof data === 'string' ? JSON.parse(data) : data);
+  } catch {
+    return undefined;
+  }
+};

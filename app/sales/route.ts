@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { Project } from '@/app/types.v2.js';
+import { type Project, parseProject } from '@/app/types.v2';
 import { getSalesData } from '@/app/report/report.v2';
 
 const isAuthorized = (request: NextRequest): boolean => {
@@ -22,8 +22,12 @@ export async function POST(request: NextRequest) {
   }
   try {
     const json = await request.json();
-    const project: Project = json as Project;
-    const dataString = JSON.stringify(project);
+    const dataString = JSON.stringify(json);
+    const project: Project | undefined = parseProject(json);
+    if (!project) {
+      return NextResponse.json({ ok: false, message: 'Invalid project data' }, { status: 400 });
+    }
+
     await prisma.projects.upsert({
       where: { project_code: project.project_code },
       update: {

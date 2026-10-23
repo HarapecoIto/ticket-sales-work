@@ -21,7 +21,9 @@ export const notificator = async (
           where: { project_code: { in: projectCodes } },
           select: { meta_info: true },
         })
-      ).map((project) => parseProject(project.meta_info));
+      )
+        .map((p) => parseProject(p.meta_info))
+        .filter((p): p is Project => !!p);
       const reports: string[] = await createReports(projects, true);
       return reports.length > 0
         ? [{ type: 'text', text: reports.join('\n') }]
