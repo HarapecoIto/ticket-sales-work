@@ -64,3 +64,12 @@ export type Project = {
   manual_sales: ManualSales;
   line_keyword: string;
 };
+
+export const parseProject = (data: string): Project =>
+  JSON.parse(data, (key, value) => {
+    const dateKeys = ['start_datetime', 'lottery_date', 'payment_deadline', 'confirmed_date'];
+    if (dateKeys.includes(key)) {
+      return new Date(value);
+    }
+    return value;
+  }) as Project;
