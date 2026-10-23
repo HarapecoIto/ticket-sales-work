@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
     });
 
     const sales = await getSalesData(project);
-    return NextResponse.json({ ok: true, data: { project: json, sales } }, { status: 200 });
+    return NextResponse.json({ ok: true, data: { project, sales } }, { status: 200 });
   } catch (error) {
     console.error('Error in trigger route:', error);
     return NextResponse.json({ ok: false, message: 'Internal Server Error' }, { status: 500 });
