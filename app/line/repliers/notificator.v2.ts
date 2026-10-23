@@ -1,7 +1,7 @@
 import prisma from '@/lib/prisma';
 import { messagingApi, webhook } from '@line/bot-sdk';
-import { createReport } from '@/app/report/report.v2';
-import { Project } from '@/app/types.v2';
+import { createReports } from '@/app/report/report.v2';
+import { Project, parseProject } from '@/app/types.v2';
 
 export const notificator = async (
   sourceId: string,
@@ -16,19 +16,16 @@ export const notificator = async (
           where: { ciel_id: process.env.CIEL_ID, source_id: sourceId },
         })
       ).map((r) => r.project_code);
-      const projects = (
+      const projects: Project[] = (
         await prisma.projects.findMany({
           where: { project_code: { in: projectCodes } },
           select: { meta_info: true },
         })
-      ).map((project) => JSON.parse(project.meta_info) as Project);
-      const messages: messagingApi.Message[] = [];
-      for (const project of projects) {
-        const lines: string[] = await createReport(project);
-        const message = lines.join('\n');
-        messages.push({ type: 'text', text: message });
-      }
-      return messages.length > 0 ? messages : [{ type: 'text', text: 'お知らせはないぴょ' }];
+      ).map((project) => parseProject(project.meta_info));
+      const reports: string[] = await createReports(projects, true);
+      return reports.length > 0
+        ? [{ type: 'text', text: reports.join('\n') }]
+        : [{ type: 'text', text: 'お知らせはないぴょ' }];
     }
   }
   return null;

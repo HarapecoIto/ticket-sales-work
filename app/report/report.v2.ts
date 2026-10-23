@@ -312,7 +312,8 @@ export const getSalesData = async (
 const createReportMain = (
   project: Project,
   dealtTickets: ExtendedDealtTicket[],
-  records: ExtendedDailyTicketSales[]
+  records: ExtendedDailyTicketSales[],
+  omitPastDays: boolean
 ): string[] => {
   const buildLine = (
     icon: string,
@@ -367,7 +368,21 @@ const createReportMain = (
   const unique = (data: (string | undefined)[]): string[] =>
     Array.from(new Set(data.filter((d): d is string => d !== undefined)));
 
-  const concertCodes = unique(dealtTickets.map((dt) => dt.concert_code));
+  const concertCodes = project.concerts
+    .filter(
+      // 開演から24h以上経過した公演を無視する場合
+      (concert) =>
+        !omitPastDays ||
+        concert.start_datetime.getTime() >= new Date().getTime() - 24 * 60 * 60 * 1000
+    )
+    .map((concert) => concert.concert_code)
+    .filter((concertCode) => dealtTickets.some((dt) => dt.concert_code === concertCode));
+
+  // すべての公演が終了したプロジェクト
+  if (concertCodes.length === 0) {
+    return [];
+  }
+
   let manualSales: number | null = null;
   const lines = concertCodes
     .map((concertCode) => {
@@ -475,7 +490,7 @@ const createReportMain = (
   return lines;
 };
 
-export const createReport = async (project: Project): Promise<string[]> => {
+export const createReport = async (project: Project, omitPastDays: boolean): Promise<string[]> => {
   // 各イベントページにおける取扱いチケットの情報を取得
   const dealtTickets: ExtendedDealtTicket[] = getDealtTickets(project);
 
@@ -486,5 +501,48 @@ export const createReport = async (project: Project): Promise<string[]> => {
   );
 
   // レポートの作成
-  return createReportMain(project, dealtTickets, dailySales);
+  return createReportMain(project, dealtTickets, dailySales, omitPastDays);
+};
+
+export const createReports = async (
+  projects: Project[],
+  omitPastDays: boolean
+): Promise<string[]> => {
+  // 重要な順ソート
+  projects.sort((a, b) => {
+    const firstConcertA = a.concerts.find(
+      (concert) => concert.start_datetime.getTime() > new Date().getTime() - 24 * 60 * 60 * 1000
+    );
+    const firstConcertB = b.concerts.find(
+      (concert) => concert.start_datetime.getTime() > new Date().getTime() - 24 * 60 * 60 * 1000
+    );
+    if (firstConcertA && firstConcertB) {
+      if (firstConcertA.start_datetime == firstConcertB.start_datetime) {
+        return 0;
+      }
+      return firstConcertA.start_datetime > firstConcertB.start_datetime ? 1 : -1;
+    } else if (firstConcertA) {
+      return 1;
+    } else if (firstConcertB) {
+      return -1;
+    } else {
+      const lastConcertA = a.concerts[a.concerts.length - 1];
+      const lastConcertB = b.concerts[b.concerts.length - 1];
+      if (lastConcertA.start_datetime == lastConcertB.start_datetime) {
+        return 0;
+      }
+      return lastConcertA.start_datetime > lastConcertB.start_datetime ? 1 : -1;
+    }
+  });
+
+  const reports: string[] = await (
+    await Promise.all(projects.map(async (project) => await createReport(project, omitPastDays)))
+  )
+    .filter((report: string[]): boolean => report.length > 0)
+    .map((report: string[]) => report.concat(['']))
+    .flat();
+  if (reports.length > 0) {
+    reports.pop();
+  }
+  return reports;
 };

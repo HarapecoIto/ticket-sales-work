@@ -1,5 +1,5 @@
 import prisma from '@/lib/prisma.js';
-import { Project } from '@/app/types.v2.js';
+import { Project, parseProject } from '@/app/types.v2.js';
 import { createReport } from '@/app/report/report.v2.js';
 
 const main = async () => {
@@ -10,7 +10,7 @@ const main = async () => {
     console.log('No project found.');
     return;
   }
-  const projects: Project[] = records.map((record) => JSON.parse(record.meta_info) as Project);
+  const projects: Project[] = records.map((record) => parseProject(record.meta_info));
   projects.sort((a: Project, b: Project) => {
     const lastConcertA = a.concerts[a.concerts.length - 1];
     const lastConcertB = b.concerts[b.concerts.length - 1];
@@ -25,7 +25,7 @@ const main = async () => {
     if (lastConcert.start_datetime < new Date()) {
       continue;
     }
-    const lines: string[] = await createReport(project);
+    const lines: string[] = await createReport(project, true);
     console.log(lines.join('\n') + '\n');
   }
 };

@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import TOURS from '@/app/definitions/definitions';
-import { createReport } from '@/app/report/report';
+import { parseProject } from '@/app/types.v2';
+import { createReports } from '@/app/report/report.v2';
+import { report } from 'process';
 
 const isAuthorized = (request: NextRequest): boolean => {
   const isGuarded = process.env.VERCEL_ENV === 'production' || process.env.VERCEL_ENV === 'preview';
@@ -16,62 +17,60 @@ const isAuthorized = (request: NextRequest): boolean => {
   return authHeader === `Bearer ${cronSecret}`;
 };
 
-const isTarget = (dateAt: Date): boolean => {
-  // 日付を比較するのためにUTCの0:00:00に変換して比較する
-  const nextDay = new Date(dateAt);
-  nextDay.setDate(nextDay.getDate() + 1);
-  nextDay.setUTCHours(0, 0, 0, 0);
-  const today = new Date();
-  today.setUTCHours(0, 0, 0, 0);
-  return today <= nextDay;
+const sendMessage = async (taskId: string, message: string) => {
+  try {
+    const url = `https://app.asana.com/api/1.0/tasks/${taskId}/stories`;
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${process.env.ASANA_ACCESS_TOKEN}`,
+      },
+      body: JSON.stringify({
+        data: { text: message },
+      }),
+    });
+    if (!response.ok) {
+      console.error(`Failed to post comment to Asana task ${taskId}:`, await response.text());
+    }
+  } catch (error) {
+    console.error(`Error pushing message for task ID ${taskId}:`, error);
+  }
 };
 
 const execute = async (): Promise<string> => {
-  let messagesSent = 0;
-  for (const tour of TOURS) {
-    // 過去の公演はスキップ
-    if (
-      !tour.concerts.some((concert): boolean => {
-        return isTarget(new Date(concert.date_at));
+  const asanaTasks = await prisma.asana_tasks_v2.findMany({
+    where: { ciel_id: process.env.CIEL_ID },
+    select: { task_id: true },
+    distinct: ['task_id'],
+  });
+  for (const task of asanaTasks) {
+    console.log(`[cron] Fetched Asana task: ${task.task_id}`);
+    const projectCodes = (
+      await prisma.asana_tasks_v2.findMany({
+        where: { ciel_id: process.env.CIEL_ID, task_id: task.task_id },
+        select: { project_code: true },
+        distinct: ['project_code'],
       })
-    ) {
-      continue;
+    ).map((p) => p.project_code);
+    const projects = (
+      await prisma.projects.findMany({
+        where: { project_code: { in: projectCodes } },
+      })
+    ).map((p) => parseProject(p.meta_info));
+    console.log(
+      `[cron] Fetched project codes for task ${task.task_id}: ${projectCodes.join(', ')}`
+    );
+    const reports: string[] = await createReports(projects, true);
+    console.log(reports.join('\n'));
+
+    if (reports.length > 0) {
+      await sendMessage(task.task_id, reports.join('\n'));
     }
-    const taskIds = await prisma.asana_tasks
-      .findMany({ where: { ciel_id: process.env.CIEL_ID, event_code: tour.event_code } })
-      .then((relations) => relations.map((r) => r.task_id))
-      .catch((error) => {
-        console.error(`Error fetching task IDs for event code ${tour.event_code}:`, error);
-        return [];
-      });
-    if (taskIds.length > 0) {
-      const message: string = await createReport(tour.event_code);
-      console.log(`[cron] sending: ${message}`);
-      for (const taskId of taskIds) {
-        try {
-          const url = `https://app.asana.com/api/1.0/tasks/${taskId}/stories`;
-          const response = await fetch(url, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${process.env.ASANA_ACCESS_TOKEN}`,
-            },
-            body: JSON.stringify({
-              data: { text: message },
-            }),
-          });
-          if (!response.ok) {
-            console.error(`Failed to post comment to Asana task ${taskId}:`, await response.text());
-          }
-        } catch (error) {
-          console.error(`Error pushing message for task ID ${taskId}:`, error);
-        }
-      }
-      messagesSent += taskIds.length;
-    }
+    console.log(`[cron] Created reports for task ${task.task_id}`);
   }
-  console.log(`[cron] post-asana: ${messagesSent} messages sent`);
-  return `[cron] post-asana: ${messagesSent} messages sent`;
+  console.log(`[cron] Fetched Asana tasks: ${asanaTasks.map((t) => t.task_id).join(', ')}`);
+  return `Fetched ${asanaTasks.length} Asana tasks`;
 };
 
 export async function GET(request: NextRequest) {
