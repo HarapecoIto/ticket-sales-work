@@ -3,7 +3,6 @@ import { messagingApi, webhook } from '@line/bot-sdk';
 import crypto from 'crypto';
 import { notificator } from '@/app/line/repliers/notificator.v2';
 import { linker } from '@/app/line/repliers/linker';
-import { unlinker } from '@/app/line/repliers/unlinker';
 
 export const runtime = 'nodejs';
 
@@ -88,14 +87,7 @@ const handleEvent = async (
   }
 
   // アンリンクの会話
-  const unlinkMessages: messagingApi.Message[] | null = await unlinker(sourceId, event);
-  if (unlinkMessages) {
-    await client.replyMessage({
-      replyToken,
-      messages: await unlinkMessages,
-    });
-    return;
-  }
+  // TODO: Implement unlinker handling
 };
 
 export async function GET() {

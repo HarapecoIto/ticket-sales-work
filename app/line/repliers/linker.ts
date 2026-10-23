@@ -1,7 +1,8 @@
 import prisma from '@/lib/prisma';
 import { messagingApi, webhook } from '@line/bot-sdk';
-import { ConversationState } from '@/app/types';
 import { type Project } from '@/app/types.v2';
+
+const WAITING_STATUS = 'waiting_for_project_code_for_linking';
 
 export const linker = async (
   sourceId: string,
@@ -31,16 +32,16 @@ export const linker = async (
       // 会話ステートを更新する
       await prisma.conversation_states.upsert({
         where: { ciel_id_source_id: { ciel_id: process.env.CIEL_ID, source_id: sourceId } },
-        update: { state: ConversationState.WaitingForEventCodeForLinking, updated_at: new Date() },
+        update: { state: WAITING_STATUS, updated_at: new Date() },
         create: {
           ciel_id: process.env.CIEL_ID,
           source_id: sourceId,
-          state: ConversationState.WaitingForEventCodeForLinking,
+          state: WAITING_STATUS,
           updated_at: new Date(),
         },
       });
       return [{ type: 'text', text: 'チケッティングデスクから発行された合言葉を教えてぴょ' }];
-    } else if (state?.state === ConversationState.WaitingForEventCodeForLinking) {
+    } else if (state?.state === WAITING_STATUS) {
       // ここで会話を終了する
       await prisma.conversation_states.delete({
         where: { ciel_id_source_id: { ciel_id: process.env.CIEL_ID, source_id: sourceId } },
