@@ -48,7 +48,6 @@ const EventPage = z.object({
   event_page_code: z.string(),
   event_page_name: z.string(),
   playguide: z.enum(['イープラス', 'ぴあ', 'ローソンチケット', 'teket']),
-  playguide_meta_info: z.string(),
   assignments: z.array(Assignment),
   receptions: z.array(Reception),
   dealt_tickets: z.array(DealtTicket),
