@@ -22,7 +22,7 @@ export type Ticket = z.infer<typeof Ticket>;
 
 const Assignment = z.object({
   ticket_code: z.string(),
-  assigned_number: z.number(),
+  assigned_number: z.number().nullable(),
   internal_ticket_name: z.string(),
 });
 export type Assignment = z.infer<typeof Assignment>;
